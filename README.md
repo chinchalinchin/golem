@@ -4,8 +4,9 @@
 
 Current AI in *DOOM* relies on finite state machines (FSMs) written in the 90s. While functional, they are predictable and stateless. Golem aims to replace these static heuristics with **Neural Circuit Policies (NCPs)**—biologically inspired neural networks that model time as a continuous flow rather than discrete ticks.
 
-Unlike Large Language Models (LLMs) which hallucinate state, or traditional Reinforcement Learning (RL) which requires millions of training steps, LNNs are:
 
+
+Unlike Large Language Models (LLMs) which hallucinate state, or traditional Reinforcement Learning (RL) which requires millions of training steps, LNNs are:
 * **Causal:** They learn cause-and-effect relationships in noisy environments.
 * **Compact:** Runnable on consumer hardware with minimal latency (<20ms).
 * **Continuous:** They handle the variable time-steps of a game engine natively.
@@ -14,21 +15,24 @@ Unlike Large Language Models (LLMs) which hallucinate state, or traditional Rein
 
 ## 🏗 Architecture
 
-The project follows a strict ETL (Extract, Transform, Load) pipeline pattern to ensure data integrity and reproducibility.
+The project follows a strict ETL (Extract, Transform, Load) pipeline pattern.
 
 ```text
 /golem
-├── conf/               # Centralized Configuration (YAML + CFG)
-│   ├── app.yaml        # Application settings (logging, paths, hyperparameters)
+├── conf/               # Centralized Configuration
+│   ├── app.yaml        # App settings (hyperparameters, paths)
 │   └── custom.cfg      # ViZDoom engine constraints
-├── data/               # Artifact Storage
-│   └── *.npz           # Normalized training tensors (frames + actions)
+├── data/               # Data Storage
+│   ├── *.npz           # Training Tensors
+│   └── golem_brain.pth # Trained Model Weights
 ├── app/                # Source Code
-│   ├── record.py       # ETL: Capture human gameplay -> Tensor
-│   ├── inspect.py      # QA: Analyze class balance and tensor shapes
+│   ├── record.py       # ETL: Capture gameplay -> Tensor
+│   ├── dataset.py      # Stream: Sliding window time-series loader
 │   ├── brain.py        # Model: CNN + Liquid CfC Architecture
-│   └── config.py       # Pydantic schema for type-safe config
+│   ├── train.py        # Spark: Behavioral Cloning Loop
+│   └── run.py          # Body: Live Inference Engine
 └── main.py             # CLI Entrypoint
+
 ```
 
 ## 🚀 Setup
@@ -42,70 +46,84 @@ source ./.venv/bin/activate
 
 # 2. Install Dependencies
 pip install -r requirements.txt
+
 ```
 
 ## 🛠 Usage
 
-All interactions are handled via the `main.py` CLI.
-
 ### 1. Configure
 
-Edit `conf/app.yaml` to adjust resolution, logging levels, or storage paths.
+Edit `conf/app.yaml` to adjust hyperparameters or resolution.
+Edit `conf/custom.cfg` to modify the available button definitions.
 
-Edit `conf/custom.cfg` to modify the DOOM engine parameters (rendering flags, available buttons).
+### 2. Record (The Eyes)
 
-### 2. Extract Data (Record)
-
-Launch the engine in **Spectator Mode**. The agent records your inputs and the raw pixel buffer, transforming them into normalized tensors.
+Launch the engine in Spectator Mode to capture training data.
 
 ```bash
 python main.py record
+
 ```
 
-* **Controls:** `W` (Attack), `A` (Left), `D` (Right), `Space` (Attack).
-* **Output:** Saved to `data/doom_training_data_X.npz`.
+*Controls:* `W` (Attack), `A` (Left), `D` (Right), `Space` (Attack).
 
-### 3. Quality Assurance (Inspect)
+### 3. Inspect (QA)
 
-Before training, verify your dataset isn't biased toward inaction (Idling).
+Verify your dataset is balanced and normalized.
 
 ```bash
 python main.py inspect
+
 ```
 
-* **Checks:** Tensor normalization (0-1), Action distribution, Idle percentage.
+### 4. Train (The Spark)
+
+Run the training loop to create a `.pth` model file.
+
+```bash
+python main.py train
+
+```
+
+*Note: On Apple Silicon (M1/M2/M3/M4), this automatically uses Metal Performance Shaders (MPS).*
+
+### 5. Run (The Body)
+
+Watch the LNN play the game live.
+
+```bash
+python main.py run
+
+```
 
 ---
 
 ## 🗺 Roadmap
 
-This is a hallowed tradition. We do not ship spaghetti code.
-
 ### Phase 1: The Foundation (Completed) ✅
 
 * [x] **ETL Pipeline:** Robust recording of pixel buffers and input vectors.
 * [x] **Engine Bridge:** ViZDoom integration with custom `cfg` injection.
-* [x] **Data Sanitation:** Automated inspection tools to detect class imbalance.
+* [x] **Data Sanitation:** Automated inspection tools.
 * [x] **Architecture:** Modular, config-driven Python application.
 
-### Phase 2: The Brain (In Progress) 🧠
+### Phase 2: The Brain (Completed) ✅
 
-* [ ] **Dataset Class:** Implement a PyTorch `IterableDataset` to handle time-series windowing (e.g., sequence length of 32 frames).
-* [ ] **Training Loop:** Implement `train.py` using Behavioral Cloning (BC).
-* *Loss Function:* CrossEntropy (for discrete actions) or MSE (for continuous).
-* [ ] **Model Evaluation:** Visualizing loss convergence and validation accuracy.
+* [x] **Dataset Class:** `IterableDataset` with sliding window segmentation.
+* [x] **Liquid Network:** `CfC` (Closed-form Continuous) implementation.
+* [x] **Training Loop:** Behavioral Cloning with `BCEWithLogitsLoss`.
+* [x] **Optimization:** Auto-device selection (CUDA/MPS/CPU).
 
-### Phase 3: The Body (Inference) 🤖
+### Phase 3: The Body (Completed) ✅
 
-* [ ] **Inference Engine:** Create `run.py` to load trained weights and drive the `DoomGame` instance directly.
-* [ ] **Metrics:** Automated measuring of "Time to Death" and "Frags per Minute."
-* [ ] **Visualizer:** Real-time overlay of the LNN's hidden states (neuron firing rates) during gameplay.
+* [x] **Inference Engine:** Real-time game loop driven by the LNN.
+* [x] **Action Logic:** Thresholding and conflict suppression logic.
 
 ### Phase 4: The Possession (Integration) 👻
 
 * *Goal:* Move beyond the Python wrapper.
-* [ ] **Server-Side Agent:** Run Golem as a "Ghost Client" on a dedicated Zandronum/Odamex server to act as a dynamic bot.
-* [ ] **ACS/ZScript Bridge:** Investigate exposing the model's decision vector directly to DOOM's internal scripting via named pipes or shared memory, allowing level designers to control monsters with LNN brains.
+* [ ] **Server-Side Agent:** Run Golem as a "Ghost Client" on a dedicated Zandronum/Odamex server.
+* [ ] **ACS/ZScript Bridge:** Expose decision vectors to internal engine scripting.
 
 ---
 

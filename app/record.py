@@ -12,37 +12,43 @@ def get_package_resource(name):
     package_path = os.path.dirname(vizdoom.__file__)
     return os.path.join(package_path, "scenarios", name)
 
+# HELPER: Generate a unique filename (e.g., data_1.npz, data_2.npz)
+def get_unique_filename(base_path):
+    if not os.path.exists(base_path):
+        return base_path
+    
+    name, ext = os.path.splitext(base_path)
+    counter = 1
+    while os.path.exists(f"{name}_{counter}{ext}"):
+        counter += 1
+    return f"{name}_{counter}{ext}"
+
 # Setup paths
 script_dir = get_script_dir()
 config_path = os.path.join(script_dir, "custom.cfg")
-output_path = os.path.join(script_dir, "doom_training_data.npz")
+base_output_path = os.path.join(script_dir, "doom_training_data.npz")
+output_path = get_unique_filename(base_output_path)
 
 # Setup game
 game = DoomGame()
 
-# 1. Load our custom config
+# 1. Load configuration
 game.load_config(config_path)
-
-# 2. Manually point to the built-in WAD
 game.set_doom_scenario_path(get_package_resource("basic.wad"))
-
 game.set_screen_format(ScreenFormat.CRCGCB)
 game.set_screen_resolution(ScreenResolution.RES_640X480)
 game.set_window_visible(True)
-
-# DEBUG: Enable console so you can press '~' to check bindings
-game.set_console_enabled(True)
-
-# FORCE BINDINGS: We inject these directly into the engine startup args
-# This overrides defaults more reliably than the .cfg file
-game.add_game_args("+bind a +moveleft")
-game.add_game_args("+bind d +moveright")
-game.add_game_args("+bind w +attack") 
-game.add_game_args("+bind space +attack")
-
-# SPECTATOR mode allows you to play while the script reads the buffer
 game.set_mode(Mode.SPECTATOR) 
 game.init()
+
+# 2. FORCE BINDINGS (The Fix)
+# We send these as direct console commands AFTER init.
+# This bypasses the command-line parser that was stripping the '+' signs.
+print("Applying control bindings...")
+game.send_game_command("bind a +moveleft")
+game.send_game_command("bind d +moveright")
+game.send_game_command("bind w +attack") 
+game.send_game_command("bind space +attack")
 
 frames = []
 actions = []
@@ -59,18 +65,19 @@ for i in range(episodes):
     while not game.is_episode_finished():
         state = game.get_state()
         
-        # EXTRACT: Get the raw pixels
+        # EXTRACT & TRANSFORM
         frame = state.screen_buffer 
-        
-        # TRANSFORM: Resize to 64x64
         frame = cv2.resize(frame.transpose(1, 2, 0), (64, 64))
-        
-        # TRANSFORM: Normalize to 0-1
         frame = frame / 255.0 
         
-        # EXTRACT: Capture your button input
+        # EXTRACT ACTION
+        # returns [MOVE_LEFT, MOVE_RIGHT, ATTACK] as floats, e.g., [1.0, 0.0, 0.0]
         action = game.get_last_action() 
         
+        # DEBUG: Print action if any button is pressed
+        if any(x > 0 for x in action):
+            print(f"Input Detected: {action}")
+
         frames.append(frame)
         actions.append(action)
 
@@ -78,6 +85,6 @@ for i in range(episodes):
 
 # LOAD: Save to disk
 np.savez_compressed(output_path, frames=np.array(frames), actions=np.array(actions))
-print(f"Data saved successfully.")
+print(f"Data saved successfully to {output_path}")
 
 game.close()

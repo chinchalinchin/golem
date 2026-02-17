@@ -1,8 +1,17 @@
+# Standard Libraries
+
+import os
 import logging
 import cv2
+
+# External Libraries
+
 import numpy as np
 import vizdoom
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
+
+# Application Libraries
+
 from app.config import GolemConfig
 from app.utils import resolve_path, get_unique_filename
 
@@ -16,10 +25,12 @@ def get_vizdoom_resolution(res_str: str):
         logger.warning(f"Resolution {res_str} not found, defaulting to RES_640X480")
         return ScreenResolution.RES_640X480
 
+
 def get_package_scenario(name: str) -> str:
     """Finds built-in scenarios from the vizdoom package."""
     package_path = os.path.dirname(vizdoom.__file__)
     return os.path.join(package_path, "scenarios", name)
+
 
 def record_data(cfg: GolemConfig):
     """Runs the game in spectator mode and records frames/actions."""

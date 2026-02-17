@@ -4,14 +4,19 @@ app:
   log_level: "INFO"
 
 vizdoom:
-  # Path relative to the project root
   config_path: "conf/custom.cfg"
-  # Built-in scenario name
   scenario_name: "basic.wad"
   resolution: "RES_640X480"
   episodes: 5
   
 data:
-  # Directory relative to project root
   output_dir: "data"
   filename_prefix: "doom_training_data"
+
+# NEW SECTION
+training:
+  batch_size: 16       # How many 32-frame clips to learn from at once
+  learning_rate: 0.0001 # How drastic the weight updates should be
+  epochs: 10           # How many times to loop through the entire dataset
+  model_save_path: "data/golem_brain.pth"
+  sequence_length: 32

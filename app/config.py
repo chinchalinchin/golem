@@ -21,10 +21,18 @@ class AppConfig(BaseModel):
     version: str
     log_level: str
 
+class TrainingConfig(BaseModel):
+    batch_size: int
+    learning_rate: float
+    epochs: int
+    model_save_path: str
+    sequence_length: int = 32
+
 class GolemConfig(BaseModel):
     app: AppConfig
     vizdoom: VizDoomConfig
     data: DataConfig
+    training: TrainingConfig
 
     @classmethod
     def load(cls, config_path: str = "conf/app.yaml") -> "GolemConfig":

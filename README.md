@@ -1,55 +1,115 @@
-# Golem: The DOOM LNN
+# Golem: The DOOM LNN Project
 
-**Golem** is an experiment in applying **Liquid Neural Networks (LNNs)** to autonomous agents in *DOOM*.
+**Golem** is an open-source initiative to develop autonomous, adaptive agents for *DOOM* using **Liquid Neural Networks (LNNs)**.
 
-Unlike Large Language Models (LLMs) which struggle with object permanence and reaction time, or traditional Reinforcement Learning which requires millions of episodes, LNNs (specifically Neural Circuit Policies) are designed to be:
+Current AI in *DOOM* relies on finite state machines (FSMs) written in the 90s. While functional, they are predictable and stateless. Golem aims to replace these static heuristics with **Neural Circuit Policies (NCPs)**—biologically inspired neural networks that model time as a continuous flow rather than discrete ticks.
 
-* **Continuous:** Modeling time as a flow, not just discrete steps.
-* **Causal:** Understanding cause-and-effect relationships.
-* **Efficient:** Runnable on consumer hardware (or even edge devices).
+Unlike Large Language Models (LLMs) which hallucinate state, or traditional Reinforcement Learning (RL) which requires millions of training steps, LNNs are:
 
-## Project Structure
+* **Causal:** They learn cause-and-effect relationships in noisy environments.
+* **Compact:** Runnable on consumer hardware with minimal latency (<20ms).
+* **Continuous:** They handle the variable time-steps of a game engine natively.
 
-* `app/record.py`: Records human gameplay into a training dataset (`.npz`).
-* `app/brain.py`: Defines the LNN architecture (CNN + CfC).
-* `app/custom.cfg`: ViZDoom configuration for the "Basic" scenario.
+---
 
-## Setup
+## 🏗 Architecture
+
+The project follows a strict ETL (Extract, Transform, Load) pipeline pattern to ensure data integrity and reproducibility.
+
+```text
+/golem
+├── conf/               # Centralized Configuration (YAML + CFG)
+│   ├── app.yaml        # Application settings (logging, paths, hyperparameters)
+│   └── custom.cfg      # ViZDoom engine constraints
+├── data/               # Artifact Storage
+│   └── *.npz           # Normalized training tensors (frames + actions)
+├── app/                # Source Code
+│   ├── record.py       # ETL: Capture human gameplay -> Tensor
+│   ├── inspect.py      # QA: Analyze class balance and tensor shapes
+│   ├── brain.py        # Model: CNN + Liquid CfC Architecture
+│   └── config.py       # Pydantic schema for type-safe config
+└── main.py             # CLI Entrypoint
+```
+
+## 🚀 Setup
+
+**Prerequisites:** Python 3.10+ (ViZDoom requires a modern C++ compiler if building from source).
 
 ```bash
+# 1. Create Environment
 python -m venv .venv
 source ./.venv/bin/activate
+
+# 2. Install Dependencies
 pip install -r requirements.txt
 ```
 
-## Usage
+## 🛠 Usage
 
-### 1. Record Training Data
+All interactions are handled via the `main.py` CLI.
 
-Play the game to teach the Golem how to move and shoot.
+### 1. Configure
+
+Edit `conf/app.yaml` to adjust resolution, logging levels, or storage paths.
+
+Edit `conf/custom.cfg` to modify the DOOM engine parameters (rendering flags, available buttons).
+
+### 2. Extract Data (Record)
+
+Launch the engine in **Spectator Mode**. The agent records your inputs and the raw pixel buffer, transforming them into normalized tensors.
 
 ```bash
-python app/record.py
-
+python main.py record
 ```
 
-* **Controls:** `W` (Shoot), `A` (Left), `D` (Right), `Space` (Shoot).
-* **Output:** Saves to `app/doom_training_data.npz` (auto-iterates filenames).
+* **Controls:** `W` (Attack), `A` (Left), `D` (Right), `Space` (Attack).
+* **Output:** Saved to `data/doom_training_data_X.npz`.
 
-## Roadmap
+### 3. Quality Assurance (Inspect)
 
-* [x] **Phase 1: The Eyes & Ears**
-* [x] Configure ViZDoom environment.
-* [x] Create recording script to capture human input and pixel data.
-* [x] Verify data integrity (Tensor shapes and Action mapping).
+Before training, verify your dataset isn't biased toward inaction (Idling).
 
+```bash
+python main.py inspect
+```
 
-* [ ] **Phase 2: The Brain (Current Focus)**
-* [ ] Create `train.py`.
-* [ ] Implement a `Dataset` class to slice the recording into time-series windows (e.g., 32-frame sequences).
-* [ ] Train the `CfC` (Closed-form Continuous) network using Behavioral Cloning.
+* **Checks:** Tensor normalization (0-1), Action distribution, Idle percentage.
 
+---
 
-* [ ] **Phase 3: The Body**
-* [ ] Create `run.py` to let the LNN play the game live.
-* [ ] Measure survival time and kill count.
+## 🗺 Roadmap
+
+This is a hallowed tradition. We do not ship spaghetti code.
+
+### Phase 1: The Foundation (Completed) ✅
+
+* [x] **ETL Pipeline:** Robust recording of pixel buffers and input vectors.
+* [x] **Engine Bridge:** ViZDoom integration with custom `cfg` injection.
+* [x] **Data Sanitation:** Automated inspection tools to detect class imbalance.
+* [x] **Architecture:** Modular, config-driven Python application.
+
+### Phase 2: The Brain (In Progress) 🧠
+
+* [ ] **Dataset Class:** Implement a PyTorch `IterableDataset` to handle time-series windowing (e.g., sequence length of 32 frames).
+* [ ] **Training Loop:** Implement `train.py` using Behavioral Cloning (BC).
+* *Loss Function:* CrossEntropy (for discrete actions) or MSE (for continuous).
+* [ ] **Model Evaluation:** Visualizing loss convergence and validation accuracy.
+
+### Phase 3: The Body (Inference) 🤖
+
+* [ ] **Inference Engine:** Create `run.py` to load trained weights and drive the `DoomGame` instance directly.
+* [ ] **Metrics:** Automated measuring of "Time to Death" and "Frags per Minute."
+* [ ] **Visualizer:** Real-time overlay of the LNN's hidden states (neuron firing rates) during gameplay.
+
+### Phase 4: The Possession (Integration) 👻
+
+* *Goal:* Move beyond the Python wrapper.
+* [ ] **Server-Side Agent:** Run Golem as a "Ghost Client" on a dedicated Zandronum/Odamex server to act as a dynamic bot.
+* [ ] **ACS/ZScript Bridge:** Investigate exposing the model's decision vector directly to DOOM's internal scripting via named pipes or shared memory, allowing level designers to control monsters with LNN brains.
+
+---
+
+## 📜 License
+
+MIT License.
+*DOOM is a registered trademark of id Software.*

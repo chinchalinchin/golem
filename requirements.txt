@@ -3,3 +3,5 @@ ncps
 torch 
 torchvision 
 opencv-python
+pydantic
+PyYaml

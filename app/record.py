@@ -1,90 +1,89 @@
-from vizdoom import *
-import numpy as np
+import logging
 import cv2
-import os
+import numpy as np
+import vizdoom
+from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
+from app.config import GolemConfig
+from app.utils import resolve_path, get_unique_filename
 
-# HELPER: Get absolute path to the directory containing this script
-def get_script_dir():
-    return os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
-# HELPER: Find the built-in scenarios from the python package
-def get_package_resource(name):
+def get_vizdoom_resolution(res_str: str):
+    """Maps config string to ViZDoom constant."""
+    try:
+        return getattr(ScreenResolution, res_str)
+    except AttributeError:
+        logger.warning(f"Resolution {res_str} not found, defaulting to RES_640X480")
+        return ScreenResolution.RES_640X480
+
+def get_package_scenario(name: str) -> str:
+    """Finds built-in scenarios from the vizdoom package."""
     package_path = os.path.dirname(vizdoom.__file__)
     return os.path.join(package_path, "scenarios", name)
 
-# HELPER: Generate a unique filename (e.g., data_1.npz, data_2.npz)
-def get_unique_filename(base_path):
-    if not os.path.exists(base_path):
-        return base_path
+def record_data(cfg: GolemConfig):
+    """Runs the game in spectator mode and records frames/actions."""
     
-    name, ext = os.path.splitext(base_path)
-    counter = 1
-    while os.path.exists(f"{name}_{counter}{ext}"):
-        counter += 1
-    return f"{name}_{counter}{ext}"
-
-# Setup paths
-script_dir = get_script_dir()
-config_path = os.path.join(script_dir, "custom.cfg")
-base_output_path = os.path.join(script_dir, "doom_training_data.npz")
-output_path = get_unique_filename(base_output_path)
-
-# Setup game
-game = DoomGame()
-
-# 1. Load configuration
-game.load_config(config_path)
-game.set_doom_scenario_path(get_package_resource("basic.wad"))
-game.set_screen_format(ScreenFormat.CRCGCB)
-game.set_screen_resolution(ScreenResolution.RES_640X480)
-game.set_window_visible(True)
-game.set_mode(Mode.SPECTATOR) 
-game.init()
-
-# 2. FORCE BINDINGS (The Fix)
-# We send these as direct console commands AFTER init.
-# This bypasses the command-line parser that was stripping the '+' signs.
-print("Applying control bindings...")
-game.send_game_command("bind a +moveleft")
-game.send_game_command("bind d +moveright")
-game.send_game_command("bind w +attack") 
-game.send_game_command("bind space +attack")
-
-frames = []
-actions = []
-
-print(f"Recording to: {output_path}")
-print("Controls: A (Left), D (Right), Space/W (Shoot)")
-print("Start playing! Press 'Q' to quit early.")
-
-episodes = 5
-for i in range(episodes):
-    print(f"Episode {i+1}/{episodes}")
-    game.new_episode()
+    # 1. Setup Paths
+    cfg_path = resolve_path(cfg.vizdoom.config_path)
+    output_dir = resolve_path(cfg.data.output_dir)
+    output_path = get_unique_filename(output_dir, cfg.data.filename_prefix)
     
-    while not game.is_episode_finished():
-        state = game.get_state()
+    logger.info(f"Initializing ViZDoom with config: {cfg_path}")
+    
+    game = DoomGame()
+    game.load_config(cfg_path)
+    game.set_doom_scenario_path(get_package_scenario(cfg.vizdoom.scenario_name))
+    game.set_screen_format(ScreenFormat.CRCGCB)
+    game.set_screen_resolution(get_vizdoom_resolution(cfg.vizdoom.resolution))
+    game.set_window_visible(True)
+    game.set_mode(Mode.SPECTATOR)
+    
+    # 2. Force Bindings (Fix for Spectator Mode)
+    # We delay init until after settings, but before commands
+    game.init()
+    
+    logger.debug("Injecting console command bindings...")
+    game.send_game_command("bind a +moveleft")
+    game.send_game_command("bind d +moveright")
+    game.send_game_command("bind w +attack")
+    game.send_game_command("bind space +attack")
+    
+    frames = []
+    actions = []
+    
+    logger.info(f"Starting recording session for {cfg.vizdoom.episodes} episodes.")
+    logger.info(f"Output target: {output_path}")
+    
+    try:
+        for i in range(cfg.vizdoom.episodes):
+            logger.info(f"Episode {i+1}/{cfg.vizdoom.episodes}")
+            game.new_episode()
+            
+            while not game.is_episode_finished():
+                state = game.get_state()
+                
+                # Extract
+                raw_frame = state.screen_buffer
+                
+                # Transform: (Channels, Height, Width) -> (Height, Width, Channels) -> Resize
+                processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64))
+                processed_frame = processed_frame / 255.0
+                
+                # Extract Action
+                action = game.get_last_action()
+                
+                frames.append(processed_frame)
+                actions.append(action)
+                
+                game.advance_action()
+                
+        # Load (Save to disk)
+        logger.info("Saving data to disk...")
+        np.savez_compressed(output_path, frames=np.array(frames), actions=np.array(actions))
+        logger.info(f"Successfully saved {len(frames)} frames to {output_path}")
         
-        # EXTRACT & TRANSFORM
-        frame = state.screen_buffer 
-        frame = cv2.resize(frame.transpose(1, 2, 0), (64, 64))
-        frame = frame / 255.0 
-        
-        # EXTRACT ACTION
-        # returns [MOVE_LEFT, MOVE_RIGHT, ATTACK] as floats, e.g., [1.0, 0.0, 0.0]
-        action = game.get_last_action() 
-        
-        # DEBUG: Print action if any button is pressed
-        if any(x > 0 for x in action):
-            print(f"Input Detected: {action}")
-
-        frames.append(frame)
-        actions.append(action)
-
-        game.advance_action()
-
-# LOAD: Save to disk
-np.savez_compressed(output_path, frames=np.array(frames), actions=np.array(actions))
-print(f"Data saved successfully to {output_path}")
-
-game.close()
+    except Exception as e:
+        logger.error(f"Recording interrupted: {e}", exc_info=True)
+    finally:
+        game.close()

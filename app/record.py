@@ -1,3 +1,13 @@
+"""
+ETL Module: Recording.
+
+This module handles the 'Extract' and 'Transform' phases of the pipeline.
+It launches a ViZDoom instance in Spectator mode, capturing the human player's
+input and the corresponding pixel buffer.
+
+The data is normalized (0-1 float) and resized (64x64) before being saved 
+to a compressed NumPy archive (.npz).
+"""
 # Standard Libraries
 
 import os
@@ -15,7 +25,9 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 from app.config import GolemConfig
 from app.utils import resolve_path, get_unique_filename
 
+
 logger = logging.getLogger(__name__)
+
 
 def get_vizdoom_resolution(res_str: str):
     """Maps config string to ViZDoom constant."""

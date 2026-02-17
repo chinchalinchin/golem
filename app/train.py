@@ -1,10 +1,16 @@
+"""
+Training Module: The Spark of Life.
+
+This module orchestrates the learning process. It loads the streaming dataset,
+initializes the Liquid Neural Network, and runs the backpropagation loop using 
+Behavioral Cloning (Imitation Learning).
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import logging
 import os
-from pathlib import Path
 
 from app.config import GolemConfig
 from app.dataset import DoomStreamingDataset
@@ -14,6 +20,15 @@ from app.utils import resolve_path
 logger = logging.getLogger(__name__)
 
 def train_agent(cfg: GolemConfig):
+    """
+    Main training routine.
+    
+    1. Detects hardware acceleration (MPS/CUDA).
+    2. Initializes the IterableDataset (sliding window video clips).
+    3. Runs the training loop for N epochs using BCEWithLogitsLoss.
+    4. Saves the state_dict to disk.
+    """
+    
     logger.info("Initializing Training Pipeline...")
     
     # 1. Setup Device (MPS for Mac M-chips, CUDA for Nvidia, CPU fallback)

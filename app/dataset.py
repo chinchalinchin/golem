@@ -1,9 +1,21 @@
+"""
+Data Module: The Memory Stream.
+
+Implements a PyTorch IterableDataset that handles the 'Sliding Window' 
+segmentation of gameplay data. It ensures the Liquid Network receives 
+sequential video clips rather than isolated frames.
+"""
+
 import torch
 import numpy as np
 from pathlib import Path
 from torch.utils.data import IterableDataset
 
 class DoomStreamingDataset(IterableDataset):
+    """
+    Yields (Sequence, Action) tuples from .npz files.
+    Transforms data from (Time, H, W, C) to PyTorch format (C, H, W).
+    """
     def __init__(self, data_dir, seq_len=32):
         """
         Args:

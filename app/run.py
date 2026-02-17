@@ -1,3 +1,11 @@
+"""
+Inference Module: The Body.
+
+This module loads a trained Golem Brain (PyTorch model) and connects it 
+to a live instance of ViZDoom. It runs in PLAYER mode (ASYNC), allowing 
+the neural network to drive the game loop by predicting actions from 
+pixel data in real-time.
+"""
 import torch
 import cv2
 import numpy as np

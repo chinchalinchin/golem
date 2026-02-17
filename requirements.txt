@@ -1,0 +1,5 @@
+vizdoom 
+ncps 
+torch 
+torchvision 
+opencv-python

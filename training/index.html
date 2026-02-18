@@ -536,9 +536,11 @@ L(\theta) = - \frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C \left[ y_{i,c} \cdot \log(\s
 <div class="arithmatex">\[
 X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
 \]</div>
-<p>The batch tensor shapes are:
-* Input: <span class="arithmatex">\((B, L, C, H, W)\)</span>
-* Target: <span class="arithmatex">\((B, L, A_{dim})\)</span></p>
+<p>The batch tensor shapes are:</p>
+<ul>
+<li>Input: <span class="arithmatex">\((B, L, C, H, W)\)</span></li>
+<li>Target: <span class="arithmatex">\((B, L, A_{dim})\)</span></li>
+</ul>
 <p>This ensures the CfC cell receives a coherent stream of <span class="arithmatex">\(L\)</span> timesteps to establish its internal derivative state.</p>
 
 

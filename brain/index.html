@@ -622,11 +622,11 @@ x(t) \approx \underbrace{\sigma( -f(x, I, w_\tau) t )}_{\text{Decay}} \odot \und
 \]</div>
 <p>These logits are then passed through a Sigmoid function during inference to obtain probabilities.</p>
 <pre class="mermaid"><code>graph TD
-    Input[Input Tensor (3x64x64)] --&gt; CNN[Visual Cortex (CNN)]
-    CNN --&gt; Latent[Latent Vector (12544)]
-    Latent --&gt; CfC{Liquid Core (CfC)}
+    Input[Input Tensor: 3x64x64] --&gt; CNN[Visual Cortex: CNN]
+    CNN --&gt; Latent[Latent Vector: 12544]
+    Latent --&gt; CfC{Liquid Core: CfC}
     CfC --&gt; Linear[Linear Projection]
-    Linear --&gt; Logits[Action Logits (3)]
+    Linear --&gt; Logits[Action Logits: 3]
     Logits --&gt; Sigmoid((Sigmoid))
     Sigmoid --&gt; Output[Probabilities]
 

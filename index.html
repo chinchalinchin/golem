@@ -397,7 +397,7 @@
   <span class="md-ellipsis">
     
   
-    The Brain
+    The Brain (LNN)
   
 
     
@@ -615,75 +615,94 @@
 <li><strong>NVIDIA:</strong> Requires CUDA 11.8+.</li>
 </ul>
 </div>
-<p>=== "Bash / Zsh"</p>
-<pre><code>```bash
-# 1. Create Virtual Environment
-python -m venv .venv
-source ./.venv/bin/activate
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Bash / Zsh</label><label for="__tabbed_1_2">Fish</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Create Virtual Environment</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>./.venv/bin/activate
 
-# 2. Install Dependencies
-pip install -r requirements.txt
-```
-</code></pre>
-<p>=== "Fish"</p>
-<pre><code>```fish
-# 1. Create Virtual Environment
+<span class="c1"># 2. Install Dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c"># 1. Create Virtual Environment</span>
 python -m venv .venv
-source ./.venv/bin/activate.fish
+<span class="nb">source</span> ./.venv/bin/activate.fish
 
-# 2. Install Dependencies
+<span class="c"># 2. Install Dependencies</span>
 pip install -r requirements.txt
-```
-</code></pre>
+</code></pre></div>
+</div>
+</div>
+</div>
 <hr />
 <h2 id="usage-cycle">🛠 Usage Cycle</h2>
 <p>Golem operates in a loop. Select a phase below to view the command syntax.</p>
-<p>=== "1. Configure"</p>
-<pre><code>Before running, verify your hyperparameters and engine constraints.
-
-* **`conf/app.yaml`**: Adjust learning rate, batch size, and resolution.
-* **`conf/custom.cfg`**: Modify the available button definitions (the "Superset").
-</code></pre>
-<p>=== "2. Record"</p>
-<pre><code>Launch the engine in **Spectator Mode** to capture training data. You play, the agent watches.
-
-```bash
-# Usage: python main.py record --module &lt;module_name&gt;
-python main.py record --module combat
-```
-
-| Key | Action |
-| :--- | :--- |
-| `W`, `S` | Move Forward / Back |
-| `A`, `D` | Strafe Left / Right |
-| `Q`, `E` | Turn Left / Right |
-| `Space` | Attack |
-</code></pre>
-<p>=== "3. Inspect"</p>
-<pre><code>Verify your dataset is balanced and normalized before training.
-
-```bash
-python main.py inspect
-```
-
-!!! tip
-    Look for **High Idle Time**. If the agent spends &gt;50% of the time doing nothing, the model will converge to inaction.
-</code></pre>
-<p>=== "4. Train"</p>
-<pre><code>Run the **Behavioral Cloning** loop to create a `.pth` model file.
-
-```bash
-# Trains on ALL available data modules
-python main.py train
-```
-</code></pre>
-<p>=== "5. Run "</p>
-<pre><code>Watch the LNN play the game live.
-
-```bash
-python main.py run
-```
-</code></pre>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:5"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Inspect</label><label for="__tabbed_2_4">4. Train</label><label for="__tabbed_2_5">5. Run </label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Before running, verify your hyperparameters and engine constraints.</p>
+<ul>
+<li><strong><code>conf/app.yaml</code></strong>: Adjust learning rate, batch size, and resolution.</li>
+<li><strong><code>conf/custom.cfg</code></strong>: Modify the available button definitions (the "Superset").</li>
+</ul>
+</div>
+<div class="tabbed-block">
+<p>Launch the engine in <strong>Spectator Mode</strong> to capture training data. You play, the agent watches.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Usage: python main.py record --module &lt;module_name&gt;</span>
+python<span class="w"> </span>main.py<span class="w"> </span>record<span class="w"> </span>--module<span class="w"> </span>combat
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Key</th>
+<th style="text-align: left;">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>W</code>, <code>S</code></td>
+<td style="text-align: left;">Move Forward / Back</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>A</code>, <code>D</code></td>
+<td style="text-align: left;">Strafe Left / Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Q</code>, <code>E</code></td>
+<td style="text-align: left;">Turn Left / Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Space</code></td>
+<td style="text-align: left;">Attack</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Verify your dataset is balanced and normalized before training.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>inspect
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Look for <strong>High Idle Time</strong>. If the agent spends &gt;50% of the time doing nothing, the model will converge to inaction.</p>
+</div>
+</div>
+<div class="tabbed-block">
+<p>Run the <strong>Behavioral Cloning</strong> loop to create a <code>.pth</code> model file.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Trains on ALL available data modules</span>
+python<span class="w"> </span>main.py<span class="w"> </span>train
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Watch the LNN play the game live.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>run
+</code></pre></div>
+</div>
+</div>
+</div>
 <hr />
 <h2 id="license">📜 License</h2>
 <p>MIT License.</p>

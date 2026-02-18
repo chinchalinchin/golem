@@ -31,6 +31,7 @@ X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
 $$
 
 The batch tensor shapes are:
+
 * Input: $(B, L, C, H, W)$
 * Target: $(B, L, A_{dim})$
 

@@ -47,7 +47,6 @@ graph LR
     * **NVIDIA:** Requires CUDA 11.8+.
 
 === "Bash / Zsh"
-
     ```bash
     # 1. Create Virtual Environment
     python -m venv .venv
@@ -56,7 +55,6 @@ graph LR
     # 2. Install Dependencies
     pip install -r requirements.txt
     ```
-
 === "Fish"
 
     ```fish

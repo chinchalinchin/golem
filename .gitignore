@@ -4,3 +4,4 @@
 _vizdoom.ini
 data/**
 !data/.gitkeep
+site/**

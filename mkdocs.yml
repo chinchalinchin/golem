@@ -3,7 +3,6 @@ site_url: https://chinchalinchin.github.io/golem/
 repo_url: https://github.com/chinchalinchin/golem
 repo_name: chinchalinchin/golem
 
-# Theme: Material (Dark Mode by default to fit DOOM aesthetic)
 theme:
   name: material
   palette: 
@@ -15,29 +14,27 @@ theme:
     - navigation.expand
     - navigation.indexes
 
-# Explicit Navigation Order
 nav:
   - Home: index.md
   - Environment: environment.md
-  - The Brain: brain.md
+  - The Brain (LNN): brain.md
   - Training: training.md
   - Roadmap: roadmap.md
 
-# Extensions
 markdown_extensions:
   - admonition
   - pymdownx.details
+  # Add this extension for the tabs to work
+  - pymdownx.tabbed:
+      alternate_style: true 
   - pymdownx.superfences:
-      # Mermaid Diagram Support
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  # LaTeX Math Support
   - pymdownx.arithmatex:
       generic: true
 
-# MathJax Configuration for LaTeX rendering
 extra_javascript:
   - javascripts/mathjax.js
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

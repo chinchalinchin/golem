@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# deploy_docs.sh
+# docs.sh
 # Builds the MkDocs site and pushes to the gh-pages branch.
 
 set -e # Exit on error
 
+# 0. Resolve Script Directory
+# This ensures the script runs correctly regardless of CWD.
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+cd "$SCRIPT_DIR"
+
 echo "--- Golem Documentation Deployment ---"
+echo "Working Directory: $PWD"
 
 # 1. Check for Virtual Environment
 if [[ -z "$VIRTUAL_ENV" ]]; then

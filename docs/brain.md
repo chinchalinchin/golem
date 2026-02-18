@@ -71,11 +71,11 @@ These logits are then passed through a Sigmoid function during inference to obta
 
 ```mermaid
 graph TD
-    Input[Input Tensor (3x64x64)] --> CNN[Visual Cortex (CNN)]
-    CNN --> Latent[Latent Vector (12544)]
-    Latent --> CfC{Liquid Core (CfC)}
+    Input[Input Tensor: 3x64x64] --> CNN[Visual Cortex: CNN]
+    CNN --> Latent[Latent Vector: 12544]
+    Latent --> CfC{Liquid Core: CfC}
     CfC --> Linear[Linear Projection]
-    Linear --> Logits[Action Logits (3)]
+    Linear --> Logits[Action Logits: 3]
     Logits --> Sigmoid((Sigmoid))
     Sigmoid --> Output[Probabilities]
 

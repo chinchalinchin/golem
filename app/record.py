@@ -1,99 +1,84 @@
 """
 ETL Module: Recording.
-
-This module handles the 'Extract' and 'Transform' phases of the pipeline.
-It launches a ViZDoom instance in Spectator mode, capturing the human player's
-input and the corresponding pixel buffer.
-
-The data is normalized (0-1 float) and resized (64x64) before being saved 
-to a compressed NumPy archive (.npz).
+Handles capturing gameplay for specific modules.
 """
-# Standard Libraries
-
-import os
 import logging
 import cv2
-
-# External Libraries
-
 import numpy as np
-import vizdoom
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
-
-# Application Libraries
-
 from app.config import GolemConfig
-from app.utils import resolve_path, get_unique_filename
-
+from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
+def record_data(cfg: GolemConfig, module_name: str = "basic"):
+    """
+    Records gameplay for a specific module.
+    
+    Args:
+        cfg: The global app configuration.
+        module_name: Key in the 'modules' dictionary to record.
+    """
+    if module_name not in cfg.modules:
+        logger.error(f"Module '{module_name}' not found in configuration. Available: {list(cfg.modules.keys())}")
+        return
 
-def get_vizdoom_resolution(res_str: str):
-    """Maps config string to ViZDoom constant."""
-    try:
-        return getattr(ScreenResolution, res_str)
-    except AttributeError:
-        logger.warning(f"Resolution {res_str} not found, defaulting to RES_640X480")
-        return ScreenResolution.RES_640X480
-
-
-def get_package_scenario(name: str) -> str:
-    """Finds built-in scenarios from the vizdoom package."""
-    package_path = os.path.dirname(vizdoom.__file__)
-    return os.path.join(package_path, "scenarios", name)
-
-
-def record_data(cfg: GolemConfig):
-    """Runs the game in spectator mode and records frames/actions."""
+    module = cfg.modules[module_name]
     
     # 1. Setup Paths
-    cfg_path = resolve_path(cfg.vizdoom.config_path)
+    # We use the module name in the filename: data/doom_training_basic_1.npz
     output_dir = resolve_path(cfg.data.output_dir)
-    output_path = get_unique_filename(output_dir, cfg.data.filename_prefix)
+    prefix = f"{cfg.data.filename_prefix}_{module_name}"
+    output_path = get_unique_filename(output_dir, prefix)
     
-    logger.info(f"Initializing ViZDoom with config: {cfg_path}")
+    cfg_path = resolve_path(module.config)
+    scenario_path = get_vizdoom_scenario(module.scenario)
+
+    logger.info(f"--- Recording Module: {module_name} ---")
+    logger.info(f"Config: {cfg_path}")
+    logger.info(f"Scenario: {scenario_path}")
     
     game = DoomGame()
     game.load_config(cfg_path)
-    game.set_doom_scenario_path(get_package_scenario(cfg.vizdoom.scenario_name))
+    game.set_doom_scenario_path(scenario_path)
     game.set_screen_format(ScreenFormat.CRCGCB)
-    game.set_screen_resolution(get_vizdoom_resolution(cfg.vizdoom.resolution))
+    game.set_screen_resolution(ScreenResolution.RES_640X480)
     game.set_window_visible(True)
     game.set_mode(Mode.SPECTATOR)
     
-    # 2. Force Bindings (Fix for Spectator Mode)
-    # We delay init until after settings, but before commands
     game.init()
     
-    logger.debug("Injecting console command bindings...")
+    # Inject Bindings for the FULL Action Space (8 buttons)
+    # This ensures consistency even if the module doesn't strictly require all of them.
+    logger.debug("Injecting superset bindings...")
+    game.send_game_command("bind w +forward")
+    game.send_game_command("bind s +back")
     game.send_game_command("bind a +moveleft")
     game.send_game_command("bind d +moveright")
-    game.send_game_command("bind w +attack")
+    game.send_game_command("bind q +left")  # Turn Left
+    game.send_game_command("bind e +right") # Turn Right
     game.send_game_command("bind space +attack")
-    
+    game.send_game_command("bind f +use")
+
     frames = []
     actions = []
     
-    logger.info(f"Starting recording session for {cfg.vizdoom.episodes} episodes.")
-    logger.info(f"Output target: {output_path}")
+    logger.info(f"Starting recording session for {module.episodes} episodes.")
+    logger.info("Controls: W/S (Mov), A/D (Strafe), Q/E (Turn), Space (Fire), F (Use)")
     
     try:
-        for i in range(cfg.vizdoom.episodes):
-            logger.info(f"Episode {i+1}/{cfg.vizdoom.episodes}")
+        for i in range(module.episodes):
+            logger.info(f"Episode {i+1}/{module.episodes}")
             game.new_episode()
             
             while not game.is_episode_finished():
                 state = game.get_state()
-                
-                # Extract
                 raw_frame = state.screen_buffer
                 
-                # Transform: (Channels, Height, Width) -> (Height, Width, Channels) -> Resize
+                # Transform
                 processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64))
                 processed_frame = processed_frame / 255.0
                 
-                # Extract Action
                 action = game.get_last_action()
                 
                 frames.append(processed_frame)
@@ -101,10 +86,8 @@ def record_data(cfg: GolemConfig):
                 
                 game.advance_action()
                 
-        # Load (Save to disk)
-        logger.info("Saving data to disk...")
+        logger.info(f"Saving {len(frames)} frames to {output_path}...")
         np.savez_compressed(output_path, frames=np.array(frames), actions=np.array(actions))
-        logger.info(f"Successfully saved {len(frames)} frames to {output_path}")
         
     except Exception as e:
         logger.error(f"Recording interrupted: {e}", exc_info=True)

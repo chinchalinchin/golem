@@ -1,22 +1,47 @@
 app:
   name: "Golem"
-  version: "0.1.0"
+  version: "0.2.1"
   log_level: "INFO"
 
-vizdoom:
-  config_path: "conf/custom.cfg"
-  scenario_name: "basic.wad"
-  resolution: "RES_640X480"
-  episodes: 5
-  
-data:
-  output_dir: "data"
-  filename_prefix: "doom_training_data"
-
-# NEW SECTION
+# Global Training Hyperparameters
 training:
-  batch_size: 16       # How many 32-frame clips to learn from at once
-  learning_rate: 0.0001 # How drastic the weight updates should be
-  epochs: 10           # How many times to loop through the entire dataset
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 10
   model_save_path: "data/golem_brain.pth"
   sequence_length: 32
+  # The Superset of actions the Brain can perform.
+  # This MUST match the order in common.cfg
+  action_space_size: 8 
+
+data:
+  output_dir: "data"
+  filename_prefix: "doom_training"
+
+# CURRICULUM MODULES
+modules:
+  basic:
+    scenario: "basic.wad" # Built-in Sanity Check
+    config: "conf/common.cfg"
+    episodes: 5
+  
+  navigation:
+    # "My Way Home": Complex maze navigation with sparse rewards.
+    # Tests: Spatial Memory, Pathfinding.
+    scenario: "my_way_home.wad" 
+    config: "conf/common.cfg"
+    episodes: 15
+    
+  combat:
+    # "Deadly Corridor": A gauntlet of enemies. 
+    # Tests: Threat Prioritization, Strafing, Forward Momentum.
+    scenario: "deadly_corridor.wad"
+    config: "conf/common.cfg"
+    episodes: 15
+
+  doomsday:
+    # The Crucible: Training on the actual DOOM II map01.
+    # Tests: Generalization, Real-world complexity.
+    scenario: "/Users/gmoore/Home/games/doom/wads/DOOM2.WAD"
+    config: "conf/common.cfg"
+    episodes: 5

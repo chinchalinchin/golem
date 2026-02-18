@@ -2,14 +2,13 @@ import yaml
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-class VizDoomConfig(BaseModel):
-    config_path: str
-    scenario_name: str
-    resolution: str
+class ModuleConfig(BaseModel):
+    scenario: str
+    config: str
     episodes: int = 5
 
 class DataConfig(BaseModel):
@@ -27,12 +26,13 @@ class TrainingConfig(BaseModel):
     epochs: int
     model_save_path: str
     sequence_length: int = 32
+    action_space_size: int = 8
 
 class GolemConfig(BaseModel):
     app: AppConfig
-    vizdoom: VizDoomConfig
     data: DataConfig
     training: TrainingConfig
+    modules: Dict[str, ModuleConfig]
 
     @classmethod
     def load(cls, config_path: str = "conf/app.yaml") -> "GolemConfig":

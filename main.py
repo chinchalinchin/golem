@@ -16,26 +16,32 @@ logger = logging.getLogger("main")
 
 def main():
     parser = argparse.ArgumentParser(description="Golem: DOOM LNN Agent Manager")
-    parser.add_argument("function", choices=["record", "inspect", "train", "run"], help="Operation to perform")    parser.add_argument("--file", help="Specific file to inspect (optional)", default=None)
+    parser.add_argument("function", choices=["record", "inspect", "train", "run"], help="Operation")
+    # Added module argument
+    parser.add_argument("--module", help="Specific module to record/train (e.g., 'combat')", default="basic")
+    parser.add_argument("--file", help="Specific file to inspect", default=None)
     args = parser.parse_args()
 
-    # 1. Bootstrap Configuration
     try:
         cfg = GolemConfig.load()
         setup_logging(cfg.app.log_level)
-        logger.info(f"Booting {cfg.app.name} v{cfg.app.version}")
     except Exception as e:
-        print(f"CRITICAL: Failed to load configuration: {e}")
+        print(f"CRITICAL: {e}")
         exit(1)
 
-    # 2. Dispatch
+    # Dispatch
     if args.function == "record":
-        record_data(cfg)
+        # Pass the module name to record
+        record_data(cfg, args.module)
     elif args.function == "inspect":
         inspect_data(cfg, args.file)
     elif args.function == "train":
-        train_agent(cfg)
-    elif args.function == "run":   # <--- Add this
+        # Pass module (or None if they want to train everything)
+        # Note: If user didn't specify --module, args.module defaults to 'basic'.
+        # We might want a separate flag for 'all', or just check if they explicitly passed it.
+        # For now, let's treat the default as training 'basic'.
+        train_agent(cfg, args.module)
+    elif args.function == "run":
         run_agent(cfg)
 
 if __name__ == "__main__":

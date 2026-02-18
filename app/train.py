@@ -1,9 +1,6 @@
 """
-Training Module: The Spark of Life.
-
-This module orchestrates the learning process. It loads the streaming dataset,
-initializes the Liquid Neural Network, and runs the backpropagation loop using 
-Behavioral Cloning (Imitation Learning).
+Training Module: Curriculum Learning.
+Can train on a specific module's data or all available data.
 """
 import torch
 import torch.nn as nn
@@ -19,76 +16,82 @@ from app.utils import resolve_path
 
 logger = logging.getLogger(__name__)
 
-def train_agent(cfg: GolemConfig):
+def train_agent(cfg: GolemConfig, module_name: str = None):
     """
-    Main training routine.
+    Trains the agent.
     
-    1. Detects hardware acceleration (MPS/CUDA).
-    2. Initializes the IterableDataset (sliding window video clips).
-    3. Runs the training loop for N epochs using BCEWithLogitsLoss.
-    4. Saves the state_dict to disk.
+    Args:
+        cfg: App config.
+        module_name: If provided, only trains on files matching 'doom_training_<module>*.npz'.
+                     If None, trains on ALL 'doom_training_*.npz' files.
     """
-    
-    logger.info("Initializing Training Pipeline...")
-    
-    # 1. Setup Device (MPS for Mac M-chips, CUDA for Nvidia, CPU fallback)
     if torch.backends.mps.is_available():
         device = torch.device("mps")
-        logger.info("Using Device: Apple Metal (MPS)")
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        logger.info("Using Device: NVIDIA CUDA")
     else:
         device = torch.device("cpu")
-        logger.info("Using Device: CPU")
-
-    # 2. Prepare Data
-    data_dir = resolve_path(cfg.data.output_dir)
-    dataset = DoomStreamingDataset(data_dir, seq_len=cfg.training.sequence_length)
     
-    # Batch size needs to be handled carefully with IterableDatasets.
-    # The loader fetches 'batch_size' sequences.
+    # 1. Filter Data Files
+    data_dir = resolve_path(cfg.data.output_dir)
+    
+    # If module is specific, we filter the dataset class
+    # Note: We need to update Dataset to accept a file pattern filter
+    file_pattern = f"{cfg.data.filename_prefix}*.npz"
+    if module_name:
+        file_pattern = f"{cfg.data.filename_prefix}_{module_name}*.npz"
+        logger.info(f"Training restricted to module: {module_name}")
+    else:
+        logger.info("Training on ALL available modules (Generalization Mode)")
+
+    # 2. Initialize Dataset with Filter
+    dataset = DoomStreamingDataset(
+        data_dir, 
+        seq_len=cfg.training.sequence_length,
+        file_pattern=file_pattern
+    )
+    
     dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size)
     
-    # 3. Initialize Model
-    # 3 Actions: Left, Right, Attack
-    model = DoomLiquidNet(n_actions=3).to(device)
+    # 3. Initialize Model with Superset Action Space
+    n_actions = cfg.training.action_space_size
+    logger.info(f"Initializing Brain with Action Space Size: {n_actions}")
     
-    # 4. Optimizer & Loss
-    # We use BCEWithLogitsLoss because:
-    #   - It handles Multi-Label classification (e.g., Moving Left AND Shooting simultaneously)
-    #   - It is numerically more stable than using Sigmoid + MSE
+    model = DoomLiquidNet(n_actions=n_actions).to(device)
+    
+    # Load existing weights if they exist (Continual Learning)
+    save_path = resolve_path(cfg.training.model_save_path)
+    if os.path.exists(save_path):
+        logger.info(f"Loading existing brain from {save_path} for fine-tuning...")
+        model.load_state_dict(torch.load(save_path, map_location=device))
+    
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
     
-    # 5. The Loop
     logger.info(f"Starting training for {cfg.training.epochs} epochs...")
+    model.train()
     
-    model.train() # Set to training mode (enables Dropout, etc.)
-    
+    # ... (Loop remains same) ...
     for epoch in range(cfg.training.epochs):
         total_loss = 0
         batches = 0
         
         for batch_idx, (frames, actions) in enumerate(dataloader):
-            # Move data to GPU/MPS
-            frames = frames.to(device)   # (Batch, Time, Channels, Height, Width)
-            actions = actions.to(device) # (Batch, Time, Actions)
+            frames = frames.to(device)
+            actions = actions.to(device)
             
-            # Zero gradients
             optimizer.zero_grad()
-            
-            # Forward Pass (The Brain Thinks)
-            # Output shape: (Batch, Time, Actions) - raw logits
             predictions = model(frames)
             
-            # Calculate Loss (How wrong was it?)
+            # Safety Check: Ensure action dimensions match
+            # If old data (3 actions) is loaded into new model (8 actions), this crashes.
+            if actions.shape[2] != n_actions:
+                logger.error(f"Dimension Mismatch! Data has {actions.shape[2]} actions, Brain expects {n_actions}.")
+                logger.error("Please delete old .npz files in 'data/' that were recorded with the old config.")
+                return
+
             loss = criterion(predictions, actions)
-            
-            # Backward Pass (The Brain Learns)
             loss.backward()
-            
-            # Update Weights
             optimizer.step()
             
             total_loss += loss.item()
@@ -97,14 +100,9 @@ def train_agent(cfg: GolemConfig):
             if batch_idx % 10 == 0:
                 logger.debug(f"Epoch {epoch+1} | Batch {batch_idx} | Loss: {loss.item():.4f}")
         
-        # End of Epoch Stats
         avg_loss = total_loss / batches if batches > 0 else 0
         logger.info(f"Epoch {epoch+1}/{cfg.training.epochs} complete. Average Loss: {avg_loss:.4f}")
 
-    # 6. Save the Brain
-    save_path = resolve_path(cfg.training.model_save_path)
-    # Ensure directory exists
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    
     torch.save(model.state_dict(), save_path)
     logger.info(f"Training complete. Model saved to: {save_path}")

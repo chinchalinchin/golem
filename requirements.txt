@@ -5,3 +5,6 @@ torchvision
 opencv-python
 pydantic
 PyYaml
+# Documentation
+mkdocs
+mkdocs-material

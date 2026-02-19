@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
 from app.config import GolemConfig
 from app.utils import resolve_path
 
@@ -15,13 +16,11 @@ def inspect_data(cfg: GolemConfig, target_file: str = None):
         if not file_path.is_absolute():
              file_path = Path(resolve_path(target_file))
     else:
-        # Default to finding the latest file in data dir
         data_dir = Path(resolve_path(cfg.data.output_dir))
         files = list(data_dir.glob(f"{cfg.data.filename_prefix}*.npz"))
         if not files:
             logger.error(f"No data files found in {data_dir}")
             return
-        # Sort by modification time, newest first
         file_path = sorted(files, key=lambda f: f.stat().st_mtime, reverse=True)[0]
 
     if not file_path.exists():
@@ -35,38 +34,39 @@ def inspect_data(cfg: GolemConfig, target_file: str = None):
         frames = data['frames']
         actions = data['actions']
         
-        # Frames Analysis
-        logger.info(f"Frames Shape: {frames.shape}")
-        logger.info(f"Frames Range: {frames.min():.2f} - {frames.max():.2f}")
-        
-        if frames.max() > 1.0:
-            logger.warning("Frames are NOT normalized (0-255). Expecting 0-1.")
-        else:
-            logger.info("Frames are normalized.")
-
-        # Actions Analysis
-        logger.info(f"Actions Shape: {actions.shape}")
-        
         total_frames = len(actions)
         if total_frames == 0:
             logger.warning("Dataset is empty.")
             return
 
         total_presses = np.sum(actions, axis=0)
-        labels = ["Left", "Right", "Attack"]
+        labels = ["Fwd", "Back", "MovL", "MovR", "TrnL", "TrnR", "Atk", "Use"]
+        action_counts = []
         
         for i, label in enumerate(labels):
             if i < len(total_presses):
                 count = int(total_presses[i])
                 pct = count / total_frames
-                logger.info(f"Action '{label}': {count} ({pct:.1%})")
+                action_counts.append({"label": label, "count": count, "pct": pct})
         
         non_action_frames = np.sum(~actions.any(axis=1))
         idle_pct = non_action_frames / total_frames
-        logger.info(f"Idling: {non_action_frames} ({idle_pct:.1%})")
-
-        if idle_pct > 0.5:
-            logger.warning("High idle time detected. Model may converge to inaction.")
+        
+        # Render Report
+        env = Environment(loader=FileSystemLoader(resolve_path("app/templates")))
+        template = env.get_template("inspect.j2")
+        
+        print(template.render(
+            filename=file_path.name,
+            frames_shape=frames.shape,
+            frames_range=(frames.min(), frames.max()),
+            is_normalized=(frames.max() <= 1.0),
+            actions_shape=actions.shape,
+            total_frames=total_frames,
+            action_counts=action_counts,
+            idle_count=non_action_frames,
+            idle_pct=idle_pct
+        ))
             
     except Exception as e:
         logger.error(f"Failed to inspect data: {e}", exc_info=True)

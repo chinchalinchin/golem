@@ -9,38 +9,18 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 from app.config import GolemConfig
 from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
 
-
 logger = logging.getLogger(__name__)
-
-
-COMMANDS = [
-    "bind w +forward",
-    "bind s +back",
-    "bind a +moveleft",
-    "bind d +moveright",
-    "bind q +left",
-    "bind e +right",
-    "bind space +attack",
-    "bind f +use"
-]
-
 
 def record_data(cfg: GolemConfig, module_name: str = "basic"):
     """
     Records gameplay for a specific module.
-    
-    Args:
-        cfg: The global app configuration.
-        module_name: Key in the 'modules' dictionary to record.
     """
     if module_name not in cfg.modules:
-        logger.error(f"Module '{module_name}' not found in configuration. Available: {list(cfg.modules.keys())}")
+        logger.error(f"Module '{module_name}' not found. Available: {list(cfg.modules.keys())}")
         return
 
     module = cfg.modules[module_name]
     
-    # 1. Setup Paths
-    # We use the module name in the filename: data/doom_training_basic_1.npz
     output_dir = resolve_path(cfg.data.output_dir)
     prefix = f"{cfg.data.filename_prefix}_{module_name}"
     output_path = get_unique_filename(output_dir, prefix)
@@ -62,23 +42,18 @@ def record_data(cfg: GolemConfig, module_name: str = "basic"):
     
     game.init()
     
-    # Inject Bindings for the FULL Action Space (8 buttons)
-    # This ensures consistency even if the module doesn't strictly require all of them.
-    logger.debug("Injecting superset bindings...")
-    game.send_game_command("bind w +forward")
-    game.send_game_command("bind s +back")
-    game.send_game_command("bind a +moveleft")
-    game.send_game_command("bind d +moveright")
-    game.send_game_command("bind q +left") 
-    game.send_game_command("bind e +right")
-    game.send_game_command("bind space +attack")
-    game.send_game_command("bind f +use")
+    # NEW: Inject Configurable Bindings
+    logger.debug("Injecting configurable bindings...")
+    for key, command in cfg.keybindings.items():
+        cmd_str = f"bind {key} {command}"
+        game.send_game_command(cmd_str)
+        logger.debug(f"Applied: {cmd_str}")
 
     frames = []
     actions = []
     
     logger.info(f"Starting recording session for {module.episodes} episodes.")
-    logger.info("Controls: W/S (Mov), A/D (Strafe), Q/E (Turn), Space (Fire), F (Use)")
+    logger.info(f"Bindings: {cfg.keybindings}")
     
     try:
         for i in range(module.episodes):

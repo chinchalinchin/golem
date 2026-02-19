@@ -1,0 +1,24 @@
+============================================================
+GOLEM DATA INSPECTION
+============================================================
+File: {{ filename }}
+------------------------------------------------------------
+[FRAMES]
+Shape:  {{ frames_shape }}
+Range:  {{ "%.2f"|format(frames_range[0]) }} - {{ "%.2f"|format(frames_range[1]) }}
+Status: {% if is_normalized %}Normalized (0.0 - 1.0){% else %}WARNING: Unnormalized{% endif %}
+
+[ACTIONS]
+Shape:  {{ actions_shape }}
+Total:  {{ total_frames }} frames
+
+Action Distribution:
+{% for action in action_counts -%}
+  - {{ action.label }}: {{ action.count }} ({{ "%.1f"|format(action.pct * 100) }}%)
+{% endfor %}
+
+Idle Time: {{ idle_count }} frames ({{ "%.1f"|format(idle_pct * 100) }}%)
+{% if idle_pct > 0.5 -%}
+WARNING: High idle time detected. Model may converge to inaction.
+{%- endif %}
+============================================================

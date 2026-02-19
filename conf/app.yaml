@@ -1,7 +1,17 @@
 app:
   name: "Golem"
-  version: "0.2.2"
+  version: "0.2.3"
   log_level: "INFO"
+
+keybindings:
+  w: "+forward"
+  s: "+back"
+  a: "+moveleft"
+  d: "+moveright"
+  leftarrow: "+left"
+  rightarrow: "+right"
+  e: "+use"
+  space: "+attack"
 
 training:
   batch_size: 16
@@ -10,7 +20,6 @@ training:
   model_save_path: "data/golem_brain.pth"
   sequence_length: 32
   action_space_size: 8
-  # NEW: Data Augmentation Settings
   augmentation:
     mirror: true 
 
@@ -22,19 +31,34 @@ modules:
   basic:
     scenario: "basic.wad"
     config: "conf/common.cfg"
-    episodes: 5
+    episodes: 10
   
   navigation:
     scenario: "my_way_home.wad" 
     config: "conf/common.cfg"
-    episodes: 15
+    episodes: 10
     
   combat:
     scenario: "deadly_corridor.wad"
     config: "conf/common.cfg"
-    episodes: 15
+    episodes: 10
 
-  doomsday:
+  doom:
+    scenario: "/Users/gmoore/Home/games/doom/wads/DOOM.WAD"
+    config: "conf/common.cfg"
+    episodes: 1
+
+  doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/DOOM2.WAD"
     config: "conf/common.cfg"
-    episodes: 5
+    episodes: 1
+
+  plutonia:
+    scenario: "/Users/gmoore/Home/games/doom/wads/PLUTONIA.WAD"
+    config: "conf/common.cfg"
+    episodes: 1
+
+  tnt:
+    scenario: "/Users/gmoore/Home/games/doom/wads/TNT.WAD"
+    config: "conf/common.cfg"
+    episodes: 1

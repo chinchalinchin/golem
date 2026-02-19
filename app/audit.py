@@ -1,12 +1,12 @@
 """
 Audit Module: Brain Scan.
-Performs static analysis on the trained model against the dataset.
 """
 import torch
 import numpy as np
 import logging
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
+from jinja2 import Environment, FileSystemLoader
 
 from app.config import GolemConfig
 from app.dataset import DoomStreamingDataset
@@ -26,16 +26,12 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
 
     # 1. Load Data
     data_dir = resolve_path(cfg.data.output_dir)
-    
-    # Handle "all" keyword
     if module_name and module_name.lower() == "all":
         file_pattern = f"{cfg.data.filename_prefix}*.npz"
     else:
         file_pattern = f"{cfg.data.filename_prefix}_{module_name}*.npz"
 
     dataset = DoomStreamingDataset(data_dir, seq_len=32, file_pattern=file_pattern)
-    
-    # FIX: IterableDataset is incompatible with shuffle=True
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
     # 2. Load Brain
@@ -46,33 +42,25 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
         model = DoomLiquidNet(n_actions=n_actions).to(device)
         model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
-        logger.info(f"Loaded Brain from {model_path}")
     except FileNotFoundError:
         logger.error("No brain found. Train first!")
         return
 
-    # 3. Scan (Run inference)
+    # 3. Scan
     logger.info(f"Scanning neural pathways (Module: {module_name})...")
     
     all_preds = []
     all_targets = []
-    
-    # Increase sample size to cover more ground since we can't shuffle
     max_batches = 50 
     
     with torch.no_grad():
         for i, (frames, actions) in enumerate(dataloader):
             if i >= max_batches: break
-            
             frames = frames.to(device)
-            logits, _ = model(frames) # Ignore hx during audit
-            probs = torch.sigmoid(logits)
-            
-            # Threshold at 0.5
-            preds = (probs > 0.5).float().cpu().numpy()
+            logits, _ = model(frames)
+            preds = (torch.sigmoid(logits) > 0.5).float().cpu().numpy()
             targets = actions.cpu().numpy()
             
-            # Flatten: (Batch, Time, Actions) -> (Samples, Actions)
             all_preds.append(preds.reshape(-1, n_actions))
             all_targets.append(targets.reshape(-1, n_actions))
 
@@ -83,32 +71,16 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
     y_pred = np.concatenate(all_preds)
     y_true = np.concatenate(all_targets)
 
-    # 4. Report
-    action_names = [
-        "Move Fwd", "Move Back", "Move Left", "Move Right", 
-        "Turn Left", "Turn Right", "Attack", "Use"
-    ]
-    
-    print("\n" + "="*60)
-    print(f"GOLEM BRAIN AUDIT | Data: {module_name} | Samples: {len(y_true)}")
-    print("="*60)
-    
-    # Calculate simple accuracy (Exact Match)
+    # 4. Report via Jinja2
     exact_acc = accuracy_score(y_true, y_pred)
-    print(f"Exact Sequence Match: {exact_acc:.1%}")
-    print("-" * 60)
-    
-    # Per-Channel Analysis
-    print(f"{'ACTION':<15} | {'PRECISION':<10} | {'RECALL':<10} | {'SUPPORT':<10}")
-    print("-" * 60)
-    
+    action_names = ["Move Fwd", "Move Back", "Move Left", "Move Right", "Turn Left", "Turn Right", "Attack", "Use"]
+    metrics = []
+
     for i, name in enumerate(action_names):
         true_col = y_true[:, i]
         pred_col = y_pred[:, i]
-        
         support = int(true_col.sum())
         
-        # Avoid division by zero
         tp = ((true_col == 1) & (pred_col == 1)).sum()
         fp = ((true_col == 0) & (pred_col == 1)).sum()
         fn = ((true_col == 1) & (pred_col == 0)).sum()
@@ -116,6 +88,19 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
         precision = tp / (tp + fp + 1e-9)
         recall = tp / (tp + fn + 1e-9)
         
-        print(f"{name:<15} | {precision:.1%}      | {recall:.1%}      | {support:<10}")
+        metrics.append({
+            "name": name,
+            "precision": precision,
+            "recall": recall,
+            "support": support
+        })
 
-    print("="*60 + "\n")
+    env = Environment(loader=FileSystemLoader(resolve_path("app/templates")))
+    template = env.get_template("audit.j2")
+    
+    print(template.render(
+        module_name=module_name,
+        sample_count=len(y_true),
+        exact_acc=exact_acc,
+        metrics=metrics
+    ))

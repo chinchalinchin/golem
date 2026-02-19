@@ -35,6 +35,7 @@ class TrainingConfig(BaseModel):
 
 class GolemConfig(BaseModel):
     app: AppConfig
+    keybindings: Dict[str, str]
     data: DataConfig
     training: TrainingConfig
     modules: Dict[str, ModuleConfig]

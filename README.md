@@ -99,6 +99,10 @@ Watch the LNN play the game live.
 python main.py run
 ```
 
+## Current Model
+
+The current model is available in `data/golem_brain.pth`.
+
 ---
 
 ## 📜 License

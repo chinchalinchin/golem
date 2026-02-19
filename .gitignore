@@ -4,4 +4,5 @@
 _vizdoom.ini
 data/**
 !data/.gitkeep
+!data/golem_brain.pth
 site/**

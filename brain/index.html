@@ -355,33 +355,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-liquid-core-cfc" class="md-nav__link">
+  <a href="#2-liquid-core-cfc-state-persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Liquid Core (CfC)
+        2. Liquid Core (CfC) &amp; State Persistence
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Liquid Core (CfC)">
+    <nav class="md-nav" aria-label="2. Liquid Core (CfC) &amp; State Persistence">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-liquid-ode" class="md-nav__link">
+  <a href="#the-amnesia-constraint-stateful-inference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Liquid ODE
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-closed-form-solution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Closed-Form Solution
+        The "Amnesia" Constraint (Stateful Inference)
       
     </span>
   </a>
@@ -504,33 +493,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-liquid-core-cfc" class="md-nav__link">
+  <a href="#2-liquid-core-cfc-state-persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Liquid Core (CfC)
+        2. Liquid Core (CfC) &amp; State Persistence
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Liquid Core (CfC)">
+    <nav class="md-nav" aria-label="2. Liquid Core (CfC) &amp; State Persistence">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-liquid-ode" class="md-nav__link">
+  <a href="#the-amnesia-constraint-stateful-inference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Liquid ODE
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-closed-form-solution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Closed-Form Solution
+        The "Amnesia" Constraint (Stateful Inference)
       
     </span>
   </a>
@@ -574,63 +552,22 @@
 
 
 <h1 id="the-brain-liquid-neural-networks">The Brain: Liquid Neural Networks</h1>
-<p>The core of Golem is a <strong>Neural Circuit Policy (NCP)</strong> utilizing <strong>Closed-form Continuous (CfC)</strong> cells. This architecture is chosen over LSTMs or Transformers due to its superior handling of causality and temporal dynamics in continuous-time environments.</p>
-<hr />
+<p>The core of Golem is a <strong>Neural Circuit Policy (NCP)</strong> utilizing <strong>Closed-form Continuous (CfC)</strong> cells. </p>
 <h2 id="1-visual-cortex-cnn">1. Visual Cortex (CNN)</h2>
-<p>The input state <span class="arithmatex">\(s_t\)</span> is first processed by a standard Convolutional Neural Network (CNN) to extract spatial features.</p>
-<div class="arithmatex">\[
-h_{visual} = \text{ReLU}(\text{Conv2d}(s_t))
-\]</div>
-<p>This reduces the high-dimensional pixel space (<span class="arithmatex">\(3 \times 64 \times 64\)</span>) into a latent feature vector <span class="arithmatex">\(I(t)\)</span> of size 12,544. This vector serves as the sensory input to the liquid network.</p>
-<hr />
-<h2 id="2-liquid-core-cfc">2. Liquid Core (CfC)</h2>
-<p>Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete steps: </p>
-<div class="arithmatex">\[
-h_{t+1} = f(h_t, x_t)
-\]</div>
-<p><strong>Liquid Time-Constant (LTC)</strong> networks, conversely, model the hidden state <span class="arithmatex">\(x(t)\)</span> as a system of Ordinary Differential Equations (ODEs). This allows the network to represent time as a continuous flow.</p>
-<h3 id="the-liquid-ode">The Liquid ODE</h3>
+<p>The input state <span class="arithmatex">\(s_t\)</span> is first processed by a standard Convolutional Neural Network (CNN) to extract spatial features, reducing the pixel space into a latent feature vector <span class="arithmatex">\(I(t)\)</span> of size 12,544.</p>
+<h2 id="2-liquid-core-cfc-state-persistence">2. Liquid Core (CfC) &amp; State Persistence</h2>
+<p>Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete steps. <strong>Liquid Time-Constant (LTC)</strong> networks model the hidden state <span class="arithmatex">\(x(t)\)</span> as a system of Ordinary Differential Equations (ODEs).</p>
 <div class="arithmatex">\[
 \frac{dx(t)}{dt} = - \left[ w_\tau + f(x(t), I(t), \theta) \right] \cdot x(t) + A \cdot f(x(t), I(t), \theta)
 \]</div>
-<p>Where:</p>
-<ul>
-<li><span class="arithmatex">\(x(t)\)</span>: The hidden state (membrane potential).</li>
-<li><span class="arithmatex">\(I(t)\)</span>: The input signal (from the CNN).</li>
-<li><span class="arithmatex">\(w_\tau\)</span>: The <strong>Time-Constant</strong> (decay rate).</li>
-<li><span class="arithmatex">\(f(\cdot)\)</span>: A non-linear nonlinearity (sigmoid/tanh).</li>
-</ul>
-<div class="admonition info">
-<p class="admonition-title">Adaptive Causality</p>
-<p>The term <span class="arithmatex">\(w_\tau + f(x(t), I(t))\)</span> acts as a <strong>dynamic time-constant</strong>. </p>
-<ul>
-<li>If the input <span class="arithmatex">\(I(t)\)</span> is strong/novel, the time-constant shrinks, and the network reacts <strong>fast</strong>.</li>
-<li>If the input is weak/static, the time-constant grows, and the network retains memory <strong>longer</strong>.</li>
-</ul>
-</div>
-<h3 id="the-closed-form-solution">The Closed-Form Solution</h3>
-<p>Solving ODEs numerically step-by-step is slow and unstable (vanishing gradients). Golem uses the <strong>Closed-form Continuous (CfC)</strong> variant (Hasani et al., 2022), which approximates the integral of the liquid ODE:</p>
-<div class="arithmatex">\[
-x(t) \approx \underbrace{\sigma( -f(x, I, w_\tau) t )}_{\text{Decay}} \odot \underbrace{g(x, I, A)}_{\text{Input}}
-\]</div>
-<p>This allows the network to enjoy the benefits of ODEs (causality, continuous time) with the speed and stability of standard RNNs.</p>
-<hr />
+<h3 id="the-amnesia-constraint-stateful-inference">The "Amnesia" Constraint (Stateful Inference)</h3>
+<p>Because the network relies on differential equations, it requires a continuous flow of time to accumulate evidence and build potential. </p>
+<p>During live gameplay (Inference), the engine feeds the brain one frame at a time. <strong>The hidden state <span class="arithmatex">\(hx\)</span> must be explicitly captured and fed back into the network on the next frame.</strong> Failing to persist the hidden state lobotomizes the network 35 times a second, preventing the activation threshold from ever being reached.</p>
 <h2 id="3-motor-cortex-linear-head">3. Motor Cortex (Linear Head)</h2>
-<p>The liquid state <span class="arithmatex">\(x(t)\)</span> is projected to the action space via a linear layer.</p>
+<p>The liquid state <span class="arithmatex">\(x(t)\)</span> is projected to the 8-dimensional action space via a linear layer.</p>
 <div class="arithmatex">\[
 \hat{y}_t = W_{out} x(t) + b_{out}
 \]</div>
-<p>These logits are then passed through a Sigmoid function during inference to obtain probabilities.</p>
-<pre class="mermaid"><code>graph TD
-    Input[Input Tensor: 3x64x64] --&gt; CNN[Visual Cortex: CNN]
-    CNN --&gt; Latent[Latent Vector: 12544]
-    Latent --&gt; CfC{Liquid Core: CfC}
-    CfC --&gt; Linear[Linear Projection]
-    Linear --&gt; Logits[Action Logits: 3]
-    Logits --&gt; Sigmoid((Sigmoid))
-    Sigmoid --&gt; Output[Probabilities]
-
-    style CfC fill:#f9f,stroke:#333,stroke-width:4px</code></pre>
 
 
 

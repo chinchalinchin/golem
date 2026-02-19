@@ -371,32 +371,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Objective
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#loss-function" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Loss Function
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#sliding-window-data-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
         Sliding Window Data Loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-imbalance-mirror-augmentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class Imbalance &amp; Mirror Augmentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostic-auditing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostic Auditing
       
     </span>
   </a>
@@ -465,32 +465,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Objective
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#loss-function" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Loss Function
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#sliding-window-data-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
         Sliding Window Data Loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-imbalance-mirror-augmentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class Imbalance &amp; Mirror Augmentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostic-auditing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostic Auditing
       
     </span>
   </a>
@@ -518,32 +518,26 @@
 
 
 <h1 id="training-methodology">Training Methodology</h1>
-<p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task.</p>
-<h2 id="the-objective">The Objective</h2>
-<p>Given a dataset of expert trajectories <span class="arithmatex">\(\mathcal{D} = \{ (s_t, a_t) \}_{t=1}^T\)</span>, we aim to minimize the divergence between the policy <span class="arithmatex">\(\pi_\theta(s_t)\)</span> and the expert action <span class="arithmatex">\(a_t\)</span>.</p>
-<h2 id="loss-function">Loss Function</h2>
-<p>Since the action space is multi-label (actions are not mutually exclusive), we cannot use <code>CrossEntropyLoss</code> (Softmax). Instead, we model each action channel as an independent Bernoulli trial using <strong>Binary Cross Entropy with Logits (BCEWithLogitsLoss)</strong>.</p>
-<div class="arithmatex">\[
-L(\theta) = - \frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C \left[ y_{i,c} \cdot \log(\sigma(\hat{y}_{i,c})) + (1 - y_{i,c}) \cdot \log(1 - \sigma(\hat{y}_{i,c})) \right]
-\]</div>
-<p>Where:</p>
-<ul>
-<li><span class="arithmatex">\(N\)</span>: Batch size.</li>
-<li><span class="arithmatex">\(C\)</span>: Number of action channels (3: Left, Right, Attack).</li>
-<li><span class="arithmatex">\(\sigma\)</span>: Sigmoid function <span class="arithmatex">\(\frac{1}{1+e^{-x}}\)</span>.</li>
-</ul>
+<p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task over continuous time-series data.</p>
 <h2 id="sliding-window-data-loading">Sliding Window Data Loading</h2>
-<p>LNNs require temporal context. We cannot shuffle individual frames. The <code>DoomStreamingDataset</code> implements a sliding window strategy.</p>
-<p>Given a recording of length <span class="arithmatex">\(T\)</span> and a sequence length <span class="arithmatex">\(L\)</span> (e.g., 32 frames):</p>
+<p>LNNs require temporal context. We cannot shuffle individual frames. The <code>DoomStreamingDataset</code> implements a sliding window strategy. Given a recording of length <span class="arithmatex">\(T\)</span> and a sequence length <span class="arithmatex">\(L\)</span> (e.g., 32 frames):</p>
 <div class="arithmatex">\[
 X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
 \]</div>
-<p>The batch tensor shapes are:</p>
+<h2 id="class-imbalance-mirror-augmentation">Class Imbalance &amp; Mirror Augmentation</h2>
+<p>Human gameplay data is notoriously unbalanced. Players naturally favor turning one direction (e.g., left) over another in mazes, and spend 95% of their time walking rather than shooting. Without intervention, models suffer from the "Zoolander Problem" (inability to turn right) or become "Pacifists" (refusing to shoot to minimize statistical error).</p>
+<p>Golem solves spatial biases using <strong>Mirror Augmentation</strong>. During data streaming, the dataset dynamically yields a horizontally flipped version of the video tensor and explicitly swaps the corresponding action labels:</p>
 <ul>
-<li>Input: <span class="arithmatex">\((B, L, C, H, W)\)</span></li>
-<li>Target: <span class="arithmatex">\((B, L, A_{dim})\)</span></li>
+<li>Move Left <span class="arithmatex">\(\leftrightarrow\)</span> Move Right</li>
+<li>Turn Left <span class="arithmatex">\(\leftrightarrow\)</span> Turn Right</li>
 </ul>
-<p>This ensures the CfC cell receives a coherent stream of <span class="arithmatex">\(L\)</span> timesteps to establish its internal derivative state.</p>
+<p>This effectively doubles the dataset size for free and forces perfect symmetry in the agent's spatial reasoning.</p>
+<h2 id="diagnostic-auditing">Diagnostic Auditing</h2>
+<p>Because standard Loss metrics obscure class-imbalance failures, Golem includes an <code>audit</code> module. This runs a static "Brain Scan" on a validation slice, generating a Precision/Recall matrix for every individual button in the 8-button Superset. </p>
+<ul>
+<li><strong>Precision:</strong> When the agent presses a button, how often was it correct?</li>
+<li><strong>Recall:</strong> When a situation demanded a button press, how often did the agent react?</li>
+</ul>
 
 
 

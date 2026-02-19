@@ -596,7 +596,8 @@
 <h3 id="data-pipeline-phases">Data Pipeline Phases</h3>
 <ol>
 <li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw screen buffer and game variables (health, ammo).</li>
-<li><strong>Transform (Normalization):</strong> * <strong>Downsampling:</strong> Bilinear interpolation.<ul>
+<li><strong>Transform (Normalization):</strong> <ul>
+<li><strong>Downsampling:</strong> Bilinear interpolation.</li>
 <li><strong>Normalization:</strong> Min-max scaling.</li>
 <li><strong>Channel Permutation:</strong>  for PyTorch.</li>
 </ul>

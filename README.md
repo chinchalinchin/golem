@@ -64,7 +64,7 @@ Edit `conf/app.yaml` to adjust hyperparameters or resolution.
 
 Edit `conf/custom.cfg` to modify the available button definitions.
 
-### 2. Record (The Eyes)
+### 2. Record
 
 Launch the engine in Spectator Mode to capture training data.
 
@@ -74,7 +74,7 @@ python main.py record
 
 *Controls:* `W` (Attack), `A` (Left), `D` (Right), `Space` (Attack).
 
-### 3. Inspect (QA)
+### 3. Inspect
 
 Verify your dataset is balanced and normalized.
 
@@ -82,7 +82,7 @@ Verify your dataset is balanced and normalized.
 python main.py inspect
 ```
 
-### 4. Train (The Spark)
+### 4. Train
 
 Run the training loop to create a `.pth` model file.
 
@@ -92,7 +92,15 @@ python main.py train
 
 *Note: On Apple Silicon (M1/M2/M3/M4), this automatically uses Metal Performance Shaders (MPS).*
 
-### 5. Run (The Body)
+### 5. Audit
+
+Verify the training created a well balanced model.
+
+```bash
+python main.py audit
+```
+
+### 6. Run
 
 Watch the LNN play the game live.
 

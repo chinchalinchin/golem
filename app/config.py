@@ -1,7 +1,7 @@
 import yaml
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Dict, Optional
 from app.utils import resolve_path
 
@@ -21,6 +21,9 @@ class AppConfig(BaseModel):
     version: str
     log_level: str
 
+class AugmentationConfig(BaseModel):
+    mirror: bool = False
+
 class TrainingConfig(BaseModel):
     batch_size: int
     learning_rate: float
@@ -28,6 +31,7 @@ class TrainingConfig(BaseModel):
     model_save_path: str
     sequence_length: int = 32
     action_space_size: int = 8
+    augmentation: AugmentationConfig = AugmentationConfig()
 
 class GolemConfig(BaseModel):
     app: AppConfig
@@ -37,10 +41,8 @@ class GolemConfig(BaseModel):
 
     @classmethod
     def load(cls, config_path: str = "conf/app.yaml") -> "GolemConfig":
-        """Loads the YAML configuration into a Pydantic model."""
         full_path = resolve_path(config_path)
         path = Path(full_path)
-
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found at: {path.absolute()}")
         

@@ -54,11 +54,11 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
         action_names=cfg.training.action_names # Pass dynamic names
     )
     
-    if not dataset.files:
+    if len(dataset) == 0:
         logger.error(f"No training data found matching pattern: {file_pattern}")
         return
 
-    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size)
+    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=True)    
     
     # 4. Initialize Model
     n_actions = cfg.training.action_space_size

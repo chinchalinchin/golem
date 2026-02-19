@@ -26,11 +26,14 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
 
     # 1. Load Data
     data_dir = resolve_path(cfg.data.output_dir)
+    active_profile = cfg.training.config # NEW
+    
     if module_name and module_name.lower() == "all":
-        file_pattern = f"{cfg.data.filename_prefix}*.npz"
+        # NEW: Inject active profile
+        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_*.npz"
     else:
-        file_pattern = f"{cfg.data.filename_prefix}_{module_name}*.npz"
-
+        # NEW: Inject active profile
+        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_{module_name}*.npz"
     dataset = DoomStreamingDataset(data_dir, seq_len=32, file_pattern=file_pattern)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 

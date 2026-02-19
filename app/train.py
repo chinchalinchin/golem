@@ -40,6 +40,10 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
     # 2. Filter Data Files
     data_dir = resolve_path(cfg.data.output_dir)
     
+    # FIX: Allow explicit "all" keyword to override the default "basic"
+    if module_name and module_name.lower() == "all":
+        module_name = None
+        
     file_pattern = f"{cfg.data.filename_prefix}*.npz"
     if module_name:
         file_pattern = f"{cfg.data.filename_prefix}_{module_name}*.npz"

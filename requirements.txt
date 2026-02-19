@@ -5,6 +5,7 @@ torchvision
 opencv-python
 pydantic
 PyYaml
+scikit-learn
 # Documentation
 mkdocs
 mkdocs-material

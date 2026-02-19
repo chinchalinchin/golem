@@ -30,7 +30,8 @@ graph LR
 ### Data Pipeline Phases
 
 1. **Extract (Perception):** Interfaces with `libvizdoom` to capture the raw screen buffer and game variables (health, ammo).
-2. **Transform (Normalization):** * **Downsampling:** Bilinear interpolation.
+2. **Transform (Normalization):** 
+    * **Downsampling:** Bilinear interpolation.
     * **Normalization:** Min-max scaling.
     * **Channel Permutation:**  for PyTorch.
 3. **Load (Inference/Training):** Feeds tensors into the **Neural Circuit Policy (NCP)** to generate action probabilities.
@@ -105,7 +106,7 @@ Golem operates in a loop. Select a phase below to view the command syntax.
 
     !!! tip
         Look for **High Idle Time**. If the agent spends >50% of the time doing nothing, the model will converge to inaction.
-        
+
 === "3. Inspect"
 
     Verify your dataset is balanced and normalized before training.

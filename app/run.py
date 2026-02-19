@@ -1,11 +1,3 @@
-"""
-Inference Module: The Body.
-
-This module loads a trained Golem Brain (PyTorch model) and connects it 
-to a live instance of ViZDoom. It runs in PLAYER mode (ASYNC), allowing 
-the neural network to drive the game loop by predicting actions from 
-pixel data in real-time.
-"""
 import torch
 import cv2
 import numpy as np
@@ -19,14 +11,6 @@ from app.utils import resolve_path, get_vizdoom_scenario
 logger = logging.getLogger(__name__)
 
 def run_agent(cfg: GolemConfig):
-    """
-    Main inference loop.
-    
-    1. Loads the model weights from disk.
-    2. Initializes ViZDoom in PLAYER mode.
-    3. Runs the game loop: Frame -> Tensor -> Model -> Action -> Game.
-    """
-    # 1. Setup Device
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -36,9 +20,9 @@ def run_agent(cfg: GolemConfig):
     
     logger.info(f"Loading Golem Brain on {device}...")
 
-    # 2. Load the Trained Brain
     model_path = resolve_path(cfg.training.model_save_path)
-    model = DoomLiquidNet(n_actions=3).to(device)
+    n_actions = cfg.training.action_space_size 
+    model = DoomLiquidNet(n_actions=n_actions).to(device)
     
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
@@ -48,10 +32,9 @@ def run_agent(cfg: GolemConfig):
         logger.error(f"No model found at {model_path}. Please train first!")
         return
 
-    # 3. Initialize Game
     game = DoomGame()
-    game.load_config(resolve_path(cfg.vizdoom.config_path))
-    game.set_doom_scenario_path(get_vizdoom_scenario(cfg.vizdoom.scenario_name))
+    game.load_config(resolve_path("conf/common.cfg")) 
+    game.set_doom_scenario_path(get_vizdoom_scenario("deadly_corridor.wad"))
     game.set_screen_format(ScreenFormat.CRCGCB)
     game.set_screen_resolution(ScreenResolution.RES_640X480)
     game.set_window_visible(True)
@@ -60,43 +43,40 @@ def run_agent(cfg: GolemConfig):
 
     logger.info("Golem is waking up...")
     
-    # Run loop
-    episodes = 5
+    action_labels = ["Fwd", "Back", "MovL", "MovR", "TrnL", "TrnR", "Atk", "Use"]
+
+    episodes = 10
     for i in range(episodes):
         game.new_episode()
+        
+        # Reset Short-term memory (Hidden State) at start of episode
+        hx = None
         
         while not game.is_episode_finished():
             state = game.get_state()
             raw_frame = state.screen_buffer
             
-            # Preprocess (Must match record.py logic!)
             frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64))
             frame = frame / 255.0
-            frame = np.transpose(frame, (2, 0, 1)) # (C, H, W) for PyTorch
+            frame = np.transpose(frame, (2, 0, 1))
             
             tensor = torch.from_numpy(frame).float().unsqueeze(0).unsqueeze(0).to(device)
             
-            # Inference
             with torch.no_grad():
-                logits = model(tensor)
+                # FIX: Pass and receive hx
+                logits, hx = model(tensor, hx)
                 probs = torch.sigmoid(logits)
-                
+            
             action_probs = probs.cpu().numpy()[0, 0]
+            action = (action_probs > 0.5).astype(int).tolist()
             
-            # Thresholding Logic
-            action = [0, 0, 0] # [Left, Right, Attack]
-            if action_probs[0] > 0.5: action[0] = 1 
-            if action_probs[1] > 0.5: action[1] = 1 
-            if action_probs[2] > 0.5: action[2] = 1 
-            
-            # Conflicting movement suppression
-            if action[0] and action[1]:
-                if action_probs[0] > action_probs[1]: action[1] = 0
-                else: action[0] = 0
+            # Neural Monitor: Log thoughts if something is happening
+            # Only log every 10 frames to avoid spam, or if an action is taken
+            if sum(action) > 0 or (game.get_episode_time() % 35 == 0):
+                active_str = " | ".join([f"{label}:{prob:.2f}" for label, prob in zip(action_labels, action_probs) if prob > 0.1])
+                logger.info(f"T{game.get_episode_time()}: {active_str}")
 
             game.make_action(action)
-            
-            # Frame rate cap (approx 35 fps)
             time.sleep(0.028)
         
         logger.info(f"Episode {i+1} Finished.")

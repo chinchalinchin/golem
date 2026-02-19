@@ -65,7 +65,7 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
             if i >= max_batches: break
             
             frames = frames.to(device)
-            logits = model(frames)
+            logits, _ = model(frames) # Ignore hx during audit
             probs = torch.sigmoid(logits)
             
             # Threshold at 0.5

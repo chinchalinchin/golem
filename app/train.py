@@ -86,7 +86,7 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
             actions = actions.to(device)
             
             optimizer.zero_grad()
-            predictions = model(frames)
+            predictions, _ = model(frames) # Ignore hx during training
             
             if actions.shape[2] != n_actions:
                 logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions, Brain expects {n_actions}.")

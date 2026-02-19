@@ -534,12 +534,9 @@ o_t \in \mathbb{R}^{3 \times 64 \times 64}
 <p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>. </p>
 <p>Let <span class="arithmatex">\(\rho \in \{\text{basic}, \text{classic}, \text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
 <ol>
-<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}} = 8\)</span>):
-   $<span class="arithmatex">\(\mathcal{A}_{\text{basic}} = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}\)</span>$</li>
-<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}} = 9\)</span>):
-   $<span class="arithmatex">\(\mathcal{A}_{\text{fluid}} = \mathcal{A}_{\text{basic}} \cup \{ \text{NextWeapon} \}\)</span>$</li>
-<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}} = 10\)</span>):
-   $<span class="arithmatex">\(\mathcal{A}_{\text{classic}} = \mathcal{A}_{\text{basic}} \cup \{ \text{Weapon2}, \text{Weapon3} \}\)</span>$</li>
+<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}} = 8\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{basic}} = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}\)</span></li>
+<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}} = 9\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{fluid}} = \mathcal{A}_{\text{basic}} \cup \{ \text{NextWeapon} \}\)</span></li>
+<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}} = 10\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{classic}} = \mathcal{A}_{\text{basic}} \cup \{ \text{Weapon2}, \text{Weapon3} \}\)</span>$</li>
 </ol>
 <p>At any time step <span class="arithmatex">\(t\)</span>, the output vector <span class="arithmatex">\(y_t\)</span> is drawn from a Multivariate Bernoulli distribution over these actions. Assuming conditional independence between individual key presses given the latent state representation, the network predicts the probability vector <span class="arithmatex">\(\mathbf{p}_t\)</span>, yielding:</p>
 <div class="arithmatex">\[

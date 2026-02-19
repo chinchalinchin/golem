@@ -546,8 +546,8 @@
 <p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau = \{ (o_1, y_1), (o_2, y_2), \dots, (o_T, y_T) \}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. The input tensor sequence <span class="arithmatex">\(\mathbf{X}_i\)</span> and target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
 <div class="arithmatex">\[
 \mathbf{X}_i = \{ o_t \}_{t=i}^{i+L-1}, \quad \mathbf{X}_i \in \mathbb{R}^{L \times 3 \times 64 \times 64}
-$$
-$$
+\]</div>
+<div class="arithmatex">\[
 \mathbf{Y}_i = \{ y_t \}_{t=i}^{i+L-1}, \quad \mathbf{Y}_i \in \{0, 1\}^{L \times n_\rho}
 \]</div>
 <p>Where <span class="arithmatex">\(n_\rho\)</span> is the dimensionality of the action space dictated by the active environment profile <span class="arithmatex">\(\rho\)</span> (e.g., Basic, Classic, Fluid).</p>

@@ -105,19 +105,35 @@ Golem operates in a loop. Select a phase below to view the command syntax.
 
     !!! tip
         Look for **High Idle Time**. If the agent spends >50% of the time doing nothing, the model will converge to inaction.
+        
+=== "3. Inspect"
+
+    Verify your dataset is balanced and normalized before training.
+
+    ```bash
+    python main.py inspect
+    ```
 
 === "4. Train"
 
     Run the **Behavioral Cloning** loop to create a `.pth` model file.
 
     ```bash
-    # Trains on ALL available data modules
-    python main.py train
+    # Trains on ALL available data modules, applying Mirror Augmentation
+    python main.py train --module all
     ```
 
-=== "5. Run "
+=== "5. Audit"
 
-    Watch the LNN play the game live.
+    Run a diagnostic Brain Scan to check for class-imbalance failures (like the Pacifist or Zoolander bugs).
+
+    ```bash
+    python main.py audit --module all
+    ```
+
+=== "6. Run "
+
+    Watch the LNN play the game live. The agent maintains a persistent hidden state to process time continuously.
 
     ```bash
     python main.py run

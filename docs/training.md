@@ -1,39 +1,29 @@
-
 # Training Methodology
 
-Golem is trained via **Behavioral Cloning (BC)**, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task.
-
-## The Objective
-
-Given a dataset of expert trajectories $\mathcal{D} = \{ (s_t, a_t) \}_{t=1}^T$, we aim to minimize the divergence between the policy $\pi_\theta(s_t)$ and the expert action $a_t$.
-
-## Loss Function
-
-Since the action space is multi-label (actions are not mutually exclusive), we cannot use `CrossEntropyLoss` (Softmax). Instead, we model each action channel as an independent Bernoulli trial using **Binary Cross Entropy with Logits (BCEWithLogitsLoss)**.
-
-$$
-L(\theta) = - \frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C \left[ y_{i,c} \cdot \log(\sigma(\hat{y}_{i,c})) + (1 - y_{i,c}) \cdot \log(1 - \sigma(\hat{y}_{i,c})) \right]
-$$
-
-Where:
-
-* $N$: Batch size.
-* $C$: Number of action channels (3: Left, Right, Attack).
-* $\sigma$: Sigmoid function $\frac{1}{1+e^{-x}}$.
+Golem is trained via **Behavioral Cloning (BC)**, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task over continuous time-series data.
 
 ## Sliding Window Data Loading
 
-LNNs require temporal context. We cannot shuffle individual frames. The `DoomStreamingDataset` implements a sliding window strategy.
-
-Given a recording of length $T$ and a sequence length $L$ (e.g., 32 frames):
+LNNs require temporal context. We cannot shuffle individual frames. The `DoomStreamingDataset` implements a sliding window strategy. Given a recording of length $T$ and a sequence length $L$ (e.g., 32 frames):
 
 $$
 X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
 $$
 
-The batch tensor shapes are:
+## Class Imbalance & Mirror Augmentation
 
-* Input: $(B, L, C, H, W)$
-* Target: $(B, L, A_{dim})$
+Human gameplay data is notoriously unbalanced. Players naturally favor turning one direction (e.g., left) over another in mazes, and spend 95% of their time walking rather than shooting. Without intervention, models suffer from the "Zoolander Problem" (inability to turn right) or become "Pacifists" (refusing to shoot to minimize statistical error).
 
-This ensures the CfC cell receives a coherent stream of $L$ timesteps to establish its internal derivative state.
+Golem solves spatial biases using **Mirror Augmentation**. During data streaming, the dataset dynamically yields a horizontally flipped version of the video tensor and explicitly swaps the corresponding action labels:
+
+* Move Left $\leftrightarrow$ Move Right
+* Turn Left $\leftrightarrow$ Turn Right
+
+This effectively doubles the dataset size for free and forces perfect symmetry in the agent's spatial reasoning.
+
+## Diagnostic Auditing
+
+Because standard Loss metrics obscure class-imbalance failures, Golem includes an `audit` module. This runs a static "Brain Scan" on a validation slice, generating a Precision/Recall matrix for every individual button in the 8-button Superset. 
+
+* **Precision:** When the agent presses a button, how often was it correct?
+* **Recall:** When a situation demanded a button press, how often did the agent react?

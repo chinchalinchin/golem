@@ -526,10 +526,12 @@
 <div class="arithmatex">\[
 L(\theta) = - \frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C \left[ y_{i,c} \cdot \log(\sigma(\hat{y}_{i,c})) + (1 - y_{i,c}) \cdot \log(1 - \sigma(\hat{y}_{i,c})) \right]
 \]</div>
-<p>Where:
-* <span class="arithmatex">\(N\)</span>: Batch size.
-* <span class="arithmatex">\(C\)</span>: Number of action channels (3: Left, Right, Attack).
-* <span class="arithmatex">\(\sigma\)</span>: Sigmoid function <span class="arithmatex">\(\frac{1}{1+e^{-x}}\)</span>.</p>
+<p>Where:</p>
+<ul>
+<li><span class="arithmatex">\(N\)</span>: Batch size.</li>
+<li><span class="arithmatex">\(C\)</span>: Number of action channels (3: Left, Right, Attack).</li>
+<li><span class="arithmatex">\(\sigma\)</span>: Sigmoid function <span class="arithmatex">\(\frac{1}{1+e^{-x}}\)</span>.</li>
+</ul>
 <h2 id="sliding-window-data-loading">Sliding Window Data Loading</h2>
 <p>LNNs require temporal context. We cannot shuffle individual frames. The <code>DoomStreamingDataset</code> implements a sliding window strategy.</p>
 <p>Given a recording of length <span class="arithmatex">\(T\)</span> and a sequence length <span class="arithmatex">\(L\)</span> (e.g., 32 frames):</p>

@@ -7,6 +7,7 @@ import vizdoom
 from pathlib import Path
 from typing import Union
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +32,10 @@ def resolve_path(path_str: str) -> str:
 def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str = "npz") -> str:
     """Generates a unique filename (e.g., data_1.npz) to prevent overwrites."""
     directory = Path(directory)
+    # Ensure directory is also resolved
+    if not directory.is_absolute():
+        directory = Path(resolve_path(str(directory)))
+        
     directory.mkdir(parents=True, exist_ok=True)
     
     counter = 1
@@ -45,11 +50,6 @@ def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str
 def get_vizdoom_scenario(scenario_name: str) -> str:
     """
     Locates a ViZDoom scenario WAD file.
-    
-    Priority:
-    1. Built-in ViZDoom scenarios (e.g., 'basic.wad').
-    2. Absolute system paths.
-    3. Relative project paths.
     """
     # 1. Check if it's a built-in scenario (only if it's a simple filename)
     if os.path.basename(scenario_name) == scenario_name:
@@ -69,6 +69,7 @@ def get_vizdoom_scenario(scenario_name: str) -> str:
     logger.warning(f"Could not find scenario. Checked:\n  {scenario_path}\n  {local_path}")
         
     return scenario_path
+
 
 def setup_logging(level_str: str = "INFO"):
     """Configures the root logger with a standard format."""

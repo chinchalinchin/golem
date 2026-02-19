@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import Dict, Optional
+from app.utils import resolve_path
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class GolemConfig(BaseModel):
     @classmethod
     def load(cls, config_path: str = "conf/app.yaml") -> "GolemConfig":
         """Loads the YAML configuration into a Pydantic model."""
-        path = Path(config_path)
+        full_path = resolve_path(config_path)
+        path = Path(full_path)
+
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found at: {path.absolute()}")
         

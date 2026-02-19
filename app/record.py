@@ -9,7 +9,21 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 from app.config import GolemConfig
 from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
 
+
 logger = logging.getLogger(__name__)
+
+
+COMMANDS = [
+    "bind w +forward",
+    "bind s +back",
+    "bind a +moveleft",
+    "bind d +moveright",
+    "bind q +left",
+    "bind e +right",
+    "bind space +attack",
+    "bind f +use"
+]
+
 
 def record_data(cfg: GolemConfig, module_name: str = "basic"):
     """
@@ -55,8 +69,8 @@ def record_data(cfg: GolemConfig, module_name: str = "basic"):
     game.send_game_command("bind s +back")
     game.send_game_command("bind a +moveleft")
     game.send_game_command("bind d +moveright")
-    game.send_game_command("bind q +left")  # Turn Left
-    game.send_game_command("bind e +right") # Turn Right
+    game.send_game_command("bind q +left") 
+    game.send_game_command("bind e +right")
     game.send_game_command("bind space +attack")
     game.send_game_command("bind f +use")
 

@@ -16,6 +16,7 @@ L(\theta) = - \frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C \left[ y_{i,c} \cdot \log(\s
 $$
 
 Where:
+
 * $N$: Batch size.
 * $C$: Number of action channels (3: Left, Right, Attack).
 * $\sigma$: Sigmoid function $\frac{1}{1+e^{-x}}$.

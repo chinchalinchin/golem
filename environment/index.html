@@ -317,10 +317,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#state-space-s" class="md-nav__link">
+  <a href="#observation-space-omega" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Space (\(S\))
+        Observation Space (\(\Omega\))
       
     </span>
   </a>
@@ -328,10 +328,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#action-space-a" class="md-nav__link">
+  <a href="#action-space-mathcala_rho" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action Space (\(A\))
+        Action Space (\(\mathcal{A}_\rho\))
       
     </span>
   </a>
@@ -465,10 +465,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#state-space-s" class="md-nav__link">
+  <a href="#observation-space-omega" class="md-nav__link">
     <span class="md-ellipsis">
       
-        State Space (\(S\))
+        Observation Space (\(\Omega\))
       
     </span>
   </a>
@@ -476,10 +476,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#action-space-a" class="md-nav__link">
+  <a href="#action-space-mathcala_rho" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action Space (\(A\))
+        Action Space (\(\mathcal{A}_\rho\))
       
     </span>
   </a>
@@ -518,33 +518,41 @@
 
 
 <h1 id="the-environment-vizdoom">The Environment: ViZDoom</h1>
-<p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the <em>DOOM</em> engine. We utilize <strong>ViZDoom</strong> as the API bridge.</p>
-<h2 id="state-space-s">State Space (<span class="arithmatex">\(S\)</span>)</h2>
-<p>The state <span class="arithmatex">\(s_t\)</span> at time <span class="arithmatex">\(t\)</span> is a tensor representing the visual field of the agent.</p>
+<p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the <em>DOOM</em> engine. We utilize <strong>ViZDoom</strong> as the API bridge to extract observations and inject actions. Formally, this POMDP is defined by the tuple <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma)\)</span>. </p>
+<h2 id="observation-space-omega">Observation Space (<span class="arithmatex">\(\Omega\)</span>)</h2>
+<p>While the true underlying engine state <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t \in \Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to a downsampled tensor representing its egocentric visual field.</p>
 <div class="arithmatex">\[
-s_t \in \mathbb{R}^{3 \times 64 \times 64}
+o_t \in \mathbb{R}^{3 \times 64 \times 64}
 \]</div>
 <ul>
 <li><strong>Channels:</strong> 3 (RGB).</li>
-<li><strong>Resolution:</strong> 64x64 pixels.</li>
-<li><strong>Normalization:</strong> <span class="arithmatex">\(s_{i,j,k} \in [0, 1]\)</span>.</li>
+<li><strong>Resolution:</strong> 64x64 pixels (processed via bilinear interpolation).</li>
+<li><strong>Normalization:</strong> <span class="arithmatex">\(o_{i,j,k} \in [0, 1]\)</span>.</li>
 </ul>
-<p>We explicitly discard game variables (Health, Ammo) from the input vector to force the model to learn visual cues (e.g., "screen flashing red" implies damage), encouraging robust generalization.</p>
-<h2 id="action-space-a">Action Space (<span class="arithmatex">\(A\)</span>)</h2>
-<p>The action space is discrete and multi-label. To ensure the Liquid Neural Network (LNN) can seamlessly generalize across different maps (Navigation vs. Combat), Golem utilizes a fixed <strong>8-Button Superset</strong>.</p>
+<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn visual heuristics (e.g., a "red screen tint" implies damage), encouraging robust topological generalization across unseen levels.</p>
+<h2 id="action-space-mathcala_rho">Action Space (<span class="arithmatex">\(\mathcal{A}_\rho\)</span>)</h2>
+<p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>. </p>
+<p>Let <span class="arithmatex">\(\rho \in \{\text{basic}, \text{classic}, \text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
+<ol>
+<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}} = 8\)</span>):
+   $<span class="arithmatex">\(\mathcal{A}_{\text{basic}} = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}\)</span>$</li>
+<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}} = 9\)</span>):
+   $<span class="arithmatex">\(\mathcal{A}_{\text{fluid}} = \mathcal{A}_{\text{basic}} \cup \{ \text{NextWeapon} \}\)</span>$</li>
+<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}} = 10\)</span>):
+   $<span class="arithmatex">\(\mathcal{A}_{\text{classic}} = \mathcal{A}_{\text{basic}} \cup \{ \text{Weapon2}, \text{Weapon3} \}\)</span>$</li>
+</ol>
+<p>At any time step <span class="arithmatex">\(t\)</span>, the output vector <span class="arithmatex">\(y_t\)</span> is drawn from a Multivariate Bernoulli distribution over these actions. Assuming conditional independence between individual key presses given the latent state representation, the network predicts the probability vector <span class="arithmatex">\(\mathbf{p}_t\)</span>, yielding:</p>
 <div class="arithmatex">\[
-A = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}
+y_t \in \{0, 1\}^{n_\rho}
 \]</div>
-<p>The output vector <span class="arithmatex">\(y_t\)</span> is a Bernoulli distribution over these actions:</p>
-<div class="arithmatex">\[
-y_t \in \{0, 1\}^8
-\]</div>
-<p>Even if a specific curriculum module (like a maze) does not require the "Attack" button, the dimensionality of the brain remains rigidly fixed to 8 to prevent tensor dimension mismatches during Continual Learning.</p>
+<p>During inference, this distribution is thresholded at <span class="arithmatex">\(0.5\)</span> to produce the deterministic binary vector fed back into the ViZDoom engine. This dynamic scaling prevents data sparsity and gradient dilution that would occur if unused weapon keys were permanently mapped to the output layer during non-combat tasks.</p>
 <h2 id="temporal-dynamics">Temporal Dynamics</h2>
-<p>The environment runs at a fixed tic rate of 35 Hz. However, the agent operates in an asynchronous loop. To maintain temporal consistency, we employ a <strong>Frame Skip</strong> or sleep-cycle to align the inference latency (<span class="arithmatex">\(\tau_{inf}\)</span>) with the game's clock.</p>
+<p>The environment runs at a fixed tic rate of 35 Hz (<span class="arithmatex">\(\Delta t \approx 28.5\text{ms}\)</span>). Because standard RNNs are discrete, they struggle with the asynchronous loop of live gameplay. Golem utilizes Liquid Time-Constant (LTC) networks to model the hidden state <span class="arithmatex">\(x(t)\)</span> as an Ordinary Differential Equation (ODE). </p>
+<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock, we employ a <strong>Frame Skip</strong> (or sleep-cycle) heuristic to lock the inference latency (<span class="arithmatex">\(\tau_{inf}\)</span>) to the engine's tic rate:</p>
 <div class="arithmatex">\[
-\tau_{total} = \tau_{inf} + \tau_{sleep} \approx 28ms
+\tau_{total} = \tau_{inf} + \tau_{sleep} \approx 28\text{ms}
 \]</div>
+<p>This ensures the numerical integration steps within the LNN correctly correspond to the simulated passage of time within the POMDP.</p>
 
 
 

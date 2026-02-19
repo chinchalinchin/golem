@@ -371,10 +371,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#sliding-window-data-loading" class="md-nav__link">
+  <a href="#1-sliding-window-temporal-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sliding Window Data Loading
+        1. Sliding Window Temporal Loading
       
     </span>
   </a>
@@ -382,10 +382,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#class-imbalance-mirror-augmentation" class="md-nav__link">
+  <a href="#2-the-objective-function-bce-loss" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Class Imbalance &amp; Mirror Augmentation
+        2. The Objective Function (BCE Loss)
       
     </span>
   </a>
@@ -393,10 +393,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#diagnostic-auditing" class="md-nav__link">
+  <a href="#3-class-imbalance-mirror-augmentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Diagnostic Auditing
+        3. Class Imbalance &amp; Mirror Augmentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-diagnostic-auditing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Diagnostic Auditing
       
     </span>
   </a>
@@ -465,10 +476,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#sliding-window-data-loading" class="md-nav__link">
+  <a href="#1-sliding-window-temporal-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sliding Window Data Loading
+        1. Sliding Window Temporal Loading
       
     </span>
   </a>
@@ -476,10 +487,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#class-imbalance-mirror-augmentation" class="md-nav__link">
+  <a href="#2-the-objective-function-bce-loss" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Class Imbalance &amp; Mirror Augmentation
+        2. The Objective Function (BCE Loss)
       
     </span>
   </a>
@@ -487,10 +498,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#diagnostic-auditing" class="md-nav__link">
+  <a href="#3-class-imbalance-mirror-augmentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Diagnostic Auditing
+        3. Class Imbalance &amp; Mirror Augmentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-diagnostic-auditing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Diagnostic Auditing
       
     </span>
   </a>
@@ -518,26 +540,50 @@
 
 
 <h1 id="training-methodology">Training Methodology</h1>
-<p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task over continuous time-series data.</p>
-<h2 id="sliding-window-data-loading">Sliding Window Data Loading</h2>
-<p>LNNs require temporal context. We cannot shuffle individual frames. The <code>DoomStreamingDataset</code> implements a sliding window strategy. Given a recording of length <span class="arithmatex">\(T\)</span> and a sequence length <span class="arithmatex">\(L\)</span> (e.g., 32 frames):</p>
+<p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy <span class="arithmatex">\(\pi^*\)</span>, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.</p>
+<h2 id="1-sliding-window-temporal-loading">1. Sliding Window Temporal Loading</h2>
+<p>Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state <span class="arithmatex">\(x(t)\)</span>, individual frames cannot be uniformly shuffled during training. The <code>DoomStreamingDataset</code> enforces temporal causality via a sliding window extraction protocol.</p>
+<p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau = \{ (o_1, y_1), (o_2, y_2), \dots, (o_T, y_T) \}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. The input tensor sequence <span class="arithmatex">\(\mathbf{X}_i\)</span> and target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
 <div class="arithmatex">\[
-X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
+\mathbf{X}_i = \{ o_t \}_{t=i}^{i+L-1}, \quad \mathbf{X}_i \in \mathbb{R}^{L \times 3 \times 64 \times 64}
+$$
+$$
+\mathbf{Y}_i = \{ y_t \}_{t=i}^{i+L-1}, \quad \mathbf{Y}_i \in \{0, 1\}^{L \times n_\rho}
 \]</div>
-<h2 id="class-imbalance-mirror-augmentation">Class Imbalance &amp; Mirror Augmentation</h2>
-<p>Human gameplay data is notoriously unbalanced. Players naturally favor turning one direction (e.g., left) over another in mazes, and spend 95% of their time walking rather than shooting. Without intervention, models suffer from the "Zoolander Problem" (inability to turn right) or become "Pacifists" (refusing to shoot to minimize statistical error).</p>
-<p>Golem solves spatial biases using <strong>Mirror Augmentation</strong>. During data streaming, the dataset dynamically yields a horizontally flipped version of the video tensor and explicitly swaps the corresponding action labels:</p>
+<p>Where <span class="arithmatex">\(n_\rho\)</span> is the dimensionality of the action space dictated by the active environment profile <span class="arithmatex">\(\rho\)</span> (e.g., Basic, Classic, Fluid).</p>
+<h2 id="2-the-objective-function-bce-loss">2. The Objective Function (BCE Loss)</h2>
+<p>At each time step <span class="arithmatex">\(t\)</span>, the network outputs a vector of raw logits <span class="arithmatex">\(\mathbf{z}_t \in \mathbb{R}^{n_\rho}\)</span>. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using <strong>Binary Cross-Entropy</strong> with Logits Loss.</p>
+<p>The loss <span class="arithmatex">\(\mathcal{L}\)</span> for a single sequence of length <span class="arithmatex">\(L\)</span> over <span class="arithmatex">\(n_\rho\)</span> independent binary action channels is computed as:</p>
+<div class="arithmatex">\[
+\mathcal{L}(\theta) = - \frac{1}{L \cdot n_\rho} \sum_{t=1}^{L} \sum_{j=1}^{n_\rho} \left[ y_{t,j} \log(\sigma(z_{t,j})) + (1 - y_{t,j}) \log(1 - \sigma(z_{t,j})) \right]
+\]</div>
+<p>Where <span class="arithmatex">\(\sigma(\cdot)\)</span> is the Sigmoid activation function, <span class="arithmatex">\(y_{t,j}\)</span> is the ground truth label, and <span class="arithmatex">\(z_{t,j}\)</span> is the network's prediction. The network parameters <span class="arithmatex">\(\theta\)</span> are updated via Backpropagation Through Time (BPTT).</p>
+<h2 id="3-class-imbalance-mirror-augmentation">3. Class Imbalance &amp; Mirror Augmentation</h2>
+<p>Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Pacifist Anomaly" (refusal to shoot to minimize statistical error).</p>
+<p>Golem counteracts spatial bias dynamically via Mirror Augmentation. During data streaming, the dataset yields a reflected observation tensor <span class="arithmatex">\(o'_t\)</span> across the vertical axis (width):</p>
+<div class="arithmatex">\[
+o'_{t, c, h, w} = o_{t, c, h, W - w - 1}
+\]</div>
+<p>To maintain ground-truth causality, the corresponding target vector <span class="arithmatex">\(y'_t\)</span> must undergo a specific permutation. Let <span class="arithmatex">\(P_\rho\)</span> be an <span class="arithmatex">\(n_\rho \times n_\rho\)</span> permutation matrix defined by the active profile <span class="arithmatex">\(\rho\)</span>, which swaps the indices corresponding to strictly spatial actions:</p>
 <ul>
-<li>Move Left <span class="arithmatex">\(\leftrightarrow\)</span> Move Right</li>
-<li>Turn Left <span class="arithmatex">\(\leftrightarrow\)</span> Turn Right</li>
+<li><span class="arithmatex">\(idx_{\text{MoveLeft}} \leftrightarrow idx_{\text{MoveRight}}\)</span></li>
+<li><span class="arithmatex">\(idx_{\text{TurnLeft}} \leftrightarrow idx_{\text{TurnRight}}\)</span></li>
 </ul>
-<p>This effectively doubles the dataset size for free and forces perfect symmetry in the agent's spatial reasoning.</p>
-<h2 id="diagnostic-auditing">Diagnostic Auditing</h2>
-<p>Because standard Loss metrics obscure class-imbalance failures, Golem includes an <code>audit</code> module. This runs a static "Brain Scan" on a validation slice, generating a Precision/Recall matrix for every individual button in the 8-button Superset. </p>
-<ul>
-<li><strong>Precision:</strong> When the agent presses a button, how often was it correct?</li>
-<li><strong>Recall:</strong> When a situation demanded a button press, how often did the agent react?</li>
-</ul>
+<p>All state-invariant actions (e.g., Attack, Use, NextWeapon) map to the identity matrix within <span class="arithmatex">\(P_\rho\)</span>. The augmented target vector is thus:</p>
+<div class="arithmatex">\[
+y'_t = P_\rho y_t
+\]</div>
+<p>This geometric inversion enforces perfect spatial symmetry in the agent's spatial reasoning, effectively doubling the dataset's topological variance without requiring additional recording sessions.</p>
+<h2 id="4-diagnostic-auditing">4. Diagnostic Auditing</h2>
+<p>Because the aggregate BCE loss scalar <span class="arithmatex">\(\mathcal{L}(\theta)\)</span> fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static <code>audit</code> module.</p>
+<p>The audit evaluates the trained weights over a validation slice by generating a strictly thresholded (<span class="arithmatex">\(\sigma(\mathbf{z}) &gt; 0.5\)</span>) Confusion Matrix for every individual channel <span class="arithmatex">\(j\)</span> in the <span class="arithmatex">\(n_\rho\)</span> action space. It evaluates the network based on:</p>
+<p><strong>Precision (<span class="arithmatex">\(P_j\)</span>)</strong></p>
+<p>The probability that the agent's decision to act was correct.</p>
+<div class="arithmatex">\[P_j = \frac{TP_j}{TP_j + FP_j}\]</div>
+<p><strong>Recall (<span class="arithmatex">\(R_j\)</span>)</strong>: </p>
+<p>The probability that the agent successfully reacted to an environmental stimulus requiring action <span class="arithmatex">\(j\)</span>.</p>
+<div class="arithmatex">\[R_j = \frac{TP_j}{TP_j + FN_j}\]</div>
+<p>Where <span class="arithmatex">\(TP\)</span>, <span class="arithmatex">\(FP\)</span>, and <span class="arithmatex">\(FN\)</span> represent True Positives, False Positives, and False Negatives, respectively</p>
 
 
 

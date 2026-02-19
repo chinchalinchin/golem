@@ -344,10 +344,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-visual-cortex-cnn" class="md-nav__link">
+  <a href="#1-visual-cortex-cnnt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Visual Cortex (CNN)
+        1. Visual Cortex (CNN)T
       
     </span>
   </a>
@@ -482,10 +482,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-visual-cortex-cnn" class="md-nav__link">
+  <a href="#1-visual-cortex-cnnt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Visual Cortex (CNN)
+        1. Visual Cortex (CNN)T
       
     </span>
   </a>
@@ -552,21 +552,32 @@
 
 
 <h1 id="the-brain-liquid-neural-networks">The Brain: Liquid Neural Networks</h1>
-<p>The core of Golem is a <strong>Neural Circuit Policy (NCP)</strong> utilizing <strong>Closed-form Continuous (CfC)</strong> cells. </p>
-<h2 id="1-visual-cortex-cnn">1. Visual Cortex (CNN)</h2>
-<p>The input state <span class="arithmatex">\(s_t\)</span> is first processed by a standard Convolutional Neural Network (CNN) to extract spatial features, reducing the pixel space into a latent feature vector <span class="arithmatex">\(I(t)\)</span> of size 12,544.</p>
-<h2 id="2-liquid-core-cfc-state-persistence">2. Liquid Core (CfC) &amp; State Persistence</h2>
-<p>Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete steps. <strong>Liquid Time-Constant (LTC)</strong> networks model the hidden state <span class="arithmatex">\(x(t)\)</span> as a system of Ordinary Differential Equations (ODEs).</p>
+<p>The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells.</p>
+<h2 id="1-visual-cortex-cnnt">1. Visual Cortex (CNN)T</h2>
+<p>he input observation <span class="arithmatex">\(o_t\)</span> is first processed by a standard Convolutional Neural Network (CNN) to extract spatial features. This hierarchy reduces the high-dimensional pixel space into a flattened, latent feature vector <span class="arithmatex">\(I(t)\)</span>. Given an input tensor of <span class="arithmatex">\(3 \times 64 \times 64\)</span>, the sequential convolutions and pooling operations yield:</p>
 <div class="arithmatex">\[
-\frac{dx(t)}{dt} = - \left[ w_\tau + f(x(t), I(t), \theta) \right] \cdot x(t) + A \cdot f(x(t), I(t), \theta)
+I(t) \in \mathbb{R}^{12544}
 \]</div>
-<h3 id="the-amnesia-constraint-stateful-inference">The "Amnesia" Constraint (Stateful Inference)</h3>
-<p>Because the network relies on differential equations, it requires a continuous flow of time to accumulate evidence and build potential. </p>
-<p>During live gameplay (Inference), the engine feeds the brain one frame at a time. <strong>The hidden state <span class="arithmatex">\(hx\)</span> must be explicitly captured and fed back into the network on the next frame.</strong> Failing to persist the hidden state lobotomizes the network 35 times a second, preventing the activation threshold from ever being reached.</p>
-<h2 id="3-motor-cortex-linear-head">3. Motor Cortex (Linear Head)</h2>
-<p>The liquid state <span class="arithmatex">\(x(t)\)</span> is projected to the 8-dimensional action space via a linear layer.</p>
+<h2 id="2-liquid-core-cfc-state-persistence">2. Liquid Core (CfC) &amp; State Persistence</h2>
+<p>Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete, uniform steps. In contrast, <strong>Liquid Time-Constant (LTC)</strong> networks model the hidden state <span class="arithmatex">\(x(t)\)</span> as a system of Ordinary Differential Equations (ODEs) responding to a continuous flow of time:</p>
 <div class="arithmatex">\[
-\hat{y}_t = W_{out} x(t) + b_{out}
+\frac{dx(t)}{dt} = -\left[w_\tau + f(x(t), I(t); \theta)\right] \odot x(t) + A \odot f(x(t), I(t); \theta)
+\]</div>
+<p>However, solving this ODE numerically during live gameplay introduces severe computational latency. To achieve the <span class="arithmatex">\(\approx 28\text{ms}\)</span> inference target required by the ViZDoom engine, Golem utilizes the Closed-form Continuous (CfC) approximation (Hasani et al., 2022). This mathematically bypasses the numerical solver entirely by approximating the integral with a tight, closed-form gating mechanism:</p>
+<div class="arithmatex">\[
+x(t) = \sigma(-f(x, I; \theta_f) t) \odot g(x, I; \theta_g) + \left[1 - \sigma(-f(x, I; \theta_f) t)\right] \odot h(x, I; \theta_h)
+\]</div>
+<p>Where <span class="arithmatex">\(f\)</span>, <span class="arithmatex">\(g\)</span>, and <span class="arithmatex">\(h\)</span> represent distinct neural network branches parameterizing the state flow, and <span class="arithmatex">\(\odot\)</span> denotes the Hadamard product.</p>
+<h3 id="the-amnesia-constraint-stateful-inference">The "Amnesia" Constraint (Stateful Inference)</h3>
+<p>Because the underlying differential mathematics assume a continuous temporal flow, the network must accumulate evidence to build action potential. During asynchronous live gameplay (inference), the engine feeds the visual cortex discrete frames. The hidden state <span class="arithmatex">\(hx\)</span> must be explicitly captured and recursively fed back into the network on the subsequent frame. Failing to persist this state across the deployment loop lobotomizes the network 35 times a second, preventing the CfC activation threshold from ever being reached.</p>
+<h2 id="3-motor-cortex-linear-head">3. Motor Cortex (Linear Head)</h2>
+<p>The liquid hidden state <span class="arithmatex">\(x(t) \in \mathbb{R}^{64}\)</span> is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile <span class="arithmatex">\(\rho\)</span>, the output weight matrix dynamically scales its dimensionality <span class="arithmatex">\(n_\rho \in \{8, 9, 10\}\)</span>:</p>
+<div class="arithmatex">\[
+\mathbf{z}_t = W_{out} x(t) + b_{out}
+\]</div>
+<p>This produces raw logits <span class="arithmatex">\(\mathbf{z}_t\)</span>, which are subsequently passed through a continuous Sigmoid activation function to yield the final predicted probabilities for the multi-label Bernoulli distribution:</p>
+<div class="arithmatex">\[
+\hat{\mathbf{y}}_t = \sigma(\mathbf{z}_t)
 \]</div>
 
 

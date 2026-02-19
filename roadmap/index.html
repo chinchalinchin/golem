@@ -446,6 +446,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-2-distributed-architecture-the-cyber-marine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Distributed Architecture (The Cyber-Marine) 🤖
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Distributed Architecture (The Cyber-Marine) 🤖">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-host-server-arena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Host Server (Arena)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-container-ghost-in-the-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Container (Ghost in the Shell)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-client-interface-network-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Client Interface (Network Bridge)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-orchestration-the-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Orchestration (The Swarm)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -558,6 +619,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-2-distributed-architecture-the-cyber-marine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Distributed Architecture (The Cyber-Marine) 🤖
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Distributed Architecture (The Cyber-Marine) 🤖">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-host-server-arena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Host Server (Arena)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-container-ghost-in-the-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Container (Ghost in the Shell)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-client-interface-network-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Client Interface (Network Bridge)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-orchestration-the-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Orchestration (The Swarm)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -626,12 +748,36 @@
 <li>[x] <strong>Inference Engine:</strong> Real-time game loop driven by the LNN.</li>
 <li>[x] <strong>Action Logic:</strong> Thresholding and conflict suppression logic.</li>
 </ul>
+<hr />
+<h2 id="phase-2-distributed-architecture-the-cyber-marine">Phase 2: Distributed Architecture (The Cyber-Marine) 🤖</h2>
+<p><em>Goal:</em> Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server as an external player client. This scales the training and inference pipeline without requiring engine-level C++ modifications.</p>
+<h3 id="1-the-host-server-arena">1. The Host Server (Arena)</h3>
+<ul>
+<li>[ ] <strong>Dedicated Host Script:</strong> Create a <code>host.py</code> script to initialize a central ViZDoom instance in <code>-host N -deathmatch</code> mode. This node manages physics and state but does not require a neural network.</li>
+<li>[ ] <strong>Multiplayer Configuration:</strong> Update <code>custom.cfg</code> and select WADs with proper multiplayer spawn points (e.g., <code>cig.wad</code>).</li>
+</ul>
+<h3 id="2-the-container-ghost-in-the-shell">2. The Container (Ghost in the Shell)</h3>
+<ul>
+<li>[ ] <strong>Dockerfile:</strong> Package the trained Golem Brain (<code>.pth</code>), Python 3.10+, PyTorch, and the ViZDoom engine dependencies (SDL2, OpenAL) into a lightweight Linux base image.</li>
+<li>[ ] <strong>Headless Rendering:</strong> Configure the container to render the 64x64 ViZDoom visual buffer completely off-screen, bypassing the need for an X11 window display.</li>
+</ul>
+<h3 id="3-the-client-interface-network-bridge">3. The Client Interface (Network Bridge)</h3>
+<ul>
+<li>[ ] <strong>Multiplayer Inference Script:</strong> Create <code>run_client.py</code>. Instead of launching a local game, this script uses ViZDoom's <code>-join &lt;IP&gt;</code> launch parameter to connect to the Host.</li>
+<li>[ ] <strong>State Synchronization:</strong> Utilize ViZDoom's <code>Mode.PLAYER</code> (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server, preventing action drift or network drops.</li>
+</ul>
+<h3 id="4-orchestration-the-swarm">4. Orchestration (The Swarm)</h3>
+<ul>
+<li>[ ] <strong>Docker Compose:</strong> Create a <code>docker-compose.yml</code> to effortlessly spin up 1 Host and <span class="arithmatex">\(N\)</span> Agent containers simultaneously on a single machine or cluster.</li>
+<li>[ ] <strong>Agent Parameterization:</strong> Pass unique names, colors, and hyperparameters to individual containers via environment variables so the agents can be easily identified in the deathmatch logs.</li>
+</ul>
+<hr />
 <h2 id="distant-future">Distant Future</h2>
 <h3 id="the-possession-integration">The Possession (Integration) 👻</h3>
 <ul>
-<li><em>Goal:</em> Move beyond the Python wrapper.</li>
+<li><em>Goal:</em> Move beyond the Python wrapper and replace in-game enemy AIs.</li>
 <li>[ ] <strong>Server-Side Agent:</strong> Run Golem as a "Ghost Client" on a dedicated Zandronum/Odamex server.</li>
-<li>[ ] <strong>ACS/ZScript Bridge:</strong> Expose decision vectors to internal engine scripting.</li>
+<li>[ ] <strong>Engine Fork:</strong> Compile the PyTorch model to TorchScript (<code>.pt</code>) and link <code>libtorch</code> directly into a C++ source port to bypass pixel-rendering entirely.</li>
 </ul>
 
 

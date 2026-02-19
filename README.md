@@ -114,7 +114,6 @@ The current model is available in `data/golem_brain.pth`.
 
 ---
 
-## 📜 License
+## References 
 
-MIT License.
-*DOOM is a registered trademark of id Software.*
+- [vizdoom](https://vizdoom.farama.org/)

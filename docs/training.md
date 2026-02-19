@@ -1,29 +1,75 @@
+
 # Training Methodology
 
-Golem is trained via **Behavioral Cloning (BC)**, a form of Imitation Learning (IL). We treat the problem as a supervised multi-label classification task over continuous time-series data.
+Golem is trained via **Behavioral Cloning (BC)**, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy $\pi^*$, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.
 
-## Sliding Window Data Loading
+## 1. Sliding Window Temporal Loading
 
-LNNs require temporal context. We cannot shuffle individual frames. The `DoomStreamingDataset` implements a sliding window strategy. Given a recording of length $T$ and a sequence length $L$ (e.g., 32 frames):
+Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state $x(t)$, individual frames cannot be uniformly shuffled during training. The `DoomStreamingDataset` enforces temporal causality via a sliding window extraction protocol.
+
+Given an expert trajectory of length $T$, defined as $\tau = \{ (o_1, y_1), (o_2, y_2), \dots, (o_T, y_T) \}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. The input tensor sequence $\mathbf{X}_i$ and target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
 
 $$
-X_i = \{ s_t \}_{t=i}^{i+L}, \quad Y_i = \{ a_t \}_{t=i}^{i+L}
+\mathbf{X}_i = \{ o_t \}_{t=i}^{i+L-1}, \quad \mathbf{X}_i \in \mathbb{R}^{L \times 3 \times 64 \times 64}
 $$
 
-## Class Imbalance & Mirror Augmentation
+$$
+\mathbf{Y}_i = \{ y_t \}_{t=i}^{i+L-1}, \quad \mathbf{Y}_i \in \{0, 1\}^{L \times n_\rho}
+$$
 
-Human gameplay data is notoriously unbalanced. Players naturally favor turning one direction (e.g., left) over another in mazes, and spend 95% of their time walking rather than shooting. Without intervention, models suffer from the "Zoolander Problem" (inability to turn right) or become "Pacifists" (refusing to shoot to minimize statistical error).
+Where $n_\rho$ is the dimensionality of the action space dictated by the active environment profile $\rho$ (e.g., Basic, Classic, Fluid).
 
-Golem solves spatial biases using **Mirror Augmentation**. During data streaming, the dataset dynamically yields a horizontally flipped version of the video tensor and explicitly swaps the corresponding action labels:
+## 2. The Objective Function (BCE Loss)
 
-* Move Left $\leftrightarrow$ Move Right
-* Turn Left $\leftrightarrow$ Turn Right
+At each time step $t$, the network outputs a vector of raw logits $\mathbf{z}_t \in \mathbb{R}^{n_\rho}$. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using **Binary Cross-Entropy** with Logits Loss.
 
-This effectively doubles the dataset size for free and forces perfect symmetry in the agent's spatial reasoning.
+The loss $\mathcal{L}$ for a single sequence of length $L$ over $n_\rho$ independent binary action channels is computed as:
 
-## Diagnostic Auditing
+$$
+\mathcal{L}(\theta) = - \frac{1}{L \cdot n_\rho} \sum_{t=1}^{L} \sum_{j=1}^{n_\rho} \left[ y_{t,j} \log(\sigma(z_{t,j})) + (1 - y_{t,j}) \log(1 - \sigma(z_{t,j})) \right]
+$$
 
-Because standard Loss metrics obscure class-imbalance failures, Golem includes an `audit` module. This runs a static "Brain Scan" on a validation slice, generating a Precision/Recall matrix for every individual button in the 8-button Superset. 
+Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the ground truth label, and $z_{t,j}$ is the network's prediction. The network parameters $\theta$ are updated via Backpropagation Through Time (BPTT).
 
-* **Precision:** When the agent presses a button, how often was it correct?
-* **Recall:** When a situation demanded a button press, how often did the agent react?
+## 3. Class Imbalance & Mirror Augmentation
+
+Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Pacifist Anomaly" (refusal to shoot to minimize statistical error).
+
+Golem counteracts spatial bias dynamically via Mirror Augmentation. During data streaming, the dataset yields a reflected observation tensor $o'_t$ across the vertical axis (width):
+
+$$
+o'_{t, c, h, w} = o_{t, c, h, W - w - 1}
+$$
+
+To maintain ground-truth causality, the corresponding target vector $y'_t$ must undergo a specific permutation. Let $P_\rho$ be an $n_\rho \times n_\rho$ permutation matrix defined by the active profile $\rho$, which swaps the indices corresponding to strictly spatial actions:
+
+- $idx_{\text{MoveLeft}} \leftrightarrow idx_{\text{MoveRight}}$
+- $idx_{\text{TurnLeft}} \leftrightarrow idx_{\text{TurnRight}}$
+
+All state-invariant actions (e.g., Attack, Use, NextWeapon) map to the identity matrix within $P_\rho$. The augmented target vector is thus:
+
+$$
+y'_t = P_\rho y_t
+$$
+
+This geometric inversion enforces perfect spatial symmetry in the agent's spatial reasoning, effectively doubling the dataset's topological variance without requiring additional recording sessions.
+
+## 4. Diagnostic Auditing
+
+Because the aggregate BCE loss scalar $\mathcal{L}(\theta)$ fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static `audit` module.
+
+The audit evaluates the trained weights over a validation slice by generating a strictly thresholded ($\sigma(\mathbf{z}) > 0.5$) Confusion Matrix for every individual channel $j$ in the $n_\rho$ action space. It evaluates the network based on:
+
+**Precision ($P_j$)**
+
+The probability that the agent's decision to act was correct.
+    
+$$P_j = \frac{TP_j}{TP_j + FP_j}$$
+
+**Recall ($R_j$)**: 
+
+The probability that the agent successfully reacted to an environmental stimulus requiring action $j$.
+
+$$R_j = \frac{TP_j}{TP_j + FN_j}$$
+
+Where $TP$, $FP$, and $FN$ represent True Positives, False Positives, and False Negatives, respectively

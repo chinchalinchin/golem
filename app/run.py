@@ -10,7 +10,7 @@ from app.utils import resolve_path, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
-def run_agent(cfg: GolemConfig):
+def run_agent(cfg: GolemConfig, module_name: str = "basic"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -32,9 +32,17 @@ def run_agent(cfg: GolemConfig):
         logger.error(f"No model found at {model_path}. Please train first!")
         return
 
+    active_profile = cfg.training.config
+    cfg_path = resolve_path(cfg.config[active_profile])
+
+    if module_name not in cfg.modules:
+        logger.error(f"Module '{module_name}' not found.")
+        return
+    scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
+
     game = DoomGame()
-    game.load_config(resolve_path("conf/common.cfg")) 
-    game.set_doom_scenario_path(get_vizdoom_scenario("deadly_corridor.wad"))
+    game.load_config(resolve_path(cfg_path))    
+    game.set_doom_scenario_path(scenario_path)
     game.set_screen_format(ScreenFormat.CRCGCB)
     game.set_screen_resolution(ScreenResolution.RES_640X480)
     game.set_window_visible(True)
@@ -43,8 +51,8 @@ def run_agent(cfg: GolemConfig):
 
     logger.info("Golem is waking up...")
     
-    action_labels = ["Fwd", "Back", "MovL", "MovR", "TrnL", "TrnR", "Atk", "Use"]
-
+    action_labels = cfg.training.action_names
+    
     episodes = 10
     for i in range(episodes):
         game.new_episode()

@@ -24,7 +24,6 @@ nav:
 markdown_extensions:
   - admonition
   - pymdownx.details
-  # Add this extension for the tabs to work
   - pymdownx.tabbed:
       alternate_style: true 
   - pymdownx.superfences:

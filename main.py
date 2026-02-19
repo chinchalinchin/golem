@@ -35,7 +35,7 @@ def main():
     elif args.function == "train":
         train_agent(cfg, args.module)
     elif args.function == "run":
-        run_agent(cfg)
+        run_agent(cfg, args.module)
     elif args.function == "audit":
         audit_agent(cfg, args.module)
 

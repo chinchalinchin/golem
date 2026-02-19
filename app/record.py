@@ -3,6 +3,7 @@ ETL Module: Recording.
 Handles capturing gameplay for specific modules.
 """
 import logging
+from pathlib import Path
 import cv2
 import numpy as np
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
@@ -20,12 +21,19 @@ def record_data(cfg: GolemConfig, module_name: str = "basic"):
         return
 
     module = cfg.modules[module_name]
-    
+    config_name = Path(cfg.training.config).stem
+
+    active_profile = cfg.training.config
+    if active_profile not in cfg.config:
+        logger.error(f"Profile '{active_profile}' not found in config mapping.")
+        return
+        
     output_dir = resolve_path(cfg.data.output_dir)
-    prefix = f"{cfg.data.filename_prefix}_{module_name}"
+    # File prefix becomes: doom_training_fluid_basic_1.npz
+    prefix = f"{cfg.data.filename_prefix}_{active_profile}_{module_name}"
     output_path = get_unique_filename(output_dir, prefix)
     
-    cfg_path = resolve_path(module.config)
+    cfg_path = resolve_path(cfg.config[active_profile])
     scenario_path = get_vizdoom_scenario(module.scenario)
 
     logger.info(f"--- Recording Module: {module_name} ---")
@@ -42,13 +50,15 @@ def record_data(cfg: GolemConfig, module_name: str = "basic"):
     
     game.init()
     
-    # NEW: Inject Configurable Bindings
-    logger.debug("Injecting configurable bindings...")
-    for key, command in cfg.keybindings.items():
+    # Inject Configurable Bindings for the ACTIVE profile
+    logger.debug(f"Injecting bindings for profile: {active_profile}")
+    active_bindings = cfg.keybindings.get(active_profile, {})
+    
+    for key, command in active_bindings.items():
         cmd_str = f"bind {key} {command}"
         game.send_game_command(cmd_str)
         logger.debug(f"Applied: {cmd_str}")
-
+        
     frames = []
     actions = []
     

@@ -17,7 +17,11 @@ def inspect_data(cfg: GolemConfig, target_file: str = None):
              file_path = Path(resolve_path(target_file))
     else:
         data_dir = Path(resolve_path(cfg.data.output_dir))
-        files = list(data_dir.glob(f"{cfg.data.filename_prefix}*.npz"))
+        active_profile = cfg.training.config # NEW
+        
+        # NEW: Inject active profile into the glob pattern
+        files = list(data_dir.glob(f"{cfg.data.filename_prefix}_{active_profile}_*.npz"))
+        
         if not files:
             logger.error(f"No data files found in {data_dir}")
             return
@@ -40,7 +44,7 @@ def inspect_data(cfg: GolemConfig, target_file: str = None):
             return
 
         total_presses = np.sum(actions, axis=0)
-        labels = ["Fwd", "Back", "MovL", "MovR", "TrnL", "TrnR", "Atk", "Use"]
+        labels = cfg.training.action_names
         action_counts = []
         
         for i, label in enumerate(labels):

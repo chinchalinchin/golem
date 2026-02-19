@@ -3,15 +3,42 @@ app:
   version: "0.2.3"
   log_level: "INFO"
 
+config:
+  basic: 'conf/basic.cfg'
+  classic: 'conf/classic.cfg'
+  fluid: 'conf/fluid.cfg'
+
 keybindings:
-  w: "+forward"
-  s: "+back"
-  a: "+moveleft"
-  d: "+moveright"
-  leftarrow: "+left"
-  rightarrow: "+right"
-  e: "+use"
-  space: "+attack"
+  basic:
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+  classic: 
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+    "1": '"slot 2"'
+    "2": '"slot 3"'
+  fluid:
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+    q: "weapnext"
 
 training:
   batch_size: 16
@@ -19,9 +46,10 @@ training:
   epochs: 10
   model_save_path: "data/golem_brain.pth"
   sequence_length: 32
-  action_space_size: 8
+  # configs: basic, classic, fluid
+  config: "fluid"
   augmentation:
-    mirror: true 
+    mirror: true
 
 data:
   output_dir: "data"
@@ -30,35 +58,31 @@ data:
 modules:
   basic:
     scenario: "basic.wad"
-    config: "conf/common.cfg"
     episodes: 10
-  
   navigation:
     scenario: "my_way_home.wad" 
-    config: "conf/common.cfg"
     episodes: 10
-    
   combat:
     scenario: "deadly_corridor.wad"
-    config: "conf/common.cfg"
     episodes: 10
-
+  center:
+    scenario: "defend_the_center.wad"
+    episodes: 1
+  prediction:
+    scenario: "predict_position.wad"
+    episodes: 1
+  deathmatch:
+    scenario: "deathmatch.wad"
+    episodes: 1
   doom:
     scenario: "/Users/gmoore/Home/games/doom/wads/DOOM.WAD"
-    config: "conf/common.cfg"
     episodes: 1
-
   doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/DOOM2.WAD"
-    config: "conf/common.cfg"
     episodes: 1
-
   plutonia:
     scenario: "/Users/gmoore/Home/games/doom/wads/PLUTONIA.WAD"
-    config: "conf/common.cfg"
     episodes: 1
-
   tnt:
     scenario: "/Users/gmoore/Home/games/doom/wads/TNT.WAD"
-    config: "conf/common.cfg"
     episodes: 1

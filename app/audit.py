@@ -73,7 +73,7 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
 
     # 4. Report via Jinja2
     exact_acc = accuracy_score(y_true, y_pred)
-    action_names = ["Move Fwd", "Move Back", "Move Left", "Move Right", "Turn Left", "Turn Right", "Attack", "Use"]
+    action_names = cfg.training.action_names
     metrics = []
 
     for i, name in enumerate(action_names):

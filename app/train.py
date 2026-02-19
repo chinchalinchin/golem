@@ -1,6 +1,7 @@
 """
 Training Module: Curriculum Learning.
 """
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -30,28 +31,27 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
     
     # 2. Filter Data Files
     data_dir = resolve_path(cfg.data.output_dir)
+    active_profile = cfg.training.config
     
-    if module_name and module_name.lower() == "all":
-        module_name = None
-
-    file_pattern = f"{cfg.data.filename_prefix}*.npz"
-    if module_name:
-        file_pattern = f"{cfg.data.filename_prefix}_{module_name}*.npz"
+    if module_name and module_name.lower() != "all":
+        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_{module_name}*.npz"
         logger.info(f"Training restricted to module: {module_name}")
+
     else:
+        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_*.npz"        
         logger.info("Training on ALL available modules (Generalization Mode)")
 
     # 3. Initialize Dataset (WITH AUGMENTATION)
     # -----------------------------------------
-    do_augment = cfg.training.augmentation.mirror
-    if do_augment:
+    if cfg.training.augmentation.mirror:
         logger.info("🔮 Mirror Augmentation ENABLED. Dataset size will effectively double.")
         
     dataset = DoomStreamingDataset(
         data_dir, 
         seq_len=cfg.training.sequence_length,
         file_pattern=file_pattern,
-        augment=do_augment  # Pass the flag
+        augment=cfg.training.augmentation.mirror,
+        action_names=cfg.training.action_names # Pass dynamic names
     )
     
     if not dataset.files:

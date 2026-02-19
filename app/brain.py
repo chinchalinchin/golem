@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from ncps.torch import CfC
 
@@ -31,7 +30,7 @@ class DoomLiquidNet(nn.Module):
         
         r_in = c_out.view(batch, time, -1)
         
-        # FIX: Pass hidden state (hx) into the RNN and return the new state
+        # Pass hidden state (hx) into the RNN and return the new state
         r_out, new_hx = self.liquid_rnn(r_in, hx)
         
         return self.output(r_out), new_hx

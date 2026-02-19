@@ -9,6 +9,6 @@ Exact Sequence Match: {{ "%.1f"|format(exact_acc * 100) }}%
 ACTION          | PRECISION  | RECALL     | SUPPORT   
 ------------------------------------------------------------
 {% for metric in metrics -%}
-{{ "{:<15}".format(metric.name) }} | {{ "{:.1%}".format(metric.precision) }}      | {{ "{:.1%}".format(metric.recall) }}      | {{ "{:<10}".format(metric.support) }}
+{{ "{:<20}".format(metric.name) }} | {{ "{:.1%}".format(metric.precision) }}      | {{ "{:.1%}".format(metric.recall) }}      | {{ "{:<10}".format(metric.support) }}
 {% endfor %}
 ============================================================

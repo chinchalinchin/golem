@@ -20,7 +20,7 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern.
 ├── conf/               # Centralized Configuration
 │   ├── app.yaml        # App settings (hyperparameters, paths)
 │   └── custom.cfg      # ViZDoom engine constraints
-├── docs                # Documentation
+├── docs/               # Documentation
 │   ├── brain.md        # Model docs
 │   ├── environment.md  # Environment docs
 │   ├── index.md        # Docs Index
@@ -30,6 +30,7 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern.
 │   ├── *.npz           # Training Tensors
 │   └── golem_brain.pth # Trained Model Weights
 ├── app/                # Source Code
+│   ├── audit.py        # Analyis: Post-training Model Analysis
 │   ├── brain.py        # Model: CNN + Liquid CfC Architecture
 │   ├── config.py       # Configuration: Application models.
 │   ├── dataset.py      # Stream: Sliding window time-series loader

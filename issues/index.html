@@ -8,13 +8,11 @@
       
       
       
-        <link rel="canonical" href="https://chinchalinchin.github.io/golem/environment/">
+        <link rel="canonical" href="https://chinchalinchin.github.io/golem/issues/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../roadmap/">
       
-      
-        <link rel="next" href="../brain/">
       
       
         
@@ -25,7 +23,7 @@
     
     
       
-        <title>Environment - Golem</title>
+        <title>Issues - Golem</title>
       
     
     
@@ -74,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-environment-vizdoom" class="md-skip">
+        <a href="#open-issues-enhancements" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Environment
+              Issues
             
           </span>
         </div>
@@ -254,37 +252,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Environment
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
         
   
   
@@ -300,59 +271,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#observation-space-omega" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Observation Space (\(\Omega\))
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#action-space-mathcala_rho" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Action Space (\(\mathcal{A}_\rho\))
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#temporal-dynamics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Temporal Dynamics
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -442,10 +360,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../issues/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issues
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -461,6 +406,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-hold-w-convergence-trap-class-imbalance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "Hold W" Convergence Trap (Class Imbalance)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -492,32 +468,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#observation-space-omega" class="md-nav__link">
+  <a href="#the-hold-w-convergence-trap-class-imbalance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Observation Space (\(\Omega\))
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#action-space-mathcala_rho" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Action Space (\(\mathcal{A}_\rho\))
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#temporal-dynamics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Temporal Dynamics
+        The "Hold W" Convergence Trap (Class Imbalance)
       
     </span>
   </a>
@@ -544,39 +498,19 @@
   
 
 
-<h1 id="the-environment-vizdoom">The Environment: ViZDoom</h1>
-<p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the <em>DOOM</em> engine. We utilize <strong>ViZDoom</strong> as the API bridge to extract observations and inject actions. Formally, this POMDP is defined by the tuple <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma)\)</span>. </p>
-<h2 id="observation-space-omega">Observation Space (<span class="arithmatex">\(\Omega\)</span>)</h2>
-<p>While the true underlying engine state <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t \in \Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to a downsampled tensor representing its egocentric visual field.</p>
-<div class="arithmatex">\[
-o_t \in \mathbb{R}^{3 \times 64 \times 64}
-\]</div>
+<h1 id="open-issues-enhancements">Open Issues &amp; Enhancements</h1>
+<h2 id="the-hold-w-convergence-trap-class-imbalance">The "Hold W" Convergence Trap (Class Imbalance)</h2>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium</p>
+<p><strong>Description:</strong></p>
+<p>DOOM datasets—especially navigation-focused modules like <code>my_way_home.wad</code>—are inherently unbalanced. An agent will spend 90% of an episode holding <code>MOVE_FORWARD</code>, which causes standard Binary Cross-Entropy (<code>BCEWithLogitsLoss</code>) to converge to a local minimum. The agent learns that perpetually predicting <code>MOVE_FORWARD</code> and ignoring visual stimuli yields the lowest overall loss. </p>
+<p><strong>Proposed Solution:</strong></p>
+<p>Replace standard BCE with a <strong>Focal Loss</strong> function, or apply <strong>Dynamic Sample Weighting</strong> within the <code>DoomStreamingDataset</code>. </p>
+<p>Focal loss adds a modulating factor <span class="arithmatex">\((1 - p_t)^\gamma\)</span> to the standard cross-entropy criterion, dynamically scaling down the gradient of easily classified, high-frequency actions (like walking forward), and heavily penalizing the network when it misses rare, high-value actions (like <code>ATTACK</code> or <code>USE</code>).</p>
+<p><strong>Implementation Notes:</strong></p>
 <ul>
-<li><strong>Channels:</strong> 3 (RGB).</li>
-<li><strong>Resolution:</strong> 64x64 pixels (processed via bilinear interpolation).</li>
-<li><strong>Normalization:</strong> <span class="arithmatex">\(o_{i,j,k} \in [0, 1]\)</span>.</li>
+<li>Calculate dataset action distributions during the <code>transform</code> or <code>dataset</code> loading phase.</li>
+<li>Pass the resulting weights tensor to the loss function in <code>train.py</code>.</li>
 </ul>
-<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn visual heuristics (e.g., a "red screen tint" implies damage), encouraging robust topological generalization across unseen levels.</p>
-<h2 id="action-space-mathcala_rho">Action Space (<span class="arithmatex">\(\mathcal{A}_\rho\)</span>)</h2>
-<p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>. </p>
-<p>Let <span class="arithmatex">\(\rho \in \{\text{basic}, \text{classic}, \text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
-<ol>
-<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}} = 8\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{basic}} = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}\)</span></li>
-<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}} = 9\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{fluid}} = \mathcal{A}_{\text{basic}} \cup \{ \text{NextWeapon} \}\)</span></li>
-<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}} = 10\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{classic}} = \mathcal{A}_{\text{basic}} \cup \{ \text{Weapon2}, \text{Weapon3} \}\)</span></li>
-</ol>
-<p>At any time step <span class="arithmatex">\(t\)</span>, the output vector <span class="arithmatex">\(y_t\)</span> is drawn from a Multivariate Bernoulli distribution over these actions. Assuming conditional independence between individual key presses given the latent state representation, the network predicts the probability vector <span class="arithmatex">\(\mathbf{p}_t\)</span>, yielding:</p>
-<div class="arithmatex">\[
-y_t \in \{0, 1\}^{n_\rho}
-\]</div>
-<p>During inference, this distribution is thresholded at <span class="arithmatex">\(0.5\)</span> to produce the deterministic binary vector fed back into the ViZDoom engine. This dynamic scaling prevents data sparsity and gradient dilution that would occur if unused weapon keys were permanently mapped to the output layer during non-combat tasks.</p>
-<h2 id="temporal-dynamics">Temporal Dynamics</h2>
-<p>The environment runs at a fixed tic rate of 35 Hz (<span class="arithmatex">\(\Delta t \approx 28.5\text{ms}\)</span>). Because standard RNNs are discrete, they struggle with the asynchronous loop of live gameplay. Golem utilizes Liquid Time-Constant (LTC) networks to model the hidden state <span class="arithmatex">\(x(t)\)</span> as an Ordinary Differential Equation (ODE). </p>
-<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock, we employ a <strong>Frame Skip</strong> (or sleep-cycle) heuristic to lock the inference latency (<span class="arithmatex">\(\tau_{inf}\)</span>) to the engine's tic rate:</p>
-<div class="arithmatex">\[
-\tau_{total} = \tau_{inf} + \tau_{sleep} \approx 28\text{ms}
-\]</div>
-<p>This ensures the numerical integration steps within the LNN correctly correspond to the simulated passage of time within the POMDP.</p>
 
 
 

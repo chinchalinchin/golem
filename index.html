@@ -464,6 +464,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -580,12 +607,12 @@
 <ul>
 <li><strong>Causal:</strong> They learn cause-and-effect relationships in noisy environments.</li>
 <li><strong>Compact:</strong> Runnable on consumer hardware with minimal latency (&lt;20ms).</li>
-<li><strong>Continuous:</strong> They handle the variable time-steps of a game engine natively.</li>
+<li><strong>Continuous:</strong> They handle the variable time-steps of a game engine natively via Ordinary Differential Equations (ODEs).</li>
 </ul>
 </div>
 <hr />
 <h2 id="system-architecture">🏗 System Architecture</h2>
-<p>The project follows a strict <strong>ETL (Extract, Transform, Load)</strong> pipeline pattern to decouple the game engine from the inference model.</p>
+<p>The project follows a strict <strong>ETL (Extract, Transform, Load)</strong> pipeline pattern to decouple the game engine from the inference model. </p>
 <pre class="mermaid"><code>graph LR
     A[ViZDoom Engine] --&gt;|Raw Buffer| B(Extract &amp; Transform)
     B --&gt;|Tensor| C{The Brain}
@@ -595,14 +622,13 @@
     style C fill:#f96,stroke:#333,stroke-width:2px</code></pre>
 <h3 id="data-pipeline-phases">Data Pipeline Phases</h3>
 <ol>
-<li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw screen buffer and game variables (health, ammo).</li>
-<li><strong>Transform (Normalization):</strong> <ul>
-<li><strong>Downsampling:</strong> Bilinear interpolation.</li>
-<li><strong>Normalization:</strong> Min-max scaling.</li>
-<li><strong>Channel Permutation:</strong>  for PyTorch.</li>
+<li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw screen buffer. Game variables (health, ammo, coordinates) are explicitly discarded to force visual heuristic learning.</li>
+<li><strong>Transform (Normalization):</strong> * <strong>Downsampling:</strong> Bilinear interpolation (64x64).<ul>
+<li><strong>Normalization:</strong> Min-max scaling ().</li>
+<li><strong>Channel Permutation:</strong> Matrix transposition for PyTorch (<code>N, C, H, W</code>).</li>
 </ul>
 </li>
-<li><strong>Load (Inference/Training):</strong> Feeds tensors into the <strong>Neural Circuit Policy (NCP)</strong> to generate action probabilities.</li>
+<li><strong>Load (Inference/Training):</strong> Feeds sequence tensors into the dynamically scaled <strong>Neural Circuit Policy (NCP)</strong> to generate action probability distributions.</li>
 </ol>
 <hr />
 <h2 id="setup">🚀 Setup</h2>
@@ -622,7 +648,6 @@
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Create Virtual Environment</span>
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>./.venv/bin/activate
-
 <span class="c1"># 2. Install Dependencies</span>
 pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 </code></pre></div>
@@ -631,7 +656,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <div class="highlight"><pre><span></span><code><span class="c"># 1. Create Virtual Environment</span>
 python -m venv .venv
 <span class="nb">source</span> ./.venv/bin/activate.fish
-
 <span class="c"># 2. Install Dependencies</span>
 pip install -r requirements.txt
 </code></pre></div>
@@ -640,76 +664,51 @@ pip install -r requirements.txt
 </div>
 <hr />
 <h2 id="usage-cycle">🛠 Usage Cycle</h2>
-<p>Golem operates in a loop. Select a phase below to view the command syntax.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:7"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Inspect</label><label for="__tabbed_2_4">3. Inspect</label><label for="__tabbed_2_5">4. Train</label><label for="__tabbed_2_6">5. Audit</label><label for="__tabbed_2_7">6. Run </label></div>
+<p>Golem operates in a continuous iterative loop. Select a phase below to view the command syntax.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:7"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Intervene (DAgger)</label><label for="__tabbed_2_4">4. Inspect</label><label for="__tabbed_2_5">5. Train</label><label for="__tabbed_2_6">6. Audit</label><label for="__tabbed_2_7">7. Run</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p>Before running, verify your hyperparameters and engine constraints.</p>
-<ul>
-<li><strong><code>conf/app.yaml</code></strong>: Adjust learning rate, batch size, and resolution.</li>
-<li><strong><code>conf/custom.cfg</code></strong>: Modify the available button definitions (the "Superset").</li>
-</ul>
+<p>Before running, verify your hyperparameters, architectural depths, and active profile in <strong><code>conf/app.yaml</code></strong>. </p>
+<p>The <code>training.config</code> string defines which superset of actions the agent learns:
+* <strong><code>basic</code></strong>: 8 dimensions (Movement, Attack, Use).
+* <strong><code>classic</code></strong>: 10 dimensions (Basic + explicit <code>slot 2</code> and <code>slot 3</code> keys).
+* <strong><code>fluid</code></strong>: 9 dimensions (Basic + <code>weapnext</code>).</p>
 </div>
 <div class="tabbed-block">
-<p>Launch the engine in <strong>Spectator Mode</strong> to capture training data. You play, the agent watches.</p>
+<p>Launch the engine in <strong>Spectator Mode</strong> to capture training data. The engine binds keys dynamically based on the active profile in <code>app.yaml</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Usage: python main.py record --module &lt;module_name&gt;</span>
 python<span class="w"> </span>main.py<span class="w"> </span>record<span class="w"> </span>--module<span class="w"> </span>combat
 </code></pre></div>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Key</th>
-<th style="text-align: left;">Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>W</code>, <code>S</code></td>
-<td style="text-align: left;">Move Forward / Back</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>A</code>, <code>D</code></td>
-<td style="text-align: left;">Strafe Left / Right</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Q</code>, <code>E</code></td>
-<td style="text-align: left;">Turn Left / Right</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Space</code></td>
-<td style="text-align: left;">Attack</td>
-</tr>
-</tbody>
-</table>
 </div>
 <div class="tabbed-block">
-<p>Verify your dataset is balanced and normalized before training.</p>
+<p>Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold <strong>Left Shift</strong> to suspend the LNN logits and capture raw keyboard overrides. </p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>intervene<span class="w"> </span>--module<span class="w"> </span>combat
+</code></pre></div>
+<p>Releasing the key automatically dumps a <code>_recovery</code> trace file to cure Covariate Shift.</p>
+</div>
+<div class="tabbed-block">
+<p>Verify your dataset is balanced and normalized before training via Jinja2 template reports.</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>inspect
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>Look for <strong>High Idle Time</strong>. If the agent spends &gt;50% of the time doing nothing, the model will converge to inaction.</p>
+<p>Look for <strong>High Idle Time</strong>. If the agent spends &gt;50% of the time doing nothing, the model will converge to inaction due to gradient sparsity.</p>
 </div>
 </div>
 <div class="tabbed-block">
-<p>Verify your dataset is balanced and normalized before training.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>inspect
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<p>Run the <strong>Behavioral Cloning</strong> loop to create a <code>.pth</code> model file.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Trains on ALL available data modules, applying Mirror Augmentation</span>
+<p>Run the <strong>Behavioral Cloning</strong> loop to map the visual observations to action vectors via Binary Cross-Entropy. The DataLoader automatically applies dynamic Mirror Augmentation.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Trains on ALL available data modules across the active profile</span>
 python<span class="w"> </span>main.py<span class="w"> </span>train<span class="w"> </span>--module<span class="w"> </span>all
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<p>Run a diagnostic Brain Scan to check for class-imbalance failures (like the Pacifist or Zoolander bugs).</p>
+<p>Run a diagnostic Brain Scan to check for class-imbalance failures against the test data.</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w"> </span>--module<span class="w"> </span>all
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<p>Watch the LNN play the game live. The agent maintains a persistent hidden state to process time continuously.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>run
+<p>Watch the LNN play the game live. The agent manages a continuous hidden state (<code>hx</code>) through the Liquid ODEs.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>run<span class="w"> </span>--module<span class="w"> </span>combat
 </code></pre></div>
 </div>
 </div>

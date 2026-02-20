@@ -5,6 +5,7 @@
 Current AI in *DOOM* relies on finite state machines (FSMs) written in the 90s. While functional, they are predictable and stateless. Golem aims to replace these static heuristics with **Neural Circuit Policies (NCPs)**—biologically inspired neural networks that model time as a continuous flow rather than discrete ticks.
 
 Unlike Large Language Models (LLMs) which hallucinate state, or traditional Reinforcement Learning (RL) which requires millions of training steps, LNNs are:
+
 * **Causal:** They learn cause-and-effect relationships in noisy environments.
 * **Compact:** Runnable on consumer hardware with minimal latency (<20ms).
 * **Continuous:** They handle the variable time-steps of a game engine natively natively via Ordinary Differential Equations (ODEs).

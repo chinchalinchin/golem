@@ -47,7 +47,7 @@ training:
   model_save_path: "data/golem_brain.pth"
   sequence_length: 32
   # configs: basic, classic, fluid
-  config: "fluid"
+  config: "basic"
   augmentation:
     mirror: true
 

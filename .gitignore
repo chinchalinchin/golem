@@ -2,8 +2,5 @@
 **/**.pyc
 **/*.npz
 _vizdoom.ini
-data/**
-!data/.gitkeep
-!data/golem_brain.pth
-!data/models
+data/**.npz
 site/**

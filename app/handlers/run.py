@@ -22,8 +22,9 @@ def run_agent(cfg: GolemConfig, module_name: str = "basic"):
     
     logger.info(f"Loading Golem Brain on {device}...")
 
-    # Load active model from standard location
-    model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
+    # FIX: Fetch the active profile first, then locate the isolated active model
+    active_profile = cfg.brain.mode
+    model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     n_actions = cfg.training.action_space_size 
     
     model = DoomLiquidNet(
@@ -40,7 +41,6 @@ def run_agent(cfg: GolemConfig, module_name: str = "basic"):
         logger.error(f"No model found at {model_path}. Please train first!")
         return
 
-    active_profile = cfg.brain.mode
     cfg_path = resolve_path(cfg.config[active_profile])
 
     if module_name not in cfg.modules:
@@ -65,7 +65,6 @@ def run_agent(cfg: GolemConfig, module_name: str = "basic"):
     for i in range(episodes):
         game.new_episode()
         
-        # Reset Short-term memory (Hidden State) at start of episode
         hx = None
         
         while not game.is_episode_finished():
@@ -85,7 +84,6 @@ def run_agent(cfg: GolemConfig, module_name: str = "basic"):
             action_probs = probs.cpu().numpy()[0, 0]
             action = (action_probs > 0.5).astype(int).tolist()
             
-            # Neural Monitor: Log thoughts if something is happening
             if sum(action) > 0 or (game.get_episode_time() % 35 == 0):
                 active_str = " | ".join([f"{label}:{prob:.2f}" for label, prob in zip(action_labels, action_probs) if prob > 0.1])
                 logger.info(f"T{game.get_episode_time()}: {active_str}")

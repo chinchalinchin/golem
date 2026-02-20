@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import logging
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -56,7 +57,8 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
         working_memory=cfg.brain.working_memory
     ).to(device)    
     
-    active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
+    # FIX: Isolate the active model to the active profile directory
+    active_model_path = data_dir / "golem.pth"
     if active_model_path.exists():
         logger.info(f"Loading existing brain from {active_model_path} for fine-tuning...")
         model.load_state_dict(torch.load(str(active_model_path), map_location=device))

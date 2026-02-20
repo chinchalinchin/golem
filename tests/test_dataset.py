@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 import torch
 
-from lib.golem.app.models.dataset import DoomStreamingDataset
+from app.models.dataset import DoomStreamingDataset
 
 class TestActionSpacesAndAugmentation(unittest.TestCase):
 

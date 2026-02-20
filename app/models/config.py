@@ -3,7 +3,7 @@ import logging
 import re
 from pathlib import Path
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List
 from app.utils import resolve_path
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,8 @@ class ModuleConfig(BaseModel):
     episodes: int = 5
 
 class DataConfig(BaseModel):
-    output_dir: str
-    filename_prefix: str
+    prefix: str
+    dirs: Dict[str, str]
 
 class AppConfig(BaseModel):
     name: str
@@ -25,6 +25,7 @@ class AugmentationConfig(BaseModel):
     mirror: bool = False
 
 class BrainConfig(BaseModel):
+    mode: str
     cortical_depth: int = 2
     working_memory: int = 64
 
@@ -32,17 +33,15 @@ class TrainingConfig(BaseModel):
     batch_size: int
     learning_rate: float
     epochs: int
-    model_save_path: str
     sequence_length: int = 32
-    config: str  # e.g., "fluid"
     action_space_size: int = 8 
     action_names: List[str] = [] 
     augmentation: AugmentationConfig = AugmentationConfig()
 
 class GolemConfig(BaseModel):
     app: AppConfig
-    config: Dict[str, str] # NEW: Maps profile name to .cfg path
-    keybindings: Dict[str, Dict[str, str]] # NEW: Nested profile mappings
+    config: Dict[str, str]
+    keybindings: Dict[str, Dict[str, str]]
     data: DataConfig
     training: TrainingConfig
     brain: BrainConfig
@@ -60,12 +59,10 @@ class GolemConfig(BaseModel):
             
         cfg = cls(**raw_config)
         
-        # Determine the active profile
-        active_profile = cfg.training.config
+        active_profile = cfg.brain.mode
         if active_profile not in cfg.config:
             raise ValueError(f"Active profile '{active_profile}' not found in the 'config' block.")
             
-        # Parse the corresponding ViZDoom .cfg 
         vizdoom_cfg_path = resolve_path(cfg.config[active_profile])
         try:
             with open(vizdoom_cfg_path, "r") as f:

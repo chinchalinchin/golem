@@ -3,14 +3,14 @@ import argparse
 import logging
 
 # Application Libraries
-from app.config import GolemConfig
+
+from app.models.config import GolemConfig
 from app.utils import setup_logging
-from app.record import record_data
-from app.inspect import inspect_data
-from app.train import train_agent
-from app.run import run_agent
-from app.audit import audit_agent
-from app.intervene import intervene_agent # NEW
+from app.handlers.record import record_data
+from app.handlers.analyze import inspect_data, audit_agent
+from app.handlers.train import train_agent
+from app.handlers.run import run_agent
+from app.handlers.intervene import intervene_agent
 
 logger = logging.getLogger("main")
 

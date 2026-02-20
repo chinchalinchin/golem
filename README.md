@@ -26,8 +26,9 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 ├── docs/               # Documentation
 │   └── ...
 ├── data/               # Data Storage
+│   ├── models/         # Previous Trained Model Weights
 │   ├── *.npz           # Training Tensors (Images + Action Vectors)
-│   └── golem_brain.pth # Trained Model Weights
+│   └── golem_brain.pth # Current Trained Model Weights
 ├── app/                # Source Code
 │   ├── audit.py        # Analysis: Precision/Recall matrix generation
 │   ├── brain.py        # Model: Dynamic CNN + Liquid CfC Architecture
@@ -44,6 +45,12 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 └── main.py             # CLI Entrypoint
 ```
 
+The `./data/models/` directory uses the naming schema, `<YYYY-MM-DD>.c-<depth>.w-<length>.<mode>.pth`, where
+
+- `YYYY-MM-DD`: The date the model was trained.
+- `<depth>`: The cortical depth (`brain.cortical_depth`) of the model.
+- `<length>`: The working memory (`brain.working_memory`) of the model.
+- `<mode>`: The action space (`)
 ## 🚀 Setup
 
 **Prerequisites:** Python 3.10+ (ViZDoom requires a modern C++ compiler if building from source).

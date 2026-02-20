@@ -1,76 +1,65 @@
-"""
-Training Module: Curriculum Learning.
-"""
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import logging
-import os
 import time
+from datetime import datetime
+from pathlib import Path
 
-from app.config import GolemConfig
-from app.dataset import DoomStreamingDataset
-from app.brain import DoomLiquidNet
-from app.utils import resolve_path
+from app.models.config import GolemConfig
+from app.models.dataset import DoomStreamingDataset
+from app.models.brain import DoomLiquidNet
+from app.utils import resolve_path, get_unique_filename
 
 logger = logging.getLogger(__name__)
 
 def train_agent(cfg: GolemConfig, module_name: str = None):
-    # 1. Hardware Acceleration
     if torch.backends.mps.is_available():
         device = torch.device("mps")
-        logger.info("🚀 Apple Metal (MPS) acceleration detected and enabled.")
+        logger.info("Apple Metal (MPS) acceleration detected and enabled.")
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        logger.info("🚀 CUDA acceleration detected and enabled.")
+        logger.info("CUDA acceleration detected and enabled.")
     else:
         device = torch.device("cpu")
-        logger.warning("⚠️ No GPU detected. Training will be slow on CPU.")
+        logger.warning("No GPU detected. Training will be slow on CPU.")
     
-    # 2. Filter Data Files
-    data_dir = resolve_path(cfg.data.output_dir)
-    active_profile = cfg.training.config
+    active_profile = cfg.brain.mode
+    data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
+    prefix_clean = cfg.data.prefix.rstrip('_')
     
     if module_name and module_name.lower() != "all":
-        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_{module_name}*.npz"
+        file_pattern = f"{prefix_clean}_{module_name}*.npz"
         logger.info(f"Training restricted to module: {module_name}")
-
     else:
-        file_pattern = f"{cfg.data.filename_prefix}_{active_profile}_*.npz"        
+        file_pattern = f"{prefix_clean}_*.npz"        
         logger.info("Training on ALL available modules (Generalization Mode)")
 
-    # 3. Initialize Dataset (WITH AUGMENTATION)
-    # -----------------------------------------
-    if cfg.training.augmentation.mirror:
-        logger.info("🔮 Mirror Augmentation ENABLED. Dataset size will effectively double.")
-        
     dataset = DoomStreamingDataset(
-        data_dir, 
+        str(data_dir), 
         seq_len=cfg.training.sequence_length,
         file_pattern=file_pattern,
         augment=cfg.training.augmentation.mirror,
-        action_names=cfg.training.action_names # Pass dynamic names
+        action_names=cfg.training.action_names 
     )
     
     if len(dataset) == 0:
-        logger.error(f"No training data found matching pattern: {file_pattern}")
+        logger.error(f"No training data found matching pattern: {file_pattern} in {data_dir}")
         return
 
     dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=True)    
     
-    # 4. Initialize Model
     model = DoomLiquidNet(
         n_actions=cfg.training.action_space_size,
         cortical_depth=cfg.brain.cortical_depth,
         working_memory=cfg.brain.working_memory
     ).to(device)    
     
-    save_path = resolve_path(cfg.training.model_save_path)
-    if os.path.exists(save_path):
-        logger.info(f"Loading existing brain from {save_path} for fine-tuning...")
-        model.load_state_dict(torch.load(save_path, map_location=device))
+    active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
+    if active_model_path.exists():
+        logger.info(f"Loading existing brain from {active_model_path} for fine-tuning...")
+        model.load_state_dict(torch.load(str(active_model_path), map_location=device))
     
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
@@ -89,10 +78,10 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
             actions = actions.to(device)
             
             optimizer.zero_grad()
-            predictions, _ = model(frames) # Ignore hx during training
+            predictions, _ = model(frames) 
             
             if actions.shape[2] != cfg.training.action_space_size:
-                logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions, Brain expects {n_actions}.")
+                logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions, Brain expects {cfg.training.action_space_size}.")
                 return
 
             loss = criterion(predictions, actions)
@@ -106,11 +95,20 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
                 logger.info(f"Epoch {epoch+1} | Batch {batch_idx} | Loss: {loss.item():.4f}")
         
         avg_loss = total_loss / batches if batches > 0 else 0
-        logger.info(f"✅ Epoch {epoch+1}/{cfg.training.epochs} complete. Average Loss: {avg_loss:.4f}")
+        logger.info(f"Epoch {epoch+1}/{cfg.training.epochs} complete. Average Loss: {avg_loss:.4f}")
 
     duration = time.time() - start_time
     logger.info(f"Training finished in {duration:.2f}s.")
     
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    torch.save(model.state_dict(), save_path)
-    logger.info(f"Model saved to: {save_path}")
+    # Save the archive model
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
+    model_prefix = f"{date_str}.c-{cfg.brain.cortical_depth}.w-{cfg.brain.working_memory}"
+    archive_path = get_unique_filename(model_dir, model_prefix, "pth")
+    
+    torch.save(model.state_dict(), archive_path)
+    logger.info(f"Model archive saved to: {archive_path}")
+    
+    # Update the active model
+    torch.save(model.state_dict(), str(active_model_path))
+    logger.info(f"Active model updated at: {active_model_path}")

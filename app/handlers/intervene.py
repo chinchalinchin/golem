@@ -10,8 +10,8 @@ import time
 from pathlib import Path
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
-from app.config import GolemConfig
-from app.brain import DoomLiquidNet
+from app.models.config import GolemConfig
+from app.models.brain import DoomLiquidNet
 from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
 
 try:
@@ -23,29 +23,55 @@ logger = logging.getLogger(__name__)
 
 class InterventionController:
     """Background listener to capture raw OS keyboard state during overrides."""
-    def __init__(self, action_names):
+    def __init__(self, action_names, active_bindings):
         self.action_names = action_names
         self.intervening = False
         self.keys_pressed = set()
         
-        # Hardcoded map for the DAgger override
-        self.key_map = {
-            'w': 'MOVE_FORWARD',
-            's': 'MOVE_BACKWARD',
-            'a': 'MOVE_LEFT',
-            'd': 'MOVE_RIGHT',
-            keyboard.Key.left: 'TURN_LEFT',
-            keyboard.Key.right: 'TURN_RIGHT',
-            keyboard.Key.space: 'ATTACK',
-            'e': 'USE',
-            'q': 'SELECT_NEXT_WEAPON'
+        # 1. Translation Dictionary: Doom Command -> ViZDoom Action
+        command_to_action = {
+            "+forward": "MOVE_FORWARD",
+            "+back": "MOVE_BACKWARD",
+            "+moveleft": "MOVE_LEFT",
+            "+moveright": "MOVE_RIGHT",
+            "+left": "TURN_LEFT",
+            "+right": "TURN_RIGHT",
+            "+attack": "ATTACK",
+            "+use": "USE",
+            "weapnext": "SELECT_NEXT_WEAPON",
+            '"slot 2"': "SELECT_WEAPON2",
+            '"slot 3"': "SELECT_WEAPON3"
         }
+        
+        # 2. Translation Dictionary: YAML String -> pynput Key Name
+        yaml_to_pynput = {
+            'leftarrow': 'left',
+            'rightarrow': 'right',
+            'space': 'space'
+        }
+        
+        # 3. Dynamically build the key map
+        self.key_map = {}
+        for yaml_key, doom_cmd in active_bindings.items():
+            norm_key = yaml_to_pynput.get(yaml_key, str(yaml_key).lower())
+            action_name = command_to_action.get(doom_cmd)
+            
+            if action_name:
+                self.key_map[norm_key] = action_name
+                
+        logger.debug(f"Intervention Controller mapped keys: {self.key_map}")
         
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
     def _normalize_key(self, key):
-        return key.char.lower() if hasattr(key, 'char') and key.char else key
+        """Converts pynput key events into normalized string representations."""
+        if hasattr(key, 'char') and key.char:
+            return key.char.lower()
+        elif hasattr(key, 'name') and key.name:
+            # Handles special keys like keyboard.Key.space -> 'space'
+            return key.name.lower()
+        return str(key)
 
     def on_press(self, key):
         if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
@@ -68,18 +94,23 @@ class InterventionController:
                 idx = self.action_names.index(action_name)
                 vector[idx] = 1
         return vector
+    
+# -----------------------------------------------------------------
 
 def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
     else:
         device = torch.device("cpu")
     
     logger.info(f"Loading Golem Brain on {device} for DAgger Intervention...")
 
-    # Load Model
-    model_path = resolve_path(cfg.training.model_save_path)
+    # Load Model from standard active model location
+    model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
     n_actions = cfg.training.action_space_size 
+    
     model = DoomLiquidNet(
         n_actions=n_actions,
         cortical_depth=cfg.brain.cortical_depth,
@@ -87,14 +118,14 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     ).to(device) 
        
     try:
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.load_state_dict(torch.load(str(model_path), map_location=device))
         model.eval()
     except FileNotFoundError:
-        logger.error(f"No model found. Train first!")
+        logger.error(f"No model found at {model_path}. Train first!")
         return
 
-    # Setup Environment
-    active_profile = cfg.training.config
+    # Setup Environment using brain.mode
+    active_profile = cfg.brain.mode
     cfg_path = resolve_path(cfg.config[active_profile])
 
     if module_name not in cfg.modules:
@@ -104,7 +135,7 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
 
     game = DoomGame()
-    game.load_config(resolve_path(cfg_path))    
+    game.load_config(cfg_path)    
     game.set_doom_scenario_path(scenario_path)
     game.set_screen_format(ScreenFormat.CRCGCB)
     game.set_screen_resolution(ScreenResolution.RES_640X480)
@@ -112,12 +143,16 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     game.set_mode(Mode.PLAYER) 
     game.init()
 
+    # Get active bindings for the enabled brain mode
+    active_bindings = cfg.keybindings.get(active_profile, {})
     action_labels = cfg.training.action_names
-    controller = InterventionController(action_labels)
+    
+    # Pass bindings to dynamically map keys
+    controller = InterventionController(action_labels, active_bindings)
     
     # Memory Buffer
     recovery_frames = []
-    recovery_actions = []
+    recovery_frames = []
 
     logger.info("======================================================")
     logger.info("DAgger Mode Active. Golem is running autonomously.")
@@ -162,9 +197,11 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
                 
                 # If we just finished an intervention, flush the buffer to disk
                 if len(recovery_frames) > 0:
-                    output_dir = resolve_path(cfg.data.output_dir)
-                    prefix = f"{cfg.data.filename_prefix}_{active_profile}_{module_name}_recovery"
-                    output_path = get_unique_filename(output_dir, prefix)
+                    output_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
+                    prefix_clean = cfg.data.prefix.rstrip('_')
+                    file_prefix = f"{prefix_clean}_{module_name}_recovery"
+                    
+                    output_path = get_unique_filename(output_dir, file_prefix, "npz")
                     
                     logger.info(f"Saving {len(recovery_frames)} recovery frames to {output_path}...")
                     np.savez_compressed(output_path, frames=np.array(recovery_frames), actions=np.array(recovery_actions))

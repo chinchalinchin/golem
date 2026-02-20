@@ -8,54 +8,31 @@ config:
   classic: 'conf/classic.cfg'
   fluid: 'conf/fluid.cfg'
 
-keybindings:
-  basic:
-    w: "+forward"
-    s: "+back"
-    a: "+moveleft"
-    d: "+moveright"
-    leftarrow: "+left"
-    rightarrow: "+right"
-    e: "+use"
-    space: "+attack"
-  classic: 
-    w: "+forward"
-    s: "+back"
-    a: "+moveleft"
-    d: "+moveright"
-    leftarrow: "+left"
-    rightarrow: "+right"
-    e: "+use"
-    space: "+attack"
-    "1": '"slot 2"'
-    "2": '"slot 3"'
-  fluid:
-    w: "+forward"
-    s: "+back"
-    a: "+moveleft"
-    d: "+moveright"
-    leftarrow: "+left"
-    rightarrow: "+right"
-    e: "+use"
-    space: "+attack"
-    q: "weapnext"
-
 training:
   batch_size: 16
   learning_rate: 0.0001
   epochs: 10
-  model_save_path: "data/golem_brain.pth"
   sequence_length: 32
-  # configs: basic, classic, fluid
-  config: "basic"
   augmentation:
     mirror: true
 
+  # DEPRECATING
+  model_save_path: "data/golem_brain.pth"
+  config: "basic"
+
 brain:
-  cortical_depth: 3   # Default was 2. Try 3 or 4.
-  working_memory: 128 # Default was 64.
+  # MODES: basic, classic, fluid
+  mode: "fluid"
+  cortical_depth: 3
+  working_memory: 128
 
 data:
+  prefix: "golem_"
+  dirs:
+    training: "data/"
+    model: "data/model/"
+
+  # DEPRECATING
   output_dir: "data"
   filename_prefix: "doom_training"
 
@@ -96,3 +73,35 @@ modules:
   tnt:
     scenario: "/Users/gmoore/Home/games/doom/wads/TNT.WAD"
     episodes: 1
+
+keybindings:
+  basic:
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+  classic: 
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+    "1": '"slot 2"'
+    "2": '"slot 3"'
+  fluid:
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    e: "+use"
+    space: "+attack"
+    q: "weapnext"

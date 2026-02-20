@@ -51,6 +51,10 @@ training:
   augmentation:
     mirror: true
 
+brain:
+  cortical_depth: 3   # Default was 2. Try 3 or 4.
+  working_memory: 128 # Default was 64.
+
 data:
   output_dir: "data"
   filename_prefix: "doom_training"

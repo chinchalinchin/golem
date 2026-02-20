@@ -39,10 +39,13 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
 
     # 2. Load Brain
     model_path = resolve_path(cfg.training.model_save_path)
-    n_actions = cfg.training.action_space_size
     
     try:
-        model = DoomLiquidNet(n_actions=n_actions).to(device)
+        model = DoomLiquidNet(
+            n_actions=cfg.training.action_space_size,
+            cortical_depth=cfg.brain.cortical_depth,
+            working_memory=cfg.brain.working_memory
+        ).to(device)
         model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
     except FileNotFoundError:

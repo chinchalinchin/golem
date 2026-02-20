@@ -61,8 +61,11 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
     dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=True)    
     
     # 4. Initialize Model
-    n_actions = cfg.training.action_space_size
-    model = DoomLiquidNet(n_actions=n_actions).to(device)
+    model = DoomLiquidNet(
+        n_actions=cfg.training.action_space_size,
+        cortical_depth=cfg.brain.cortical_depth,
+        working_memory=cfg.brain.working_memory
+    ).to(device)    
     
     save_path = resolve_path(cfg.training.model_save_path)
     if os.path.exists(save_path):
@@ -88,7 +91,7 @@ def train_agent(cfg: GolemConfig, module_name: str = None):
             optimizer.zero_grad()
             predictions, _ = model(frames) # Ignore hx during training
             
-            if actions.shape[2] != n_actions:
+            if actions.shape[2] != cfg.training.action_space_size:
                 logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions, Brain expects {n_actions}.")
                 return
 

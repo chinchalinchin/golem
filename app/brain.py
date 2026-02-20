@@ -2,24 +2,40 @@ import torch.nn as nn
 from ncps.torch import CfC
 
 class DoomLiquidNet(nn.Module):
-    def __init__(self, n_actions):
+    def __init__(self, n_actions, cortical_depth=2, working_memory=64):
         super().__init__()
         
-        self.conv = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.Flatten()
-        )
+        # 1. Build the Visual Cortex (CNN) dynamically
+        layers = []
+        in_channels = 3
+        out_channels = 32
+        current_img_size = 64
         
+        for i in range(cortical_depth):
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2))
+            layers.append(nn.ReLU())
+            
+            # Calculate the new image dimension: (W - F) / S + 1
+            current_img_size = (current_img_size - 4) // 2 + 1
+            
+            in_channels = out_channels
+            out_channels *= 2 # Double the feature maps each layer
+            
+        layers.append(nn.Flatten())
+        self.conv = nn.Sequential(*layers)
+        
+        # Calculate the exact size of the flattened tensor
+        flat_size = in_channels * (current_img_size ** 2)
+        
+        # 2. Build the Liquid Core with dynamic working memory
         self.liquid_rnn = CfC(
-            input_size=12544, 
-            units=64, 
+            input_size=flat_size, 
+            units=working_memory, 
             return_sequences=True 
         )
         
-        self.output = nn.Linear(64, n_actions)
+        # 3. Motor Cortex Head
+        self.output = nn.Linear(working_memory, n_actions)
 
     def forward(self, x, hx=None):
         # x: (Batch, Time, C, H, W)

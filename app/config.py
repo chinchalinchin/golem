@@ -24,6 +24,10 @@ class AppConfig(BaseModel):
 class AugmentationConfig(BaseModel):
     mirror: bool = False
 
+class BrainConfig(BaseModel):
+    cortical_depth: int = 2
+    working_memory: int = 64
+
 class TrainingConfig(BaseModel):
     batch_size: int
     learning_rate: float
@@ -41,6 +45,7 @@ class GolemConfig(BaseModel):
     keybindings: Dict[str, Dict[str, str]] # NEW: Nested profile mappings
     data: DataConfig
     training: TrainingConfig
+    brain: BrainConfig
     modules: Dict[str, ModuleConfig]
 
     @classmethod

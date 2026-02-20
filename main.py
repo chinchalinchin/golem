@@ -10,12 +10,13 @@ from app.inspect import inspect_data
 from app.train import train_agent
 from app.run import run_agent
 from app.audit import audit_agent
+from app.intervene import intervene_agent # NEW
 
 logger = logging.getLogger("main")
 
 def main():
     parser = argparse.ArgumentParser(description="Golem: DOOM LNN Agent Manager")
-    parser.add_argument("function", choices=["record", "inspect", "train", "run", "audit"], help="Operation")
+    parser.add_argument("function", choices=["record", "inspect", "train", "run", "audit", "intervene"], help="Operation")
     parser.add_argument("--module", help="Specific module or 'all'", default="basic")
     parser.add_argument("--file", help="Specific file to inspect", default=None)
     args = parser.parse_args()
@@ -38,6 +39,8 @@ def main():
         run_agent(cfg, args.module)
     elif args.function == "audit":
         audit_agent(cfg, args.module)
+    elif args.function == "intervene":
+        intervene_agent(cfg, args.module)
 
 if __name__ == "__main__":
     main()

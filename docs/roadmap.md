@@ -23,7 +23,7 @@
 
 ---
 
-## Phase 2: Distributed Architecture (The Cyber-Marine) 🤖
+## Phase 3: Distributed Architecture (The Cyber-Marine) 🤖
 
 *Goal:* Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server as an external player client. This scales the training and inference pipeline without requiring engine-level C++ modifications.
 

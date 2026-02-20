@@ -67,8 +67,8 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
             preds = (torch.sigmoid(logits) > 0.5).float().cpu().numpy()
             targets = actions.cpu().numpy()
             
-            all_preds.append(preds.reshape(-1, n_actions))
-            all_targets.append(targets.reshape(-1, n_actions))
+            all_preds.append(preds.reshape(-1, cfg.training.action_space_size))
+            all_targets.append(targets.reshape(-1, cfg.training.action_space_size))
 
     if not all_preds:
         logger.error("No data found to audit!")

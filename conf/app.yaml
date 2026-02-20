@@ -69,8 +69,14 @@ modules:
   combat:
     scenario: "deadly_corridor.wad"
     episodes: 10
+  health:
+    scenario: "health_gathering.wad"
+    episodes: 1
   center:
     scenario: "defend_the_center.wad"
+    episodes: 1
+  defend:
+    scenario: "defend_the_line.wad"
     episodes: 1
   prediction:
     scenario: "predict_position.wad"

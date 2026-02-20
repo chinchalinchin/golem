@@ -20,6 +20,7 @@ nav:
   - The Brain (LNN): brain.md
   - Training: training.md
   - Roadmap: roadmap.md
+  - Issues: issues.md
 
 markdown_extensions:
   - admonition

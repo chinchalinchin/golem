@@ -112,6 +112,18 @@ python main.py run
 
 The current model is available in `data/golem_brain.pth`.
 
+## Continuous Integration
+
+The Github Actions defined in `.github/workflows/ci.yml` run the unit tests in `tests/*` and compile the docs in `docs/*`. These actions are run inside of a container built with the `Dockerfile.ci` image. This image pre-packages all of the runtime dependencies,
+
+```bash
+docker buildx build \
+    -f Dockerfile.ci \
+    --platform linux/amd64 \
+    -t chinchalinchin/golem-ci:latest \
+    . \
+    --push
+```
 ---
 
 ## References 

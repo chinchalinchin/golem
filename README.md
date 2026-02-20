@@ -4,11 +4,12 @@
 
 Current AI in *DOOM* relies on finite state machines (FSMs) written in the 90s. While functional, they are predictable and stateless. Golem aims to replace these static heuristics with **Neural Circuit Policies (NCPs)**—biologically inspired neural networks that model time as a continuous flow rather than discrete ticks.
 
+
 Unlike Large Language Models (LLMs) which hallucinate state, or traditional Reinforcement Learning (RL) which requires millions of training steps, LNNs are:
 
 * **Causal:** They learn cause-and-effect relationships in noisy environments.
 * **Compact:** Runnable on consumer hardware with minimal latency (<20ms).
-* **Continuous:** They handle the variable time-steps of a game engine natively natively via Ordinary Differential Equations (ODEs).
+* **Continuous:** They handle the variable time-steps of a game engine natively via Ordinary Differential Equations (ODEs).
 
 ---
 
@@ -26,31 +27,28 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 ├── docs/               # Documentation
 │   └── ...
 ├── data/               # Data Storage
-│   ├── models/         # Previous Trained Model Weights
-│   ├── *.npz           # Training Tensors (Images + Action Vectors)
-│   └── golem_brain.pth # Current Trained Model Weights
+│   ├── <mode>/         # Training Tensors (.npz) & Active Model (golem.pth)
+│   └── model/          # Model Archive
+│       └── <mode>/     # Previous Trained Model Weights (.pth)
 ├── app/                # Source Code
-│   ├── audit.py        # Analysis: Precision/Recall matrix generation
-│   ├── brain.py        # Model: Dynamic CNN + Liquid CfC Architecture
-│   ├── config.py       # Configuration: Pydantic state models
-│   ├── dataset.py      # Stream: Sliding window sequence mapping & permutation
-│   ├── inspect.py      # Analysis: Dataset balance and normalization checks
-│   ├── intervene.py    # DAgger: Human-in-the-loop dataset aggregation
-│   ├── record.py       # ETL: Capture gameplay -> Tensor
-│   ├── run.py          # Run: Live Inference Engine
+│   ├── handlers/       # CLI Handlers (analyze, intervene, record, run, train)
+│   ├── models/         # Data Models (brain, config, dataset)
 │   ├── templates/      # Views: Jinja2 templates for CLI reporting
-│   ├── train.py        # Training: Behavioral Cloning Loop
 │   └── utils.py        # Utilities: Path resolution
 ├── tests/              # Unit Tests
 └── main.py             # CLI Entrypoint
+
 ```
 
-The `./data/models/` directory uses the naming schema, `<YYYY-MM-DD>.c-<depth>.w-<length>.<mode>.pth`, where
+The `./data/model/<mode>/` directory archives models using the naming schema, `<YYYY-MM-DD>.c-<depth>.w-<length>.<increment>.pth`, where:
 
-- `YYYY-MM-DD`: The date the model was trained.
-- `<depth>`: The cortical depth (`brain.cortical_depth`) of the model.
-- `<length>`: The working memory (`brain.working_memory`) of the model.
-- `<mode>`: The action space (`)
+* `YYYY-MM-DD`: The date the model was trained.
+* `<depth>`: The cortical depth (`brain.cortical_depth`) of the model.
+* `<length>`: The working memory (`brain.working_memory`) of the model.
+* `<increment>`: Auto-incrementing integer to prevent overwrites.
+
+The active model for any given profile is always saved to `./data/<mode>/golem.pth` to isolate action-space dimensions and prevent PyTorch tensor mismatch errors during inference.
+
 ## 🚀 Setup
 
 **Prerequisites:** Python 3.10+ (ViZDoom requires a modern C++ compiler if building from source).
@@ -62,13 +60,14 @@ source ./.venv/bin/activate
 
 # 2. Install Dependencies
 pip install -r requirements.txt
+
 ```
 
 ## 🛠 Usage
 
 ### 1. Configure
 
-Edit `conf/app.yaml` to adjust hyperparameters, dynamically scale the brain architecture (`cortical_depth`, `working_memory`), and set the active environment profile (`basic`, `classic`, or `fluid`). Keybindings are injected dynamically.
+Edit `conf/app.yaml` to adjust hyperparameters, dynamically scale the brain architecture (`cortical_depth`, `working_memory`), and set the active environment profile via `brain.mode` (`basic`, `classic`, or `fluid`). Keybindings are injected dynamically based on this mode.
 
 ### 2. Record
 
@@ -76,6 +75,7 @@ Launch the engine in Spectator Mode to capture training data.
 
 ```bash
 python main.py record --module combat
+
 ```
 
 ### 3. Intervene (DAgger)
@@ -84,6 +84,7 @@ Run the agent autonomously, but hold **Left Shift** to instantly override the LN
 
 ```bash
 python main.py intervene --module combat
+
 ```
 
 ### 4. Inspect
@@ -92,6 +93,7 @@ Verify your dataset is balanced and normalized (checks for high idle time).
 
 ```bash
 python main.py inspect
+
 ```
 
 ### 5. Train
@@ -100,6 +102,7 @@ Run the Behavioral Cloning loop. Uses dynamic tensor permutation for spatial Mir
 
 ```bash
 python main.py train --module all
+
 ```
 
 *Note: On Apple Silicon (M1/M2/M3/M4), this automatically uses Metal Performance Shaders (MPS).*
@@ -110,6 +113,7 @@ Run a diagnostic Brain Scan to check for class-imbalance failures against a stri
 
 ```bash
 python main.py audit --module all
+
 ```
 
 ### 7. Run
@@ -118,6 +122,7 @@ Watch the LNN play the game live. The agent manages a persistent hidden state (`
 
 ```bash
 python main.py run --module combat
+
 ```
 
 ## Continuous Integration
@@ -131,6 +136,7 @@ docker buildx build \
     -t chinchalinchin/golem-ci:latest \
     . \
     --push
+
 ```
 
 ---

@@ -14,10 +14,11 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
 # Application Libraries
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_vizdoom_scenario, get_unique_filename
+from app.utils import resolve_path, get_vizdoom_scenario, get_unique_filename, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("spectate")
 def spectate(cfg: GolemConfig, module_name: str = "cig_arena"):
     logger.info("Initializing Local Spectator Client...")
     

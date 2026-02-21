@@ -12,10 +12,11 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_vizdoom_scenario
+from app.utils import resolve_path, get_vizdoom_scenario, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("run")
 def run(cfg: GolemConfig, module_name: str = "basic"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")

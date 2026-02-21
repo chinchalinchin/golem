@@ -23,10 +23,11 @@ from torch.utils.data import DataLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_unique_filename
+from app.utils import resolve_path, get_unique_filename, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("train")
 def train(cfg: GolemConfig, module_name: str = None):
     r"""
     Trains the Liquid Neural Network using captured expert demonstrations.

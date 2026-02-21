@@ -5,10 +5,11 @@ Initializes a central ViZDoom Arena.
 import logging
 from vizdoom import DoomGame, Mode
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_vizdoom_scenario
+from app.utils import resolve_path, get_vizdoom_scenario, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("server")
 def server(cfg: GolemConfig, module_name: str = "cig_arena", players: int = 3, timelimit: int = 10):
     logger.info(f"Starting Host Arena Server for {players} players...")
     

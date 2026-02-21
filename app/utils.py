@@ -1,15 +1,18 @@
 """
 Utility functions for path resolution, logging setup, and resource location.
 """
+# Standard Libraries
 import os
 import logging
-import vizdoom
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
+# External Libraries
+import vizdoom
 
 logger = logging.getLogger(__name__)
 
+COMMAND_REGISTRY = {}
 
 def get_project_root() -> Path:
     """Returns the absolute path to the project root (one level up from app)."""
@@ -79,3 +82,14 @@ def setup_logging(level_str: str = "INFO"):
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%H:%M:%S"
     )
+
+def register_command(name: str = None) -> Callable:
+    """
+    Decorator to register a CLI command into the global registry.
+    If no name is provided, the function's name is used.
+    """
+    def decorator(func: Callable) -> Callable:
+        cmd_name = name if name else func.__name__
+        COMMAND_REGISTRY[cmd_name] = func
+        return func
+    return decorator

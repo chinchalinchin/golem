@@ -2,20 +2,25 @@
 Multiplayer Client Module.
 Connects the LNN to the Host Arena Server.
 """
-import torch
-import cv2
-import numpy as np
+# Standard Libraries
 import logging
 import os
 from pathlib import Path
+
+# External Libraries
+import torch
+import cv2
+import numpy as np
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
+# Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_vizdoom_scenario
+from app.utils import resolve_path, get_vizdoom_scenario, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("client")
 def client(cfg: GolemConfig, module_name: str = "cig_arena"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")

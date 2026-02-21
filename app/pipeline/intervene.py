@@ -12,7 +12,7 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
+from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario, register_command
 
 try:
     from pynput import keyboard
@@ -97,6 +97,7 @@ class InterventionController:
     
 # -----------------------------------------------------------------
 
+@register_command("intervene")
 def intervene(cfg: GolemConfig, module_name: str = "combat"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")

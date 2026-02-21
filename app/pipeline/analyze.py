@@ -19,10 +19,11 @@ from jinja2 import Environment, FileSystemLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path
+from app.utils import resolve_path, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("inspect")
 def inspect(cfg: GolemConfig, target_file: str = None):
     r"""
     Analyzes a training dataset file for shape integrity and class balance.
@@ -104,7 +105,7 @@ def inspect(cfg: GolemConfig, target_file: str = None):
     except Exception as e:
         logger.error(f"Failed to inspect data: {e}", exc_info=True)
 
-
+@register_command("audit")
 def audit(cfg: GolemConfig, module_name: str = "all"):
     r"""
     Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.

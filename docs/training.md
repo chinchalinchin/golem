@@ -91,14 +91,14 @@ The data extraction, LNN optimization, and evaluation mechanics are orchestrated
 
 ### The Training Loop
 
-::: app.handlers.train.train
+::: app.pipeline.train.train
 
 ### DAgger Intervention
 
-::: app.handlers.intervene.intervene_agent
+::: app.pipeline.intervene.intervene_agent
 
 ### Data Inspection & Auditing
 
-::: app.handlers.analyze.inspect_data
+::: app.pipeline.analyze.inspect_data
 
-::: app.handlers.analyze.audit_agent
+::: app.pipeline.analyze.audit_agent

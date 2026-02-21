@@ -1,13 +1,19 @@
+# Standard Libraries
 import logging
+from pathlib import Path
+
+# External Libraries
 import cv2
 import numpy as np
-from pathlib import Path
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
+
+# Application Libraries
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
+from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario, register_command
 
 logger = logging.getLogger(__name__)
 
+@register_command("record")
 def record(cfg: GolemConfig, module_name: str = "basic"):
     if module_name not in cfg.modules:
         logger.error(f"Module '{module_name}' not found. Available: {list(cfg.modules.keys())}")

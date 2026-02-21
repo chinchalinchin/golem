@@ -21,6 +21,10 @@ brain:
   mode: "basic"
   cortical_depth: 4
   working_memory: 128
+  sensors:
+    visual: true  # Base RGB Screen Buffer
+    depth: true   # Stereopsis (Distance matrix)
+    audio: false  # Audition (Raw stereo waveform)
 
 data:
   prefix: "golem_"

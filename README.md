@@ -27,17 +27,18 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 ├── docs/               # Documentation
 │   └── ...
 ├── data/               # Data Storage
-│   ├── <mode>/         # Training Tensors (.npz) & Active Model (golem.pth)
+│   └── training/       # Training Data
+│       └── <mode>/     # Recorded Training Sessions (.npz)
 │   └── model/          # Model Archive
 │       └── <mode>/     # Previous Trained Model Weights (.pth)
 ├── app/                # Source Code
-│   ├── handlers/       # CLI Handlers (analyze, intervene, record, run, train)
+│   ├── client/         # Gameplay Modules (agent, host)
+│   ├── pipeline/       # ML Modules (analyze, intervene, record, run, train)
 │   ├── models/         # Data Models (brain, config, dataset)
-│   ├── templates/      # Views: Jinja2 templates for CLI reporting
-│   └── utils.py        # Utilities: Path resolution
+│   ├── templates/      # Jinja2 templates for reporting
+│   └── utils.py        # Application utilities
 ├── tests/              # Unit Tests
 └── main.py             # CLI Entrypoint
-
 ```
 
 The `./data/model/<mode>/` directory archives models using the naming schema, `<YYYY-MM-DD>.c-<depth>.w-<length>.<increment>.pth`, where:
@@ -60,7 +61,6 @@ source ./.venv/bin/activate
 
 # 2. Install Dependencies
 pip install -r requirements.txt
-
 ```
 
 ## 🛠 Usage
@@ -75,16 +75,14 @@ Launch the engine in Spectator Mode to capture training data.
 
 ```bash
 python main.py record --module combat
-
 ```
 
-### 3. Intervene (DAgger)
+### 3. Intervene
 
 Run the agent autonomously, but hold **Left Shift** to instantly override the LNN logits with manual keyboard input. This generates a `_recovery` dataset to cure Covariate Shift.
 
 ```bash
 python main.py intervene --module combat
-
 ```
 
 ### 4. Inspect
@@ -93,7 +91,6 @@ Verify your dataset is balanced and normalized (checks for high idle time).
 
 ```bash
 python main.py inspect
-
 ```
 
 ### 5. Train
@@ -102,7 +99,6 @@ Run the Behavioral Cloning loop. Uses dynamic tensor permutation for spatial Mir
 
 ```bash
 python main.py train --module all
-
 ```
 
 *Note: On Apple Silicon (M1/M2/M3/M4), this automatically uses Metal Performance Shaders (MPS).*
@@ -113,7 +109,6 @@ Run a diagnostic Brain Scan to check for class-imbalance failures against a stri
 
 ```bash
 python main.py audit --module all
-
 ```
 
 ### 7. Run
@@ -122,7 +117,6 @@ Watch the LNN play the game live. The agent manages a persistent hidden state (`
 
 ```bash
 python main.py run --module combat
-
 ```
 
 ## Continuous Integration
@@ -136,7 +130,6 @@ docker buildx build \
     -t chinchalinchin/golem-ci:latest \
     . \
     --push
-
 ```
 
 ---

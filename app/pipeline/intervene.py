@@ -108,7 +108,8 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     logger.info(f"Loading Golem Brain on {device} for DAgger Intervention...")
 
     # Load Model from standard active model location
-    model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
+    active_profile = cfg.brain.mode
+    model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     n_actions = cfg.training.action_space_size 
     
     model = DoomLiquidNet(
@@ -152,7 +153,7 @@ def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
     
     # Memory Buffer
     recovery_frames = []
-    recovery_frames = []
+    recovery_actions = []
 
     logger.info("======================================================")
     logger.info("DAgger Mode Active. Golem is running autonomously.")

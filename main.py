@@ -6,11 +6,11 @@ import logging
 
 from app.models.config import GolemConfig
 from app.utils import setup_logging
-from app.handlers.record import record_data
-from app.handlers.analyze import inspect_data, audit_agent
-from app.handlers.train import train_agent
-from app.handlers.run import run_agent
-from app.handlers.intervene import intervene_agent
+from app.pipeline.record import record_data
+from app.pipeline.analyze import inspect_data, audit_agent
+from app.pipeline.train import train_agent
+from app.pipeline.run import run_agent
+from app.pipeline.intervene import intervene_agent
 
 logger = logging.getLogger("main")
 

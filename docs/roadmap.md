@@ -54,6 +54,27 @@
     * Nx Golem Agents (using the same image, but mounting different profile volumes like `basic` or `fluid` to test action spaces against each other).
 * [ ] **Agent Parameterization:** Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.
 
+## Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂
+
+*Goal:* Expand the agent's sensory perception beyond the 2D pixel array by integrating ViZDoom's raw depth and audio buffers into the Liquid Neural Network, effectively granting stereopsis and audition without exposing underlying game-state variables.
+
+### 1. The Configuration Layer
+
+* [ ] **Sensor Toggles:** Update `app.yaml` to include a `brain.sensors` block with boolean toggles for `depth` and `audio`.
+* [ ] **Dynamic Action Space:** Update `config.py` to parse these toggles and pass them to the ETL and Model initialization layers.
+
+### 2. The ETL Pipeline (Record & Transform)
+
+* [ ] **Depth Extraction:** Modify `record.py` to capture `state.depth_buffer`. Normalize the 1D distance matrix to $[0, 1]$.
+* [ ] **Audio Extraction:** Modify `record.py` to capture `state.audio_buffer`. Normalize the raw stereo waveforms.
+* [ ] **Tensor Packaging:** Update the `.npz` saving mechanism to store `depth` and `audio` arrays only if they are enabled in the active profile, preventing massive file bloat for purely visual agents.
+
+### 3. The Brain (Architecture Redesign)
+
+* [ ] **Stereopsis Integration:** If `depth` is enabled, modify the Visual Cortex CNN input channels from $C=3$ (RGB) to $C=4$ (RGB + Depth).
+* [ ] **Auditory Cortex:** If `audio` is enabled, implement a parallel 1D Convolutional Neural Network (`nn.Conv1d`) to extract features from the high-frequency audio buffer.
+* [ ] **Sensor Fusion:** Concatenate the flattened visual/depth feature vector with the auditory feature vector before passing the unified tensor into the Liquid `CfC` core.
+
 ---
 
 ## Distant Future

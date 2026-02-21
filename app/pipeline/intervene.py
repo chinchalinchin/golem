@@ -14,11 +14,6 @@ from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
 from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario, register_command
 
-try:
-    from pynput import keyboard
-except ImportError:
-    raise ImportError("pynput is required for DAgger. Run: pip install pynput")
-
 logger = logging.getLogger(__name__)
 
 # 1. Translation Dictionary: Doom Command -> ViZDoom Action
@@ -43,7 +38,11 @@ PYNPUT_MAP = {
 }
 
 class InterventionController:
-    """Background listener to capture raw OS keyboard state during overrides."""
+    """
+    Background listener to capture raw OS keyboard state during overrides.
+    
+    Pynput is lazily loaded for headless environments.
+    """
     def __init__(self, action_names, active_bindings):
         self.action_names = action_names
         self.intervening = False
@@ -61,7 +60,17 @@ class InterventionController:
                 
         logger.debug(f"Intervention Controller mapped keys: {self.key_map}")
         
-        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
+        # 1. Lazy import inside the constructor
+        try:
+            from pynput import keyboard
+        except ImportError as e:
+            raise RuntimeError("pynput requires a display/X11 server. Cannot run in headless mode.") from e
+
+        # 2. Initialize the listener using the locally scoped keyboard module
+        self.listener = keyboard.Listener(
+            on_press=self.on_press,
+            on_release=self.on_release
+        )
         self.listener.start()
 
     def _normalize_key(self, key):
@@ -74,11 +83,13 @@ class InterventionController:
         return str(key)
 
     def on_press(self, key):
+        from pynput import keyboard
         if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
             self.intervening = True
         self.keys_pressed.add(self._normalize_key(key))
 
     def on_release(self, key):
+        from pynput import keyboard
         if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
             self.intervening = False
             
@@ -99,6 +110,12 @@ class InterventionController:
 
 @register_command("intervene")
 def intervene(cfg: GolemConfig, module_name: str = "combat"):
+    try:
+        from pynput import keyboard
+    except ImportError:
+        logger.error("pynput is required for DAgger. Run: pip install pynput")
+        return
+    
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():

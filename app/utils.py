@@ -5,7 +5,7 @@ Utility functions for path resolution, logging setup, and resource location.
 import os
 import logging
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Union, List, Tuple
 
 # External Libraries
 import vizdoom
@@ -93,3 +93,19 @@ def register_command(name: str = None) -> Callable:
         COMMAND_REGISTRY[cmd_name] = func
         return func
     return decorator
+
+def get_latest_parameters(archives: List[str]) -> Tuple[int, int]:
+    cortical_depth, working_memory = None, None
+    if archives:
+        latest_archive = sorted(archives, key=lambda f: f.stat().st_mtime, reverse=True)[0]
+        try:
+            parts = latest_archive.name.split('.')
+            for part in parts:
+                if part.startswith('c-'):
+                    cortical_depth = int(part[2:])
+                elif part.startswith('w-'):
+                    working_memory = int(part[2:])
+            logger.info(f"Discovered brain architecture from {latest_archive.name}: depth={cortical_depth}, memory={working_memory}")
+        except Exception as e:
+            logger.warning(f"Failed to parse architecture from {latest_archive.name}: {e}")
+    return cortical_depth, working_memory

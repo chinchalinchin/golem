@@ -36,13 +36,13 @@
 ### 1. The Host Server (Arena)
 
 * [x] **Dedicated Host Script:** Create `app/client/host.py` to initialize a central ViZDoom instance in `-host N -deathmatch` mode. This node manages physics and state but does not require a neural network.
-* [ ] **Multiplayer Configuration:** Update configs and select WADs with proper multiplayer spawn points (e.g., the official `cig.wad` used in the tournaments).
+* [x] **Multiplayer Configuration:** Update configs and select WADs with proper multiplayer spawn points (e.g., the official `cig.wad` used in the tournaments).
 * [x] **Host Container:** Create a lightweight `Dockerfile.host` that only installs the ViZDoom engine and the host script.
 
 ### 2. The Golem Client (Containerization)
 
 * [~] **Headless Rendering:** Configure the ViZDoom engine inside the client script (`agent.py`) to render the visual buffer entirely off-screen, bypassing X11/display requirements.
-* [ ] **Network Synchronization:** Utilize ViZDoom's `Mode.PLAYER` (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server.
+* [x] **Network Synchronization:** Utilize ViZDoom's `Mode.PLAYER` (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server.
 * [x] **Modular Dockerfile:** Create `Dockerfile.client`. The image should package Python 3.10+, PyTorch, and ViZDoom, but **omit the model weights**. 
 * [x] **Volume Mounting:** Configure the container entrypoint to load the `golem.pth` brain and `app.yaml` configuration from a mounted volume directory (e.g., `-v ./data/fluid:/app/data`).
 
@@ -58,7 +58,7 @@
     * 1x Host Arena Server
     * 2x Legacy Champion Bots (e.g., Arnold, IntelAct)
     * Nx Golem Agents (using the same image, but mounting different profile volumes like `basic` or `fluid` to test action spaces against each other).
-* [ ] **Agent Parameterization:** Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.
+* [x] **Agent Parameterization:** Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.
 
 ## Phase 3: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂
 

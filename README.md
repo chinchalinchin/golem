@@ -161,15 +161,35 @@ From the Golem project root, use Docker Compose to orchestrate the swarm. This s
 docker-compose up
 ```
 
-## Continuous Integration
+## ⚙️ Continuous Integration & Deployment
 
-The Github Actions defined in `.github/workflows/ci.yml` run the unit tests in `tests/*` and compile the docs in `docs/*`. These actions are run inside of a container built with the `Dockerfile.ci` image. This image pre-packages all of the runtime dependencies.
+Golem uses GitHub Actions to automate testing, documentation deployment, and container image releases. 
+
+### CI/CD Workflows
+
+* **Integration (`ci.yml`):** Triggered on pushes to the `master` branch. This workflow runs the unit tests in `tests/*` and compiles the MkDocs documentation. These steps execute inside the pre-packaged `chinchalinchin/golem-ci` container to ensure environment consistency.
+* **Release (`release.yml`):** Triggered on pushes to the `release` branch. This workflow automatically builds and pushes the latest Docker images to Docker Hub. 
+    * `chinchalinchin/golem-ci:latest` - The base image containing all heavy system dependencies for testing and building.
+    * `chinchalinchin/golem-agent:latest` - The containerized ViZDoom agent used for the VDAIC Arena swarm.
+
+### Manual Builds
+
+If you need to manually build and push these images locally (e.g., for testing architecture changes), you can use Docker Buildx:
 
 ```bash
+# Build and push the CI image
 docker buildx build \
     -f Dockerfile.ci \
     --platform linux/amd64 \
     -t chinchalinchin/golem-ci:latest \
+    . \
+    --push
+
+# Build and push the Agent image
+docker buildx build \
+    -f Dockerfile.agent \
+    --platform linux/amd64 \
+    -t chinchalinchin/golem-agent:latest \
     . \
     --push
 ```

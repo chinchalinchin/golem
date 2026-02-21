@@ -19,7 +19,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, register_command
+from app.utils import resolve_path, register_command, get_latest_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -138,19 +138,37 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
     dataset = DoomStreamingDataset(str(data_dir), seq_len=32, file_pattern=file_pattern)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
-    # 2. Load Brain (Isolated by active profile)
-    model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
+    # 2. Discover Brain Architecture & Load Model
+    model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
+    active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
+    
+    # Base defaults
+    cortical_depth = cfg.brain.cortical_depth
+    working_memory = cfg.brain.working_memory
+    
+    # Intelligently discover actual parameters from the latest archive
+    archives = list(model_dir.glob("*.pth"))
+    cortical_depth, working_memory = get_latest_parameters(archives)
     
     try:
+        # Load state dict first to intelligently resolve n_actions and avoid tensor mismatches 
+        # caused by runtime config overrides not updating the action space size.
+        state_dict = torch.load(str(active_model_path), map_location=device, weights_only=True)
+        
+        n_actions = cfg.training.action_space_size
+        if 'output.weight' in state_dict:
+            n_actions = state_dict['output.weight'].shape[0]
+            
         model = DoomLiquidNet(
-            n_actions=cfg.training.action_space_size,
-            cortical_depth=cfg.brain.cortical_depth,
-            working_memory=cfg.brain.working_memory
+            n_actions=n_actions,
+            cortical_depth=cortical_depth,
+            working_memory=working_memory
         ).to(device)
-        model.load_state_dict(torch.load(str(model_path), map_location=device))
+        
+        model.load_state_dict(state_dict)
         model.eval()
     except FileNotFoundError:
-        logger.error(f"No brain found at {model_path}. Train first!")
+        logger.error(f"No brain found at {active_model_path}. Train first!")
         return
 
     # 3. Scan
@@ -170,8 +188,9 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
             preds = (torch.sigmoid(logits) > 0.5).float().cpu().numpy()
             targets = actions.cpu().numpy()
             
-            all_preds.append(preds.reshape(-1, cfg.training.action_space_size))
-            all_targets.append(targets.reshape(-1, cfg.training.action_space_size))
+            # Use dynamic n_actions rather than potentially stale cfg.training.action_space_size
+            all_preds.append(preds.reshape(-1, n_actions))
+            all_targets.append(targets.reshape(-1, n_actions))
 
     if not all_preds:
         logger.error("No data found to audit!")
@@ -182,10 +201,18 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
 
     # 4. Report via Jinja2
     exact_acc = accuracy_score(y_true, y_pred)
-    action_names = cfg.training.action_names
+    action_names = list(cfg.training.action_names)
+    
+    # Pad action names if the runtime config didn't dynamically expand
+    if len(action_names) < n_actions:
+        action_names += [f"ACTION_{i}" for i in range(len(action_names), n_actions)]
+        
     metrics = []
 
     for i, name in enumerate(action_names):
+        if i >= y_true.shape[1]:
+            break
+            
         true_col = y_true[:, i]
         pred_col = y_pred[:, i]
         support = int(true_col.sum())

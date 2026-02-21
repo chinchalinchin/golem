@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_unique_filename, register_command
+from app.utils import resolve_path, get_unique_filename, register_command, get_latest_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -83,17 +83,37 @@ def train(cfg: GolemConfig, module_name: str = None):
 
     dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=True)    
     
+    # 1. Base Defaults
+    cortical_depth = cfg.brain.cortical_depth
+    working_memory = cfg.brain.working_memory
+    n_actions = cfg.training.action_space_size
+
+    # 2. Discover architecture and dimensions if resuming training
+    model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
+    active_model_path = data_dir / "golem.pth"
+    state_dict = None
+
+    if active_model_path.exists():
+        logger.info(f"Discovering existing brain architecture from {active_model_path} for fine-tuning...")
+        state_dict = torch.load(str(active_model_path), map_location=device, weights_only=True)
+        
+        if 'output.weight' in state_dict:
+            n_actions = state_dict['output.weight'].shape[0]
+
+        archives = list(model_dir.glob("*.pth"))
+        params = get_latest_parameters(archives)
+        if params:
+            cortical_depth, working_memory = params
+
+    # 3. Initialize dynamic model
     model = DoomLiquidNet(
-        n_actions=cfg.training.action_space_size,
-        cortical_depth=cfg.brain.cortical_depth,
-        working_memory=cfg.brain.working_memory
+        n_actions=n_actions,
+        cortical_depth=cortical_depth,
+        working_memory=working_memory
     ).to(device)    
     
-    # FIX: Isolate the active model to the active profile directory
-    active_model_path = data_dir / "golem.pth"
-    if active_model_path.exists():
-        logger.info(f"Loading existing brain from {active_model_path} for fine-tuning...")
-        model.load_state_dict(torch.load(str(active_model_path), map_location=device))
+    if state_dict:
+        model.load_state_dict(state_dict)
     
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
@@ -114,8 +134,9 @@ def train(cfg: GolemConfig, module_name: str = None):
             optimizer.zero_grad()
             predictions, _ = model(frames) 
             
-            if actions.shape[2] != cfg.training.action_space_size:
-                logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions, Brain expects {cfg.training.action_space_size}.")
+            # Use dynamic n_actions for the safety check
+            if actions.shape[2] != n_actions:
+                logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions in data, but Brain expects {n_actions}.")
                 return
 
             loss = criterion(predictions, actions)
@@ -136,8 +157,7 @@ def train(cfg: GolemConfig, module_name: str = None):
     
     # Save the archive model
     date_str = datetime.now().strftime("%Y-%m-%d")
-    model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
-    model_prefix = f"{date_str}.c-{cfg.brain.cortical_depth}.w-{cfg.brain.working_memory}"
+    model_prefix = f"{date_str}.c-{cortical_depth}.w-{working_memory}"
     archive_path = get_unique_filename(model_dir, model_prefix, "pth")
     
     torch.save(model.state_dict(), archive_path)

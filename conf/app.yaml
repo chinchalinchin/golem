@@ -16,27 +16,20 @@ training:
   augmentation:
     mirror: true
 
-  # DEPRECATING
-  model_save_path: "data/golem_brain.pth"
-  config: "basic"
-
 brain:
   # MODES: basic, classic, fluid
-  mode: "fluid"
-  cortical_depth: 3
+  mode: "basic"
+  cortical_depth: 4
   working_memory: 128
 
 data:
   prefix: "golem_"
   dirs:
-    training: "data/"
+    training: "data/training/"
     model: "data/model/"
 
-  # DEPRECATING
-  output_dir: "data"
-  filename_prefix: "doom_training"
-
 modules:
+  # --- Original ViZDoom Defaults ---
   basic:
     scenario: "basic.wad"
     episodes: 10
@@ -61,6 +54,25 @@ modules:
   deathmatch:
     scenario: "deathmatch.wad"
     episodes: 1
+  cover:
+    scenario: "take_cover.wad"
+    episodes: 5
+  supreme:
+    scenario: "health_gathering_supreme.wad"
+    episodes: 5
+
+  # --- External / Community RL WADs ---
+  cig_arena:
+    scenario: "cig2017.wad" 
+    episodes: 1
+  freedoom:
+    scenario: "freedoom2.wad"
+    episodes: 1
+  random:
+    scenario: "oblige_training_1.wad"
+    episodes: 1
+
+  # --- Retail IWADs ---
   doom:
     scenario: "/Users/gmoore/Home/games/doom/wads/DOOM.WAD"
     episodes: 1

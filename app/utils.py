@@ -40,7 +40,7 @@ def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str
     
     counter = 1
     while True:
-        filename = f"{prefix}_{counter}.{extension}"
+        filename = f"{prefix}.{counter}.{extension}"
         full_path = directory / filename
         if not full_path.exists():
             return str(full_path)

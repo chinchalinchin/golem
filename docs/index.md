@@ -91,7 +91,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py record --module combat
     ```
 
-=== "3. Intervene (DAgger)"
+=== "3. Intervene"
 
     Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold **Left Shift** to suspend the LNN logits and capture raw keyboard overrides. 
 

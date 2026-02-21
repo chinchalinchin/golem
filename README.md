@@ -143,6 +143,8 @@ docker buildx build \
 
 ## References
 
+* [VDAIC 2017 Github](https://github.com/mihahauke/VDAIC2017)
+* [ViZDoom Github](https://github.com/Farama-Foundation/ViZDoom/tree/master)
 * [ViZDoom Official Documentation](https://vizdoom.farama.org/)
 * [Pynput Documentation](https://pynput.readthedocs.io/en/latest/)
 * [Liquid Neural Networks (Hasani et al.)](https://arxiv.org/abs/2006.04439)

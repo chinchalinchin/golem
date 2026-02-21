@@ -23,29 +23,36 @@
 
 ---
 
-## Phase 3: Distributed Architecture (The Cyber-Marine) 🤖
+## Phase 3: Distributed Architecture (The VDAIC Arena) 🤖
 
-*Goal:* Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server as an external player client. This scales the training and inference pipeline without requiring engine-level C++ modifications.
+*Goal:* Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server. Benchmark Golem against the historical champions of the Visual Doom AI Competition (VDAIC).
 
 ### 1. The Host Server (Arena)
 
-* [ ] **Dedicated Host Script:** Create a `host.py` script to initialize a central ViZDoom instance in `-host N -deathmatch` mode. This node manages physics and state but does not require a neural network.
-* [ ] **Multiplayer Configuration:** Update `custom.cfg` and select WADs with proper multiplayer spawn points (e.g., `cig.wad`).
+* [ ] **Dedicated Host Script:** Create `app/handlers/host.py` to initialize a central ViZDoom instance in `-host N -deathmatch` mode. This node manages physics and state but does not require a neural network.
+* [ ] **Multiplayer Configuration:** Update configs and select WADs with proper multiplayer spawn points (e.g., the official `cig.wad` used in the tournaments).
+* [ ] **Host Container:** Create a lightweight `Dockerfile.host` that only installs the ViZDoom engine and the host script.
 
-### 2. The Container (Ghost in the Shell)
+### 2. The Golem Client (Containerization)
 
-* [ ] **Dockerfile:** Package the trained Golem Brain (`.pth`), Python 3.10+, PyTorch, and the ViZDoom engine dependencies (SDL2, OpenAL) into a lightweight Linux base image.
-* [ ] **Headless Rendering:** Configure the container to render the 64x64 ViZDoom visual buffer completely off-screen, bypassing the need for an X11 window display.
+* [ ] **Headless Rendering:** Configure the ViZDoom engine inside the client script (`run_client.py`) to render the visual buffer entirely off-screen, bypassing X11/display requirements.
+* [ ] **Network Synchronization:** Utilize ViZDoom's `Mode.PLAYER` (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server.
+* [ ] **Modular Dockerfile:** Create `Dockerfile.client`. The image should package Python 3.10+, PyTorch, and ViZDoom, but **omit the model weights**. 
+* [ ] **Volume Mounting:** Configure the container entrypoint to load the `golem.pth` brain and `app.yaml` configuration from a mounted volume directory (e.g., `-v ./data/fluid:/app/data`).
 
-### 3. The Client Interface (Network Bridge)
+### 3. The Legacy Champions (The Opposition)
 
-* [ ] **Multiplayer Inference Script:** Create `run_client.py`. Instead of launching a local game, this script uses ViZDoom's `-join <IP>` launch parameter to connect to the Host.
-* [ ] **State Synchronization:** Utilize ViZDoom's `Mode.PLAYER` (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server, preventing action drift or network drops.
+* [ ] **Archive Retrieval:** Clone the legacy Dockerfiles and weights for the 2016/2017 VDAIC winners (e.g., *Arnold* by CMU, *IntelAct* by Intel Labs) from the official GitHub archives.
+* [ ] **Legacy Container Builds:** Build the historical images. (Note: These will likely require older base images like Ubuntu 16.04 and deprecated versions of PyTorch/TensorFlow).
 
 ### 4. Orchestration (The Swarm)
 
-* [ ] **Docker Compose:** Create a `docker-compose.yml` to effortlessly spin up 1 Host and $N$ Agent containers simultaneously on a single machine or cluster.
-* [ ] **Agent Parameterization:** Pass unique names, colors, and hyperparameters to individual containers via environment variables so the agents can be easily identified in the deathmatch logs.
+* [ ] **Docker Compose:** Create a `docker-compose.yml` to effortlessly network the swarm. 
+* [ ] **The Roster:** Define the services in the compose file to simultaneously spin up:
+    * 1x Host Arena Server
+    * 2x Legacy Champion Bots (e.g., Arnold, IntelAct)
+    * Nx Golem Agents (using the same image, but mounting different profile volumes like `basic` or `fluid` to test action spaces against each other).
+* [ ] **Agent Parameterization:** Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.
 
 ---
 

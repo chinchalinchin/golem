@@ -85,22 +85,46 @@
 
 ---
 
-## Phase 4: Auditory Phenomenology Refactoring (Signal Processing) 🎼
+## Phase 4: Auditory Phenomenology Refactoring (Mel Spectrograms) 🎼
 
-*Goal:* Transition from processing raw 1D audio waveforms to 2D time-frequency representations (STFT/Mel Spectrograms) to improve LNN stability, allowing the network to recognize the "visual" shape of audio cues and dramatically reducing vulnerability to high-frequency noise.
+*Goal:* Transition from processing raw 1D audio waveforms to 2D Mel Spectrograms. This improves LNN stability by leveraging spatial locality in convolutional networks, allowing the model to recognize the "visual" shape of audio cues (like a fireball or monster growl) while naturally compressing high-frequency acoustic noise.
 
 ### 1. The ETL Pipeline (Transformation)
 
-* [ ] **Audio Normalization:** Enforce strict zero-mean, unit-variance normalization on the raw audio buffer at extraction to prevent gradient explosion.
-* [ ] **Spectrogram Generation:** Integrate Short-Time Fourier Transform (STFT) or Mel-Frequency Cepstral Coefficients (MFCCs) into the data transformation layer (`dataset.py`) to convert 1D audio arrays into 2D spectrograms prior to inference.
+* [x] **Audio Normalization:** Enforce strict zero-mean, unit-variance normalization on the raw audio buffer at extraction to prevent gradient explosion.
+* [x] **Spectrogram Generation:** Integrate `torchaudio.transforms.MelSpectrogram` followed by `torchaudio.transforms.AmplitudeToDB` into the data transformation layer (`dataset.py`). This will mathematically convert the raw 1D audio arrays into dense 2D time-frequency tensors (scaled to decibels) on the fly during the `__getitem__` call.
 
 ### 2. The Configuration Layer
 
-* [ ] **DSP Hyperparameters:** Expand `app.yaml` to include a `brain.dsp` block containing parameter tunings such as `n_fft`, `hop_length`, and `n_mels`.
+* [x] **DSP Hyperparameters:** Expand `app.yaml` to include a `brain.dsp` block containing parameter tunings for the Mel Spectrogram generation. Required parameters include the engine's `sample_rate`, `n_fft` (e.g., 1024), `hop_length` (e.g., 256), and `n_mels` (e.g., 64).
 
 ### 3. The Brain (Architecture Redesign)
 
-* [ ] **2D Auditory Cortex:** Replace the `nn.Conv1d` auditory cortex in `brain.py` with a standard `nn.Conv2d` architecture, mathematically aligning sound classification with the existing spatial and visual processing hierarchy.
+* [x] **2D Auditory Cortex:** Replace the `nn.Conv1d` auditory cortex in `brain.py` with a standard `nn.Conv2d` architecture, mathematically aligning sound classification with the existing spatial and visual processing hierarchy.
+* [x] **Sensor Fusion Re-Alignment:** Ensure the concatenation logic dynamically calculates the flattened feature size of the newly generated 2D auditory feature map before routing the unified tensor into the CfC liquid core.
+
+---
+
+## Phase 5: Thermal Phenomenology (Heat Vision) 🐍
+
+*Goal:* Decouple spatial navigation from enemy detection by utilizing ViZDoom's semantic segmentation `labels_buffer`. This isolates active entities from the background into a clean, binary "thermal" mask, severely reducing the visual noise the model must parse during combat.
+
+### 1. The Configuration Layer
+
+* [x] **Sensor Toggle:** Expand `app.yaml` to include a `thermal: true` flag in the `brain.sensors` configuration block.
+* [x] **State Validation:** Update `config.py` to accurately parse the boolean into the initialization pipelines.
+
+### 2. The ETL Pipeline (Record & Transform)
+
+* [x] **Engine Initialization:** Update `utils.py` to call `game.set_labels_buffer_enabled(True)` when the thermal sensor is flagged.
+* [x] **Thermal Mask Extraction:** In `record.py`, capture `state.labels_buffer`, apply a binary threshold (`pixels > 0 = 1`) to drop environmental geometry, and resize the mask to 64x64.
+* [x] **Tensor Packaging:** Save the resulting thermal arrays to the generated `.npz` archive.
+* [x] **Dataset Streaming:** Update `dataset.py` to load the thermal arrays and feed them into the model alongside the visual input.
+
+### 3. The Brain (Architecture Redesign)
+
+* [x] **Parallel Thermal Cortex:** Update `brain.py` to instantiate an isolated `nn.Conv2d` branch dedicated to processing the thermal mask, allowing the network to learn independent dynamic entity-tracking filters.
+* [x] **Sensor Fusion:** Concatenate the flattened thermal feature map with the visual/depth and auditory representations before routing the unified tensor into the CfC liquid core.
 
 ---
 
@@ -109,4 +133,4 @@
 ### The Possession (Integration) 👻
 
 * *Goal:* Move beyond the Python wrapper and replace in-game enemy AIs.
-* [ ] **Engine Fork:** Compile the PyTorch model to TorchScript (`.pt`) and link `libtorch` directly into a C++ source port to bypass pixel-rendering entirely.
+* [-] **Engine Fork:** Compile the PyTorch model to TorchScript (`.pt`) and link `libtorch` directly into a C++ source port to bypass pixel-rendering entirely.

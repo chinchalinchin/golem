@@ -74,7 +74,8 @@ def train(cfg: GolemConfig, module_name: str = None):
         seq_len=cfg.training.sequence_length,
         file_pattern=file_pattern,
         augment=cfg.training.augmentation.mirror,
-        action_names=cfg.training.action_names 
+        action_names=cfg.training.action_names,
+        dsp_config=cfg.brain.dsp
     )
     
     if len(dataset) == 0:
@@ -110,7 +111,8 @@ def train(cfg: GolemConfig, module_name: str = None):
         n_actions=n_actions,
         cortical_depth=cortical_depth,
         working_memory=working_memory,
-        sensors=cfg.brain.sensors
+        sensors=cfg.brain.sensors,
+        dsp_config=cfg.brain.dsp
     ).to(device)
     
     if state_dict:
@@ -131,10 +133,11 @@ def train(cfg: GolemConfig, module_name: str = None):
         for batch_idx, (inputs, actions) in enumerate(dataloader):
             x_vis = inputs['visual'].to(device)
             x_aud = inputs['audio'].to(device) if 'audio' in inputs else None
+            x_thm = inputs['thermal'].to(device) if 'thermal' in inputs else None
             actions = actions.to(device)
             
             optimizer.zero_grad()
-            predictions, _ = model(x_vis, x_aud=x_aud)            
+            predictions, _ = model(x_vis, x_aud=x_aud, x_thm=x_thm)           
             
             # Use dynamic n_actions for the safety check
             if actions.shape[2] != n_actions:

@@ -9,6 +9,7 @@ from pathlib import Path
 
 # External Libraries
 import torch
+import torchaudio
 import cv2
 import numpy as np
 
@@ -141,6 +142,17 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
         sensors=cfg.brain.sensors
     ).to(device)
        
+    mel_transform = None
+    amp_to_db = None
+    if cfg.brain.sensors.audio:
+        mel_transform = torchaudio.transforms.MelSpectrogram(
+            sample_rate=cfg.brain.dsp.sample_rate,
+            n_fft=cfg.brain.dsp.n_fft,
+            hop_length=cfg.brain.dsp.hop_length,
+            n_mels=cfg.brain.dsp.n_mels
+        ).to(device)
+        amp_to_db = torchaudio.transforms.AmplitudeToDB().to(device)
+
     try:
         model.load_state_dict(torch.load(str(model_path), map_location=device))
         model.eval()
@@ -172,7 +184,8 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     recovery_depths = []
     recovery_audios = []
     recovery_actions = []
-
+    recovery_thermals = []
+    
     logger.info("======================================================")
     logger.info("DAgger Mode Active. Golem is running autonomously.")
     logger.info("HOLD [LEFT SHIFT] to pause the LNN and take manual control.")
@@ -198,14 +211,32 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 x_vis_np = np.concatenate((x_vis_np, np.expand_dims(processed_depth, axis=2)), axis=2)
                 
             raw_audio = None
+            tensor_aud = None
             if cfg.brain.sensors.audio and state.audio_buffer is not None:
                 raw_audio = state.audio_buffer
+                mean = np.mean(raw_audio, axis=-1, keepdims=True)
+                std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
+                norm_audio = (raw_audio - mean) / std
+                
+                # In intervene.py, if you are appending recovery frames, append `norm_audio` 
+                # (NOT the spectrogram, because dataset.py expects normalized raw audio arrays)
+                
+                # Transform to Spectrogram strictly for live tensor inference
+                tensor_aud = torch.from_numpy(norm_audio).float().unsqueeze(0).unsqueeze(0).to(device)
+                tensor_aud = mel_transform(tensor_aud)
+                tensor_aud = amp_to_db(tensor_aud)
 
+            processed_thermal = None
+            if cfg.brain.sensors.thermal and state.labels_buffer is not None:
+                binary_mask = (state.labels_buffer > 0).astype(np.float32)
+                processed_thermal = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
+ 
             tensor_vis = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
             tensor_aud = torch.from_numpy(raw_audio).float().unsqueeze(0).unsqueeze(0).to(device) if raw_audio is not None else None
-            
+            tensor_thm = torch.from_numpy(processed_thermal).float().unsqueeze(0).unsqueeze(0).unsqueeze(0).to(device) if processed_thermal is not None else None
+
             with torch.no_grad():
-                logits, hx = model(tensor_vis, x_aud=tensor_aud, hx=hx)
+                logits, hx = model(tensor_vis, x_aud=tensor_aud, x_thm=tensor_thm, hx=hx)                
                 probs = torch.sigmoid(logits)
             
             if controller.intervening:
@@ -215,7 +246,10 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 if processed_depth is not None:
                     recovery_depths.append(processed_depth)
                 if raw_audio is not None:
-                    recovery_audios.append(raw_audio)
+                    recovery_audios.append(norm_audio) 
+                if processed_thermal is not None:
+                    recovery_thermals.append(processed_thermal)
+                                              
                 recovery_actions.append(action)
                 
                 if game.get_episode_time() % 35 == 0:
@@ -237,11 +271,12 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                         save_dict['depths'] = np.array(recovery_depths)
                     if len(recovery_audios) > 0:
                         save_dict['audios'] = np.array(recovery_audios)
-                        
+                    if len(recovery_thermals) > 0:
+                        save_dict['thermals'] = np.array(recovery_thermals)
+
                     np.savez_compressed(output_path, **save_dict)
                     
-                    recovery_frames, recovery_depths, recovery_audios, recovery_actions = [], [], [], []
-
+                    recovery_frames, recovery_depths, recovery_audios, recovery_thermals, recovery_actions = [], [], [], [], []
             game.make_action(action)
             time.sleep(0.028)
             

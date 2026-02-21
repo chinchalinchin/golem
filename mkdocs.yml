@@ -16,10 +16,11 @@ theme:
 
 nav:
   - Home: index.md
-  - Philosophy: philsophy.md
+  - Configuration: configuration.md
   - Environment: environment.md
   - The Brain: brain.md
   - Training: training.md
+  - Philosophy: philsophy.md
   - Roadmap: roadmap.md
   - Issues: issues.md
 

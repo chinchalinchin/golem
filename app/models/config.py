@@ -33,12 +33,20 @@ class SensorsConfig(BaseModel):
     visual: bool = True
     depth: bool = False
     audio: bool = False
+    thermal: bool = False
+
+class DSPConfig(BaseModel):
+    sample_rate: int = 44100
+    n_fft: int = 1024
+    hop_length: int = 256
+    n_mels: int = 64
 
 class BrainConfig(BaseModel):
     mode: str
     cortical_depth: int = 2
     working_memory: int = 64
     sensors: SensorsConfig = SensorsConfig()
+    dsp: DSPConfig = DSPConfig()
 
 class TrainingConfig(BaseModel):
     batch_size: int

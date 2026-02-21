@@ -5,9 +5,9 @@ from pathlib import Path
 
 # External Libraries
 import torch
+import torchaudio
 import cv2
 import numpy as np
-from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
 # Application Libraries
 from app.models.config import GolemConfig
@@ -53,7 +53,8 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
             n_actions=n_actions,
             cortical_depth=cortical_depth,
             working_memory=working_memory,
-            sensors=cfg.brain.sensors
+            sensors=cfg.brain.sensors,
+            dsp_config=cfg.brain.dsp
         ).to(device)
         
         model.load_state_dict(state_dict)
@@ -79,7 +80,18 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     action_labels = list(cfg.training.action_names)
     if len(action_labels) < n_actions:
         action_labels += [f"ACTION_{i}" for i in range(len(action_labels), n_actions)]
-    
+
+    mel_transform = None
+    amp_to_db = None
+    if cfg.brain.sensors.audio:
+        mel_transform = torchaudio.transforms.MelSpectrogram(
+            sample_rate=cfg.brain.dsp.sample_rate,
+            n_fft=cfg.brain.dsp.n_fft,
+            hop_length=cfg.brain.dsp.hop_length,
+            n_mels=cfg.brain.dsp.n_mels
+        ).to(device)
+        amp_to_db = torchaudio.transforms.AmplitudeToDB().to(device)
+        
     episodes = 10
     for i in range(episodes):
         game.new_episode()
@@ -101,10 +113,27 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
             
             tensor_aud = None
             if cfg.brain.sensors.audio and state.audio_buffer is not None:
-                tensor_aud = torch.from_numpy(state.audio_buffer).float().unsqueeze(0).unsqueeze(0).to(device)
+                raw_audio = state.audio_buffer
+                mean = np.mean(raw_audio, axis=-1, keepdims=True)
+                std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
+                norm_audio = (raw_audio - mean) / std
                 
+                # In intervene.py, if you are appending recovery frames, append `norm_audio` 
+                # (NOT the spectrogram, because dataset.py expects normalized raw audio arrays)
+                
+                # Transform to Spectrogram strictly for live tensor inference
+                tensor_aud = torch.from_numpy(norm_audio).float().unsqueeze(0).unsqueeze(0).to(device)
+                tensor_aud = mel_transform(tensor_aud)
+                tensor_aud = amp_to_db(tensor_aud)
+
+            tensor_thm = None
+            if cfg.brain.sensors.thermal and state.labels_buffer is not None:
+                binary_mask = (state.labels_buffer > 0).astype(np.float32)
+                processed_thermal = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
+                tensor_thm = torch.from_numpy(processed_thermal).float().unsqueeze(0).unsqueeze(0).unsqueeze(0).to(device)
+
             with torch.no_grad():
-                logits, hx = model(tensor_vis, x_aud=tensor_aud, hx=hx)
+                logits, hx = model(tensor_vis, x_aud=tensor_aud, x_thm=tensor_thm, hx=hx)                
                 probs = torch.sigmoid(logits)
             
             action_probs = probs.cpu().numpy()[0, 0]

@@ -135,7 +135,14 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
     else:
         file_pattern = f"{prefix_clean}_{module_name}*.npz"
 
-    dataset = DoomStreamingDataset(str(data_dir), seq_len=32, file_pattern=file_pattern)
+    dataset = DoomStreamingDataset(
+        str(data_dir), 
+        seq_len=cfg.training.sequence_length,
+        file_pattern=file_pattern,
+        augment=cfg.training.augmentation.mirror,
+        action_names=cfg.training.action_names,
+        dsp_config=cfg.brain.dsp
+    )
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
     # 2. Discover Brain Architecture & Load Model
@@ -163,7 +170,8 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
             n_actions=n_actions,
             cortical_depth=cortical_depth,
             working_memory=working_memory,
-            sensors=cfg.brain.sensors
+            sensors=cfg.brain.sensors,
+            dsp_config=cfg.brain.dsp  # <--- New
         ).to(device)
         
         model.load_state_dict(state_dict)
@@ -186,8 +194,9 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
             
             x_vis = inputs['visual'].to(device)
             x_aud = inputs['audio'].to(device) if 'audio' in inputs else None
+            x_thm = inputs['thermal'].to(device) if 'thermal' in inputs else None
             
-            logits, _ = model(x_vis, x_aud=x_aud)
+            logits, _ = model(x_vis, x_aud=x_aud, x_thm=x_thm)
             preds = (torch.sigmoid(logits) > 0.5).float().cpu().numpy()
             targets = actions.cpu().numpy()
             

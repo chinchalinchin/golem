@@ -129,9 +129,9 @@ Build the unified Docker image that contains the ViZDoom engine, Python 3.10, an
 
 ```bash
 docker buildx build \
-    -f Dockerfile.swarm \
+    -f Dockerfile.agent \
     --platform linux/amd64 \
-    -t golem-swarm:latest .
+    -t golem-agent:latest .
 ```
 
 ### 2. Build Legacy Champions (IntelAct)
@@ -140,7 +140,7 @@ To pit Golem against the 2017 VDAIC champion, you must clone the historical repo
 
 ```bash
 # Clone the repository
-git clone [https://github.com/chinchalinchin/VDAIC2017](https://github.com/chinchalinchin/VDAIC2017)
+git clone https://github.com/chinchalinchin/VDAIC2017
 cd VDAIC2017
 cp cig2017.wad intelact/
 cp _vizdoom.cfg intelact/
@@ -151,7 +151,7 @@ docker buildx build \
 ```
 
 !!! "Docker Image"
-    The image can also be from [DockerHub](https://hub.docker.com/repository/docker/chinchalinchin/intelact/general)
+    The image can also be retrieved from [DockerHub](https://hub.docker.com/repository/docker/chinchalinchin/intelact/general)
 
 ### 3. Enter the Arena
 

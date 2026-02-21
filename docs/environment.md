@@ -16,9 +16,25 @@ $$
 * **Resolution:** 64x64 pixels (processed via bilinear interpolation).
 * **Normalization:** $o_{i,j,k} \in [0, 1]$.
 
-If the auditory sensor is enabled, the agent also receives an audio tensor $o_{aud}$ containing the raw, high-frequency stereo waveforms from the engine.
+If the auditory sensor is enabled, the agent also receives an audio tensor $o_{aud}$. While initially extracted from the engine as raw, high-frequency stereo waveforms, the ETL pipeline mathematically transforms these 1D arrays into dense 2D time-frequency representations (Mel Spectrograms) to leverage spatial locality within the convolutional network.
 
-We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, or a specific audio waveform implies a nearby threat), encouraging robust topological generalization across unseen levels.
+The Digital Signal Processing (DSP) transformation is mathematically defined by the active `dsp` configuration block:
+
+1. **Strict Normalization:** The raw buffer is scaled to zero-mean and unit-variance to stabilize gradients.
+2. **Mel Scale Transformation:** The normalized waveform is processed via a Short-Time Fourier Transform (STFT) mapped to the Mel scale, governed by the `sample_rate`, `n_fft`, `hop_length`, and `n_mels` hyperparameters.
+3. **Decibel Scaling:** The resulting magnitudes are compressed logarithmically using an Amplitude-to-DB conversion.
+
+
+
+The resulting multi-modal audio tensor is defined as:
+
+$$
+o_{aud} \in \mathbb{R}^{C \times H_{mels} \times W_{time}}
+$$
+
+Where $C=2$ (stereo channels), $H_{mels}$ represents the frequency bins dictated by `n_mels`, and $W_{time}$ is the temporal width calculated dynamically from the engine's audio buffer capacity and the STFT `hop_length`.
+
+We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, or a specific visual spectrogram pattern implies a nearby threat), encouraging robust topological generalization across unseen levels.
 
 ## Action Space
 

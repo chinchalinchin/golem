@@ -17,14 +17,19 @@ training:
     mirror: true
 
 brain:
-  # MODES: basic, classic, fluid
-  mode: "basic"
+  mode: "basic"       # Modes: basic, classic, fluid
   cortical_depth: 4
   working_memory: 128
   sensors:
-    visual: true  # Base RGB Screen Buffer
-    depth: true   # Stereopsis (Distance matrix)
-    audio: false  # Audition (Raw stereo waveform)
+    visual: true      # Base RGB Screen Buffer
+    depth: true       # Stereopsis (Distance matrix)
+    audio: false      # Audition (Mel Spectrograms)
+    thermal: true    # Thermal (Binary Label Mask)
+  dsp:
+    sample_rate: 44100
+    n_fft: 1024
+    hop_length: 256
+    n_mels: 64
 
 data:
   prefix: "golem_"
@@ -43,9 +48,6 @@ modules:
   combat:
     scenario: "deadly_corridor.wad"
     episodes: 10
-  health:
-    scenario: "health_gathering.wad"
-    episodes: 1
   center:
     scenario: "defend_the_center.wad"
     episodes: 1
@@ -60,9 +62,6 @@ modules:
     episodes: 1
   cover:
     scenario: "take_cover.wad"
-    episodes: 5
-  supreme:
-    scenario: "health_gathering_supreme.wad"
     episodes: 5
 
   # --- External / Community RL WADs ---

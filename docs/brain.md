@@ -8,11 +8,15 @@ The input observation $o_t$ is first processed by a Convolutional Neural Network
 
 The architecture scales dynamically based on the configured `cortical_depth` ($D$) and active `sensors`. Given an input tensor of $C \times 64 \times 64$ (where $C=3$ for standard RGB, or $C=4$ if the stereoscopic depth buffer is enabled), the sequential convolutions (kernel size 4, stride 2) and ReLU activations compress the spatial manifold. For example, a depth of $D=2$ yields a highly dimensional feature map, while deeper configurations (e.g., $D=4$) aggressively pool the feature maps to a much smaller dense representation.
 
-## 2. Auditory Cortex (1D CNN)
+## 2. Auditory Cortex (2D CNN & Mel Spectrograms)
 
-If the `audio` sensor is enabled, Golem expands its phenomenology by routing the raw, high-frequency stereo audio buffer through a parallel 1D Convolutional Neural Network (`nn.Conv1d`). 
+If the `audio` sensor is enabled, Golem expands its phenomenology by processing the raw, high-frequency stereo audio buffer from the engine. 
 
-This pathway consists of sequential 1D convolutions (e.g., kernel size 8, stride 4) and an `AdaptiveAvgPool1d` layer to extract auditory features, outputting a latent audio vector $A(t)$. 
+To ensure network stability and prevent gradient explosion, the raw audio arrays are first strictly normalized (zero-mean, unit-variance) during the extraction phase. During data loading and live inference, the normalized 1D waveforms are mathematically converted into dense 2D time-frequency tensors (scaled to decibels) using `torchaudio` transforms.
+
+This transformation allows the network to process audio as a spatial map. The resulting Mel Spectrogram is routed through a parallel 2D Convolutional Neural Network (`nn.Conv2d`). By leveraging spatial locality, this architecture mathematically aligns sound classification with the existing visual processing hierarchy, enabling the model to recognize the "visual" shape of acoustic cues (such as a monster's growl or a plasma rifle firing) while naturally compressing high-frequency acoustic noise.
+
+This pathway consists of sequential 2D convolutions (e.g., kernel size 3, stride 2, padding 1) and an `AdaptiveAvgPool2d((1, 1))` layer to extract the final auditory features, outputting a latent audio vector $A(t)$. 
 
 If multiple modalities are active, their respective feature vectors are concatenated:
 
@@ -60,6 +64,6 @@ $$
 
 ## API Reference
 
-Because the architecture is fully dynamic, the `DoomLiquidNet` class constructs its layers on-the-fly based on the active `app.yaml` configuration profile and the selected sensor fusion modalities.
+Because the architecture is fully dynamic, the `DoomLiquidNet` class constructs its layers on-the-fly based on the active `app.yaml` configuration profile, the selected sensor fusion modalities, and the active Digital Signal Processing (DSP) hyperparameters.
 
 ::: app.models.brain.DoomLiquidNet

@@ -9,6 +9,7 @@ from typing import Callable, Union, List, Tuple
 
 # External Libraries
 import vizdoom
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -91,12 +92,14 @@ def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PL
     game.set_render_hud(True)
     
     if sensors:
-        logger.info(f"Configuring Sensors - Depth: {getattr(sensors, 'depth', False)}, Audio: {getattr(sensors, 'audio', False)}")
+        logger.info(f"Configuring Sensors - Depth: {getattr(sensors, 'depth', False)}, Audio: {getattr(sensors, 'audio', False)}, Thermal: {getattr(sensors, 'thermal', False)}")
+        
         if getattr(sensors, 'depth', False):
             game.set_depth_buffer_enabled(True)
         if getattr(sensors, 'audio', False):
             game.set_audio_buffer_enabled(True)
-            
+        if getattr(sensors, 'thermal', False):
+            game.set_labels_buffer_enabled(True)  
     return game
 
 def setup_logging(level_str: str = "INFO"):
@@ -136,3 +139,10 @@ def get_latest_parameters(archives: List[str]) -> Tuple[int, int]:
         except Exception as e:
             logger.warning(f"Failed to parse architecture from {latest_archive.name}: {e}")
     return cortical_depth, working_memory
+
+
+def normalize_audio_buffer(raw_audio: np.ndarray) -> np.ndarray:
+    """Applies zero-mean, unit-variance normalization to a raw engine audio buffer."""
+    mean = np.mean(raw_audio, axis=-1, keepdims=True)
+    std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
+    return (raw_audio - mean) / std

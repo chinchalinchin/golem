@@ -8,6 +8,7 @@ duplicating flat arrays in memory.
 """
 
 import torch
+import torchaudio
 import numpy as np
 from pathlib import Path
 from torch.utils.data import Dataset
@@ -38,21 +39,25 @@ class DoomStreamingDataset(Dataset):
         action_names (list of str, optional): The ordered list of string action names 
             (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate 
             which indices to swap during mirror augmentation. Default: ``None``.
+        dsp_config (DSPConfig, optional): DSP tuning parameters for the Mel Spectrogram.
     """
     
-    def __init__(self, data_dir, seq_len=32, file_pattern="*.npz", augment=False, action_names=None):
+    def __init__(self, data_dir, seq_len=32, file_pattern="*.npz", augment=False, action_names=None, dsp_config=None):
         self.seq_len = seq_len
         self.augment = augment
         self.action_names = action_names or []
+        self.dsp_config = dsp_config
         
         # Memory stores
         self.video_arrays = []
         self.action_arrays = []
         self.depth_arrays = []
         self.audio_arrays = []
+        self.thermal_arrays = []
         
         self.has_depth = False
         self.has_audio = False
+        self.has_thermal = False
         
         self.index_map = [] 
         
@@ -76,6 +81,9 @@ class DoomStreamingDataset(Dataset):
                 if 'audios' in data:
                     self.has_audio = True
                     self.audio_arrays.append(data['audios'])
+                if 'thermals' in data:
+                    self.has_thermal = True
+                    self.thermal_arrays.append(data['thermals'])
 
                 total_frames = len(frames)
                 if total_frames < self.seq_len:
@@ -86,8 +94,20 @@ class DoomStreamingDataset(Dataset):
                     if self.augment:
                         self.index_map.append((file_idx, start_idx, True))
                         
-        logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}]")
+        # Setup DSP transforms if audio is present
+        self.mel_transform = None
+        self.amp_to_db = None
+        if self.has_audio and self.dsp_config:
+            self.mel_transform = torchaudio.transforms.MelSpectrogram(
+                sample_rate=self.dsp_config.sample_rate,
+                n_fft=self.dsp_config.n_fft,
+                hop_length=self.dsp_config.hop_length,
+                n_mels=self.dsp_config.n_mels
+            )
+            self.amp_to_db = torchaudio.transforms.AmplitudeToDB()
 
+        logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
+    
     def _build_swap_map(self):
         r"""
         Constructs a mapping of action indices that must be swapped when applying 
@@ -119,7 +139,8 @@ class DoomStreamingDataset(Dataset):
         The retrieved frames are dynamically transposed from the storage shape of 
         :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.
         If the index maps to an augmented sequence, the visual tensor is flipped 
-        horizontally and lateral actions are swapped.
+        horizontally and lateral actions are swapped. For audio, the waveforms 
+        are converted to Mel Spectrograms.
 
         Args:
             idx (int): The index of the sequence pointer in the internal map.
@@ -148,12 +169,24 @@ class DoomStreamingDataset(Dataset):
         if self.has_audio:
             window_audios = self.audio_arrays[file_idx][start_idx : start_idx + self.seq_len]
             x_aud = torch.from_numpy(window_audios).float()
+            
+            if self.mel_transform and self.amp_to_db:
+                x_aud = self.mel_transform(x_aud)
+                x_aud = self.amp_to_db(x_aud)
+
+        x_thm = None
+        if self.has_thermal:
+            window_thermals = self.thermal_arrays[file_idx][start_idx : start_idx + self.seq_len]
+            window_thermals = np.expand_dims(window_thermals, axis=1)
+            x_thm = torch.from_numpy(window_thermals).float()
 
         if is_mirrored:
             x_vis = torch.flip(x_vis, [3])
             if self.has_audio:
+                # Flip channel 1 (stereo channels) for spatial auditory swapping
                 x_aud = torch.flip(x_aud, [1])
-                
+            if self.has_thermal:
+                x_thm = torch.flip(x_thm, [3])
             y_flip = y.clone()
             for left_idx, right_idx in self.swap_pairs:
                 y_flip[:, left_idx] = y[:, right_idx]
@@ -162,10 +195,13 @@ class DoomStreamingDataset(Dataset):
             inputs = {'visual': x_vis}
             if self.has_audio:
                 inputs['audio'] = x_aud
+            if self.has_thermal:
+                inputs['thermal'] = x_thm
             return inputs, y_flip
             
         inputs = {'visual': x_vis}
         if self.has_audio:
             inputs['audio'] = x_aud
-            
+        if self.has_thermal:
+            inputs['thermal'] = x_thm
         return inputs, y

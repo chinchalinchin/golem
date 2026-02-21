@@ -1,6 +1,6 @@
 # Issue Board: Open Issues & Enhancements
 
-## The "Hold W" Convergence Trap (Class Imbalance)
+## Issue 1: The "Hold W" Convergence Trap (Class Imbalance)
 
 **Status:** Open | **Priority:** Medium
 
@@ -19,7 +19,7 @@ Focal loss adds a modulating factor $(1 - p_t)^\gamma$ to the standard cross-ent
 * Calculate dataset action distributions during the `transform` or `dataset` loading phase.
 * Pass the resulting weights tensor to the loss function in `train.py`.
 
-## Pipeline Infrastructure Optimizations (Synchronous Data Loading)
+## Issue 2: Pipeline Infrastructure Optimizations (Synchronous Data Loading)
 
 **Status:** Open | **Priority:** Medium
 
@@ -31,7 +31,7 @@ The `DoomStreamingDataset` currently applies dynamic NumPy transposition, mirror
 
 Refactor the `DataLoader` initialization in `train.py` to offload ETL transformations to background processes. Implement `num_workers` (e.g., 4), enable `pin_memory=True` for faster Host-to-Device memory transfers, and establish a `prefetch_factor`.
 
-## Stateful Backpropagation Through Time (BPTT) Amnesia
+## Issue 3: Stateful Backpropagation Through Time (BPTT) Amnesia
 
 **Status:** Open | **Priority:** High
 
@@ -47,3 +47,15 @@ Implement Stateful BPTT in `train.py`:
 2. Retain the hidden state output `hx` from the previous batch.
 3. Detach the state from the computational graph (`hx = hx.detach()`) to prevent backpropagating into infinite history.
 4. Pass the detached state as the prior for the subsequent batch.
+
+## Issue 4: Pipeline Infrastructure Optimizations (GPU-Accelerated DSP)
+
+**Status:** Open | **Priority:** High
+
+**Description:**
+
+In the Phase IV implementation, `torchaudio.transforms.MelSpectrogram` and `AmplitudeToDB` operations were added directly inside the `__getitem__` method of the `DoomStreamingDataset`. Because PyTorch `DataLoader` workers execute `__getitem__` on the CPU by default, this creates a massive I/O bottleneck. Short-Time Fourier Transforms (STFTs) are computationally expensive; executing them sequentially on the CPU forces the target hardware accelerator (CUDA/MPS) to idle while waiting for the next batched audio tensor. This severely exacerbates the existing synchronous data loading latency.
+
+**Proposed Solution:**
+
+Remove the `torchaudio` transforms from `dataset.py`. Instantiate the transforms directly on the target hardware accelerator (`.to(device)`) inside the training (`train.py`) and inference loops, applying the transformation to the batched `x_aud` tensor *after* it has been loaded into VRAM. Alternatively, embed the `torchaudio` transforms directly into the forward pass of `DoomLiquidNet` in `brain.py` to ensure the DSP logic is natively compiled into the model's computational graph and executed on the GPU.

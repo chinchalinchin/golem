@@ -50,6 +50,7 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     frames = []
     depths = []
     audios = []
+    thermals = []
     actions = []
     
     try:
@@ -70,8 +71,18 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                     depths.append(processed_depth)
                     
                 if cfg.brain.sensors.audio and state.audio_buffer is not None:
-                    audios.append(state.audio_buffer)
+                    raw_audio = state.audio_buffer
+                    # Normalization: Zero-mean, unit-variance on the raw audio buffer at extraction
+                    mean = np.mean(raw_audio, axis=-1, keepdims=True)
+                    std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
+                    norm_audio = (raw_audio - mean) / std
+                    audios.append(norm_audio)
                 
+                if cfg.brain.sensors.thermal and state.labels_buffer is not None:
+                    binary_mask = (state.labels_buffer > 0).astype(np.float32)
+                    processed_thermal = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
+                    thermals.append(processed_thermal)
+
                 game.advance_action()
                 
         logger.info(f"Saving frames to {output_path}...")
@@ -81,7 +92,9 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
             save_dict['depths'] = np.array(depths)
         if cfg.brain.sensors.audio:
             save_dict['audios'] = np.array(audios)
-            
+        if cfg.brain.sensors.thermal:
+            save_dict['thermals'] = np.array(thermals) 
+        
         np.savez_compressed(output_path, **save_dict)
         
     except Exception as e:

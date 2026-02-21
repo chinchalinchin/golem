@@ -12,7 +12,8 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_vizdoom_scenario, register_command, get_latest_parameters
+from app.utils import resolve_path, get_vizdoom_game, \
+                        register_command, get_latest_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,9 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
         model = DoomLiquidNet(
             n_actions=n_actions,
             cortical_depth=cortical_depth,
-            working_memory=working_memory
-        ).to(device) 
+            working_memory=working_memory,
+            sensors=cfg.brain.sensors
+        ).to(device)
         
         model.load_state_dict(state_dict)
         model.eval()
@@ -61,20 +63,14 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
         logger.error(f"No model found at {active_model_path}. Please train first!")
         return
 
-    cfg_path = resolve_path(cfg.config[active_profile])
-
     if module_name not in cfg.modules:
         logger.error(f"Module '{module_name}' not found.")
         return
-    scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
+    
+    cfg_path = cfg.config[active_profile]
+    scenario = cfg.modules[module_name].scenario
 
-    game = DoomGame()
-    game.load_config(cfg_path)    
-    game.set_doom_scenario_path(scenario_path)
-    game.set_screen_format(ScreenFormat.CRCGCB)
-    game.set_screen_resolution(ScreenResolution.RES_640X480)
-    game.set_window_visible(True)
-    game.set_mode(Mode.PLAYER) 
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors)    
     game.init()
 
     logger.info("Golem is waking up...")
@@ -94,14 +90,21 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
             state = game.get_state()
             raw_frame = state.screen_buffer
             
-            frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64))
-            frame = frame / 255.0
-            frame = np.transpose(frame, (2, 0, 1))
+            processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64)) / 255.0
+            x_vis_np = processed_frame
             
-            tensor = torch.from_numpy(frame).float().unsqueeze(0).unsqueeze(0).to(device)
+            if cfg.brain.sensors.depth and state.depth_buffer is not None:
+                processed_depth = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
+                x_vis_np = np.concatenate((x_vis_np, np.expand_dims(processed_depth, axis=2)), axis=2)
+
+            tensor_vis = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
             
+            tensor_aud = None
+            if cfg.brain.sensors.audio and state.audio_buffer is not None:
+                tensor_aud = torch.from_numpy(state.audio_buffer).float().unsqueeze(0).unsqueeze(0).to(device)
+                
             with torch.no_grad():
-                logits, hx = model(tensor, hx)
+                logits, hx = model(tensor_vis, x_aud=tensor_aud, hx=hx)
                 probs = torch.sigmoid(logits)
             
             action_probs = probs.cpu().numpy()[0, 0]

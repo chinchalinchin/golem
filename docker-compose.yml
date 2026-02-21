@@ -6,10 +6,7 @@ x-shared-env: &shared-env
 
 services:
   arena-host:
-    build: 
-      context: .
-      dockerfile: Dockerfile.swarm
-    image: golem-swarm:latest
+    image: golem-agent:latest
     container_name: vizdoom-host
     environment:
       <<: *shared-env
@@ -20,7 +17,7 @@ services:
       - doom-net
 
   golem-fluid:
-    image: golem-swarm:latest
+    image: golem-agent:latest
     container_name: golem-agent-1
     depends_on:
       - arena-host

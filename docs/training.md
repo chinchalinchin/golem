@@ -95,10 +95,10 @@ The data extraction, LNN optimization, and evaluation mechanics are orchestrated
 
 ### DAgger Intervention
 
-::: app.pipeline.intervene.intervene_agent
+::: app.pipeline.intervene.intervene
 
 ### Data Inspection & Auditing
 
-::: app.pipeline.analyze.inspect_data
+::: app.pipeline.analyze.inspect
 
-::: app.pipeline.analyze.audit_agent
+::: app.pipeline.analyze.audit

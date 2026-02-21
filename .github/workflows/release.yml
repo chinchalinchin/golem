@@ -29,6 +29,8 @@ jobs:
           file: ./Dockerfile.ci
           push: true
           tags: chinchalinchin/golem-ci:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push Golem Agent
         uses: docker/build-push-action@v5
@@ -37,3 +39,5 @@ jobs:
           file: ./Dockerfile.agent
           push: true
           tags: chinchalinchin/golem-agent:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

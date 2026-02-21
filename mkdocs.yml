@@ -16,8 +16,9 @@ theme:
 
 nav:
   - Home: index.md
+  - Philosophy: philsophy.md
   - Environment: environment.md
-  - The Brain (LNN): brain.md
+  - The Brain: brain.md
   - Training: training.md
   - Roadmap: roadmap.md
   - Issues: issues.md

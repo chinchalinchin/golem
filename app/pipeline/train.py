@@ -109,8 +109,9 @@ def train(cfg: GolemConfig, module_name: str = None):
     model = DoomLiquidNet(
         n_actions=n_actions,
         cortical_depth=cortical_depth,
-        working_memory=working_memory
-    ).to(device)    
+        working_memory=working_memory,
+        sensors=cfg.brain.sensors
+    ).to(device)
     
     if state_dict:
         model.load_state_dict(state_dict)
@@ -127,12 +128,13 @@ def train(cfg: GolemConfig, module_name: str = None):
         total_loss = 0
         batches = 0
         
-        for batch_idx, (frames, actions) in enumerate(dataloader):
-            frames = frames.to(device)
+        for batch_idx, (inputs, actions) in enumerate(dataloader):
+            x_vis = inputs['visual'].to(device)
+            x_aud = inputs['audio'].to(device) if 'audio' in inputs else None
             actions = actions.to(device)
             
             optimizer.zero_grad()
-            predictions, _ = model(frames) 
+            predictions, _ = model(x_vis, x_aud=x_aud)            
             
             # Use dynamic n_actions for the safety check
             if actions.shape[2] != n_actions:

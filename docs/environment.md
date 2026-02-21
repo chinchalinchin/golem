@@ -4,17 +4,21 @@ Golem operates within a Partially Observable Markov Decision Process (POMDP) def
 
 ## Observation Space
 
-While the true underlying engine state $s_t \in \mathcal{S}$ contains exact entity coordinates and internal variables, the agent's observation $o_t \in \Omega$ at time $t$ is strictly constrained to a downsampled tensor representing its egocentric visual field.
+While the true underlying engine state $s_t \in \mathcal{S}$ contains exact entity coordinates and internal variables, the agent's observation $o_t \in \Omega$ at time $t$ is strictly constrained to its egocentric sensory field. With the introduction of multi-modal sensor fusion, this observation space scales dynamically based on the active configuration.
+
+The primary visual and spatial tensor $o_{vis}$ is defined as:
 
 $$
-o_t \in \mathbb{R}^{3 \times 64 \times 64}
+o_{vis} \in \mathbb{R}^{C \times 64 \times 64}
 $$
 
-* **Channels:** 3 (RGB).
+* **Channels ($C$):** 3 (RGB) by default, expanding to 4 if the stereoscopic depth buffer is enabled.
 * **Resolution:** 64x64 pixels (processed via bilinear interpolation).
 * **Normalization:** $o_{i,j,k} \in [0, 1]$.
 
-We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn visual heuristics (e.g., a "red screen tint" implies damage), encouraging robust topological generalization across unseen levels.
+If the auditory sensor is enabled, the agent also receives an audio tensor $o_{aud}$ containing the raw, high-frequency stereo waveforms from the engine.
+
+We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, or a specific audio waveform implies a nearby threat), encouraging robust topological generalization across unseen levels.
 
 ## Action Space
 

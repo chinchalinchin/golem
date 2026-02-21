@@ -6,6 +6,7 @@ recordings (.npz files) into PyTorch-compatible datasets. It utilizes a sliding
 window architecture to generate overlapping temporal sequences efficiently without 
 duplicating flat arrays in memory.
 """
+
 import torch
 import numpy as np
 from pathlib import Path
@@ -38,6 +39,7 @@ class DoomStreamingDataset(Dataset):
             (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate 
             which indices to swap during mirror augmentation. Default: ``None``.
     """
+    
     def __init__(self, data_dir, seq_len=32, file_pattern="*.npz", augment=False, action_names=None):
         self.seq_len = seq_len
         self.augment = augment
@@ -46,7 +48,13 @@ class DoomStreamingDataset(Dataset):
         # Memory stores
         self.video_arrays = []
         self.action_arrays = []
-        self.index_map = [] # Pointers: (file_index, frame_start_index, is_mirrored)
+        self.depth_arrays = []
+        self.audio_arrays = []
+        
+        self.has_depth = False
+        self.has_audio = False
+        
+        self.index_map = [] 
         
         self.swap_pairs = []
         if self.augment and self.action_names:
@@ -54,7 +62,6 @@ class DoomStreamingDataset(Dataset):
 
         files = sorted(list(Path(data_dir).glob(file_pattern)))
         
-        # 1. Load flat arrays to RAM (No duplication)
         for file_idx, file_path in enumerate(files):
             with np.load(file_path) as data:
                 frames = data['frames']
@@ -62,19 +69,24 @@ class DoomStreamingDataset(Dataset):
 
                 self.video_arrays.append(frames)
                 self.action_arrays.append(actions)
+                
+                if 'depths' in data:
+                    self.has_depth = True
+                    self.depth_arrays.append(data['depths'])
+                if 'audios' in data:
+                    self.has_audio = True
+                    self.audio_arrays.append(data['audios'])
 
                 total_frames = len(frames)
                 if total_frames < self.seq_len:
                     continue
 
-                # 2. Build the lightweight pointers
                 for start_idx in range(total_frames - self.seq_len):
                     self.index_map.append((file_idx, start_idx, False))
-                    
                     if self.augment:
                         self.index_map.append((file_idx, start_idx, True))
                         
-        logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available.")
+        logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}]")
 
     def _build_swap_map(self):
         r"""
@@ -87,7 +99,6 @@ class DoomStreamingDataset(Dataset):
         try:
             self.swap_pairs.append((self.action_names.index("MOVE_LEFT"), self.action_names.index("MOVE_RIGHT")))
         except ValueError: pass
-        
         try:
             self.swap_pairs.append((self.action_names.index("TURN_LEFT"), self.action_names.index("TURN_RIGHT")))
         except ValueError: pass
@@ -118,26 +129,43 @@ class DoomStreamingDataset(Dataset):
                 - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.
                 - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.
         """
-        # 3. Slice the 32 frames on-the-fly
         file_idx, start_idx, is_mirrored = self.index_map[idx]
         
         window_frames = self.video_arrays[file_idx][start_idx : start_idx + self.seq_len]
         window_actions = self.action_arrays[file_idx][start_idx : start_idx + self.seq_len]
 
-        # (Seq, H, W, C) -> (Seq, C, H, W)
         window_frames = np.transpose(window_frames, (0, 3, 1, 2))
-        
-        x = torch.from_numpy(window_frames).float()
+        x_vis = torch.from_numpy(window_frames).float()
         y = torch.from_numpy(window_actions).float()
 
+        if self.has_depth:
+            window_depths = self.depth_arrays[file_idx][start_idx : start_idx + self.seq_len]
+            window_depths = np.expand_dims(window_depths, axis=1)
+            x_depth = torch.from_numpy(window_depths).float()
+            x_vis = torch.cat((x_vis, x_depth), dim=1) 
+
+        x_aud = None
+        if self.has_audio:
+            window_audios = self.audio_arrays[file_idx][start_idx : start_idx + self.seq_len]
+            x_aud = torch.from_numpy(window_audios).float()
+
         if is_mirrored:
-            x = torch.flip(x, [3])
+            x_vis = torch.flip(x_vis, [3])
+            if self.has_audio:
+                x_aud = torch.flip(x_aud, [1])
+                
             y_flip = y.clone()
-            
             for left_idx, right_idx in self.swap_pairs:
                 y_flip[:, left_idx] = y[:, right_idx]
                 y_flip[:, right_idx] = y[:, left_idx]
-                
-            return x, y_flip
             
-        return x, y
+            inputs = {'visual': x_vis}
+            if self.has_audio:
+                inputs['audio'] = x_aud
+            return inputs, y_flip
+            
+        inputs = {'visual': x_vis}
+        if self.has_audio:
+            inputs['audio'] = x_aud
+            
+        return inputs, y

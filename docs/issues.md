@@ -1,4 +1,4 @@
-# Open Issues & Enhancements
+# Issue Board: Open Issues & Enhancements
 
 ## The "Hold W" Convergence Trap (Class Imbalance)
 

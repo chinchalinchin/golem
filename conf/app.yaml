@@ -72,9 +72,6 @@ modules:
   freedoom:
     scenario: "freedoom2.wad"
     episodes: 1
-  random:
-    scenario: "oblige_training_1.wad"
-    episodes: 1
 
   # --- Retail IWADs ---
   doom:

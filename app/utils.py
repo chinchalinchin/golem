@@ -18,7 +18,6 @@ def get_project_root() -> Path:
     """Returns the absolute path to the project root (one level up from app)."""
     return Path(__file__).parent.parent.resolve()
 
-
 def resolve_path(path_str: str) -> str:
     """
     Resolves a path relative to the project root.
@@ -31,11 +30,9 @@ def resolve_path(path_str: str) -> str:
     root = get_project_root()
     return str(root / path)
 
-
 def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str = "npz") -> str:
     """Generates a unique filename (e.g., data_1.npz) to prevent overwrites."""
     directory = Path(directory)
-    # Ensure directory is also resolved
     if not directory.is_absolute():
         directory = Path(resolve_path(str(directory)))
         
@@ -49,30 +46,58 @@ def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str
             return str(full_path)
         counter += 1
 
-
 def get_vizdoom_scenario(scenario_name: str) -> str:
     """
     Locates a ViZDoom scenario WAD file.
     """
-    # 1. Check if it's a built-in scenario (only if it's a simple filename)
     if os.path.basename(scenario_name) == scenario_name:
         package_path = os.path.dirname(vizdoom.__file__)
         scenario_path = os.path.join(package_path, "scenarios", scenario_name)
         if os.path.exists(scenario_path):
             return scenario_path
 
-    # 2. Check as a local or absolute path
     local_path = resolve_path(scenario_name)
     if os.path.exists(local_path):
         return local_path
         
-    # Fallback to the constructed package path for error reporting
     package_path = os.path.dirname(vizdoom.__file__)
     scenario_path = os.path.join(package_path, "scenarios", scenario_name)
     logger.warning(f"Could not find scenario. Checked:\n  {scenario_path}\n  {local_path}")
         
     return scenario_path
 
+def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER) -> vizdoom.DoomGame:
+    """
+    Retrieves a ViZDoom DoomGame instances configured for Golem training.
+    """
+    cfg_path = resolve_path(pth)
+    scenario_path = get_vizdoom_scenario(scenario)
+    
+    logger.info(f"Loading ViZDoom Config: {cfg_path}")
+    logger.info(f"Loading ViZDoom Scenario: {scenario_path}")
+    logger.info(f"Initializing Engine in Mode: {mode.name}")
+    
+    game = vizdoom.DoomGame()
+    game.load_config(cfg_path)    
+    game.set_doom_scenario_path(scenario_path)
+    game.set_screen_format(vizdoom.ScreenFormat.CRCGCB)
+    game.set_screen_resolution(vizdoom.ScreenResolution.RES_640X480)
+    game.set_window_visible(True)
+    
+    # Dynamically set the mode (Defaults to PLAYER for inference, SPECTATOR for recording)
+    game.set_mode(mode) 
+    
+    # Enforce HUD rendering to satisfy the 'Doomguy' heuristic requirement
+    game.set_render_hud(True)
+    
+    if sensors:
+        logger.info(f"Configuring Sensors - Depth: {getattr(sensors, 'depth', False)}, Audio: {getattr(sensors, 'audio', False)}")
+        if getattr(sensors, 'depth', False):
+            game.set_depth_buffer_enabled(True)
+        if getattr(sensors, 'audio', False):
+            game.set_audio_buffer_enabled(True)
+            
+    return game
 
 def setup_logging(level_str: str = "INFO"):
     """Configures the root logger with a standard format."""
@@ -86,7 +111,6 @@ def setup_logging(level_str: str = "INFO"):
 def register_command(name: str = None) -> Callable:
     """
     Decorator to register a CLI command into the global registry.
-    If no name is provided, the function's name is used.
     """
     def decorator(func: Callable) -> Callable:
         cmd_name = name if name else func.__name__
@@ -95,6 +119,9 @@ def register_command(name: str = None) -> Callable:
     return decorator
 
 def get_latest_parameters(archives: List[str]) -> Tuple[int, int]:
+    """
+    Find the latest parameters of the trained model.
+    """
     cortical_depth, working_memory = None, None
     if archives:
         latest_archive = sorted(archives, key=lambda f: f.stat().st_mtime, reverse=True)[0]

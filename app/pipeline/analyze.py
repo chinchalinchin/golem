@@ -162,7 +162,8 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
         model = DoomLiquidNet(
             n_actions=n_actions,
             cortical_depth=cortical_depth,
-            working_memory=working_memory
+            working_memory=working_memory,
+            sensors=cfg.brain.sensors
         ).to(device)
         
         model.load_state_dict(state_dict)
@@ -179,12 +180,14 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
     max_batches = 50 
     
     with torch.no_grad():
-        for i, (frames, actions) in enumerate(dataloader):
+        for i, (inputs, actions) in enumerate(dataloader):
             if i >= max_batches: 
                 break
             
-            frames = frames.to(device)
-            logits, _ = model(frames)
+            x_vis = inputs['visual'].to(device)
+            x_aud = inputs['audio'].to(device) if 'audio' in inputs else None
+            
+            logits, _ = model(x_vis, x_aud=x_aud)
             preds = (torch.sigmoid(logits) > 0.5).float().cpu().numpy()
             targets = actions.cpu().numpy()
             

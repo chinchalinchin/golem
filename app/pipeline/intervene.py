@@ -2,17 +2,21 @@
 DAgger Module: Intervention and Dataset Aggregation.
 Allows the human expert to take over control from the LNN to correct mistakes.
 """
-import torch
-import cv2
-import numpy as np
+# Standard Libraries
 import logging
 import time
 from pathlib import Path
-from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
+# External Libraries
+import torch
+import cv2
+import numpy as np
+
+# Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario, register_command
+from app.utils import resolve_path, get_unique_filename, \
+                         get_vizdoom_game, register_command
 
 logger = logging.getLogger(__name__)
 
@@ -133,8 +137,9 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     model = DoomLiquidNet(
         n_actions=n_actions,
         cortical_depth=cfg.brain.cortical_depth,
-        working_memory=cfg.brain.working_memory
-    ).to(device) 
+        working_memory=cfg.brain.working_memory,
+        sensors=cfg.brain.sensors
+    ).to(device)
        
     try:
         model.load_state_dict(torch.load(str(model_path), map_location=device))
@@ -143,23 +148,16 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
         logger.error(f"No model found at {model_path}. Train first!")
         return
 
-    # Setup Environment using brain.mode
-    active_profile = cfg.brain.mode
-    cfg_path = resolve_path(cfg.config[active_profile])
-
     if module_name not in cfg.modules:
         logger.error(f"Module '{module_name}' not found.")
         return
-        
-    scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
 
-    game = DoomGame()
-    game.load_config(cfg_path)    
-    game.set_doom_scenario_path(scenario_path)
-    game.set_screen_format(ScreenFormat.CRCGCB)
-    game.set_screen_resolution(ScreenResolution.RES_640X480)
-    game.set_window_visible(True)
-    game.set_mode(Mode.PLAYER) 
+    # Setup Environment using brain.mode
+    active_profile = cfg.brain.mode
+    cfg_path = cfg.config[active_profile]
+    scenario = cfg.modules[module_name].scenario
+
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors)
     game.init()
 
     # Get active bindings for the enabled brain mode
@@ -171,6 +169,8 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     
     # Memory Buffer
     recovery_frames = []
+    recovery_depths = []
+    recovery_audios = []
     recovery_actions = []
 
     logger.info("======================================================")
@@ -189,45 +189,58 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
             state = game.get_state()
             raw_frame = state.screen_buffer
             
-            # Process Frame for LNN (and potentially saving)
             processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64)) / 255.0
-            tensor = torch.from_numpy(np.transpose(processed_frame, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
+            x_vis_np = processed_frame
             
-            # 1. Forward Pass (Keep the ODE state updating even during override)
+            processed_depth = None
+            if cfg.brain.sensors.depth and state.depth_buffer is not None:
+                processed_depth = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
+                x_vis_np = np.concatenate((x_vis_np, np.expand_dims(processed_depth, axis=2)), axis=2)
+                
+            raw_audio = None
+            if cfg.brain.sensors.audio and state.audio_buffer is not None:
+                raw_audio = state.audio_buffer
+
+            tensor_vis = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
+            tensor_aud = torch.from_numpy(raw_audio).float().unsqueeze(0).unsqueeze(0).to(device) if raw_audio is not None else None
+            
             with torch.no_grad():
-                logits, hx = model(tensor, hx)
+                logits, hx = model(tensor_vis, x_aud=tensor_aud, hx=hx)
                 probs = torch.sigmoid(logits)
             
-            # 2. Control Routing
             if controller.intervening:
-                # HUMAN OVERRIDE
                 action = controller.get_action_vector()
-                
-                # Record to buffer
                 recovery_frames.append(processed_frame)
+                
+                if processed_depth is not None:
+                    recovery_depths.append(processed_depth)
+                if raw_audio is not None:
+                    recovery_audios.append(raw_audio)
                 recovery_actions.append(action)
                 
                 if game.get_episode_time() % 35 == 0:
                     logger.warning(f"OVERRIDE ACTIVE | Recording frame {len(recovery_frames)}...")
             else:
-                # LNN AUTONOMY
                 action_probs = probs.cpu().numpy()[0, 0]
                 action = (action_probs > 0.5).astype(int).tolist()
                 
-                # If we just finished an intervention, flush the buffer to disk
                 if len(recovery_frames) > 0:
                     output_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
                     prefix_clean = cfg.data.prefix.rstrip('_')
                     file_prefix = f"{prefix_clean}_{module_name}_recovery"
                     
                     output_path = get_unique_filename(output_dir, file_prefix, "npz")
-                    
                     logger.info(f"Saving {len(recovery_frames)} recovery frames to {output_path}...")
-                    np.savez_compressed(output_path, frames=np.array(recovery_frames), actions=np.array(recovery_actions))
                     
-                    # Clear buffer
-                    recovery_frames = []
-                    recovery_actions = []
+                    save_dict = {'frames': np.array(recovery_frames), 'actions': np.array(recovery_actions)}
+                    if len(recovery_depths) > 0:
+                        save_dict['depths'] = np.array(recovery_depths)
+                    if len(recovery_audios) > 0:
+                        save_dict['audios'] = np.array(recovery_audios)
+                        
+                    np.savez_compressed(output_path, **save_dict)
+                    
+                    recovery_frames, recovery_depths, recovery_audios, recovery_actions = [], [], [], []
 
             game.make_action(action)
             time.sleep(0.028)

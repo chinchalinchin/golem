@@ -6,6 +6,7 @@ combining a dynamically scaling Convolutional Neural Network (CNN) visual cortex
 a Closed-form Continuous-time (CfC) liquid recurrent core.
 """
 
+import torch
 import torch.nn as nn
 from ncps.torch import CfC
 
@@ -26,49 +27,65 @@ class DoomLiquidNet(nn.Module):
             Default: ``2``.
         working_memory (int, optional): The number of hidden units in the CfC liquid core,
             representing the capacity of the agent's temporal memory. Default: ``64``.
+        sensors: TODO
     """
-    def __init__(self, n_actions, cortical_depth=2, working_memory=64):
+    def __init__(self, n_actions, cortical_depth=2, working_memory=64, sensors=None):
         super().__init__()
+        self.sensors = sensors
         
         # 1. Build the Visual Cortex (CNN) dynamically
         layers = []
-        in_channels = 3
+        in_channels = 4 if self.sensors and getattr(self.sensors, 'depth', False) else 3
         out_channels = 32
         current_img_size = 64
         
         for i in range(cortical_depth):
             layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2))
             layers.append(nn.ReLU())
-            
-            # Calculate the new image dimension: (W - F) / S + 1
             current_img_size = (current_img_size - 4) // 2 + 1
-            
             in_channels = out_channels
-            out_channels *= 2 # Double the feature maps each layer
+            out_channels *= 2
             
         layers.append(nn.Flatten())
         self.conv = nn.Sequential(*layers)
         
-        # Calculate the exact size of the flattened tensor
         flat_size = in_channels * (current_img_size ** 2)
         
-        # 2. Build the Liquid Core with dynamic working memory
+        # 2. Build Auditory Cortex (Parallel 1D CNN)
+        self.use_audio = self.sensors and getattr(self.sensors, 'audio', False)
+        if self.use_audio:
+            aud_layers = []
+            a_in = 2 # Stereo channels
+            a_out = 16
+            for i in range(3):
+                aud_layers.append(nn.Conv1d(a_in, a_out, kernel_size=8, stride=4))
+                aud_layers.append(nn.ReLU())
+                a_in = a_out
+                a_out *= 2
+            aud_layers.append(nn.AdaptiveAvgPool1d(1))
+            aud_layers.append(nn.Flatten())
+            self.audio_conv = nn.Sequential(*aud_layers)
+            
+            flat_size += a_in 
+            
+        # 3. Liquid Core
         self.liquid_rnn = CfC(
             input_size=flat_size, 
             units=working_memory, 
             return_sequences=True 
         )
         
-        # 3. Motor Cortex Head
+        # 4. Motor Cortex Head
         self.output = nn.Linear(working_memory, n_actions)
 
-    def forward(self, x, hx=None):
+    def forward(self, x_vis, x_aud=None, hx=None):
         r"""
         Performs a forward pass through the visual cortex and liquid core.
 
         Args:
-            x (Tensor): A batched sequence of visual frames of shape 
+            x_vis (Tensor): A batched sequence of visual frames of shape 
                 :math:`(\text{Batch}, \text{Time}, C, H, W)`.
+            x_aud (Tensor, optional): TODO
             hx (Tensor, optional): The previous hidden state of the liquid core of shape 
                 :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.
 
@@ -77,15 +94,18 @@ class DoomLiquidNet(nn.Module):
                 - Tensor: The unnormalized action logits of shape :math:`(\text{Batch}, \text{Time}, \text{n\_actions})`.
                 - Tensor: The updated hidden state (working memory) for the next time-step.
         """
-        # x: (Batch, Time, C, H, W)
-        batch, time, c, h, w = x.size()
+        batch, time, c, h, w = x_vis.size()
         
-        c_in = x.view(batch * time, c, h, w)
-        c_out = self.conv(c_in)
+        c_in = x_vis.view(batch * time, c, h, w)
+        features = self.conv(c_in)
         
-        r_in = c_out.view(batch, time, -1)
-        
-        # Pass hidden state (hx) into the RNN and return the new state
+        if self.use_audio and x_aud is not None:
+            b, t, ac, a_s = x_aud.size()
+            a_in = x_aud.view(b * t, ac, a_s)
+            a_feat = self.audio_conv(a_in)
+            features = torch.cat((features, a_feat), dim=1)
+            
+        r_in = features.view(batch, time, -1)
         r_out, new_hx = self.liquid_rnn(r_in, hx)
         
         return self.output(r_out), new_hx

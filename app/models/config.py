@@ -1,9 +1,14 @@
-import yaml
+# Standard Libraries
 import logging
 import re
 from pathlib import Path
-from pydantic import BaseModel
 from typing import Dict, List
+
+# External Libraries
+import yaml
+from pydantic import BaseModel
+
+# Application Libraries
 from app.utils import resolve_path
 
 logger = logging.getLogger(__name__)
@@ -24,10 +29,16 @@ class AppConfig(BaseModel):
 class AugmentationConfig(BaseModel):
     mirror: bool = False
 
+class SensorsConfig(BaseModel):
+    visual: bool = True
+    depth: bool = False
+    audio: bool = False
+
 class BrainConfig(BaseModel):
     mode: str
     cortical_depth: int = 2
     working_memory: int = 64
+    sensors: SensorsConfig = SensorsConfig()
 
 class TrainingConfig(BaseModel):
     batch_size: int

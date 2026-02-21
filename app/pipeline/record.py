@@ -5,11 +5,12 @@ from pathlib import Path
 # External Libraries
 import cv2
 import numpy as np
-from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
+import vizdoom
 
 # Application Libraries
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario, register_command
+from app.utils import resolve_path, get_unique_filename, \
+                        get_vizdoom_game, register_command
 
 logger = logging.getLogger(__name__)
 
@@ -30,30 +31,29 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     prefix_clean = cfg.data.prefix.rstrip('_')
     file_prefix = f"{prefix_clean}_{module_name}"
     output_path = get_unique_filename(output_dir, file_prefix, "npz")
-    
-    cfg_path = resolve_path(cfg.config[active_profile])
-    scenario_path = get_vizdoom_scenario(module.scenario)
+
+    cfg_path = cfg.config[active_profile]
+    scenario = module.scenario
 
     logger.info(f"--- Recording Module: {module_name} ---")
     
-    game = DoomGame()
-    game.load_config(cfg_path)
-    game.set_doom_scenario_path(scenario_path)
-    game.set_screen_format(ScreenFormat.CRCGCB)
-    game.set_screen_resolution(ScreenResolution.RES_640X480)
-    game.set_window_visible(True)
-    game.set_mode(Mode.SPECTATOR)
+    # Explicitly set SPECTATOR mode to allow manual human input via keyboard
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR)
     game.init()
     
     active_bindings = cfg.keybindings.get(active_profile, {})
+    logger.info(f"Injecting Keybindings: {active_bindings}")
+    
     for key, command in active_bindings.items():
         game.send_game_command(f"bind {key} {command}")
         
     frames = []
+    depths = []
+    audios = []
     actions = []
     
     try:
-        for i in range(module.episodes):
+        for _ in range(module.episodes):
             game.new_episode()
             while not game.is_episode_finished():
                 state = game.get_state()
@@ -64,10 +64,25 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                 
                 frames.append(processed_frame)
                 actions.append(action)
+                
+                if cfg.brain.sensors.depth and state.depth_buffer is not None:
+                    processed_depth = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
+                    depths.append(processed_depth)
+                    
+                if cfg.brain.sensors.audio and state.audio_buffer is not None:
+                    audios.append(state.audio_buffer)
+                
                 game.advance_action()
                 
         logger.info(f"Saving frames to {output_path}...")
-        np.savez_compressed(output_path, frames=np.array(frames), actions=np.array(actions))
+        save_dict = {'frames': np.array(frames), 'actions': np.array(actions)}
+        
+        if cfg.brain.sensors.depth:
+            save_dict['depths'] = np.array(depths)
+        if cfg.brain.sensors.audio:
+            save_dict['audios'] = np.array(audios)
+            
+        np.savez_compressed(output_path, **save_dict)
         
     except Exception as e:
         logger.error(f"Recording interrupted: {e}", exc_info=True)

@@ -169,8 +169,8 @@ Golem uses GitHub Actions to automate testing, documentation deployment, and con
 
 * **Integration (`ci.yml`):** Triggered on pushes to the `master` branch. This workflow runs the unit tests in `tests/*` and compiles the MkDocs documentation. These steps execute inside the pre-packaged `chinchalinchin/golem-ci` container to ensure environment consistency.
 * **Release (`release.yml`):** Triggered on pushes to the `release` branch. This workflow automatically builds and pushes the latest Docker images to Docker Hub. 
-    * `chinchalinchin/golem-ci:latest` - The base image containing all heavy system dependencies for testing and building.
-    * `chinchalinchin/golem-agent:latest` - The containerized ViZDoom agent used for the VDAIC Arena swarm.
+    * [chinchalinchin/golem-ci:latest](https://hub.docker.com/repository/docker/chinchalinchin/golem-ci) - The base image containing all heavy system dependencies for testing and building.
+    * [chinchalinchin/golem-agent:latest](https://hub.docker.com/repository/docker/chinchalinchin/golem-agent/) - The containerized ViZDoom agent used for the VDAIC Arena swarm.
 
 ### Manual Builds
 

@@ -448,15 +448,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-3-distributed-architecture-the-cyber-marine" class="md-nav__link">
+  <a href="#phase-3-distributed-architecture-the-vdaic-arena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 3: Distributed Architecture (The Cyber-Marine) 🤖
+        Phase 3: Distributed Architecture (The VDAIC Arena) 🤖
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Phase 3: Distributed Architecture (The Cyber-Marine) 🤖">
+    <nav class="md-nav" aria-label="Phase 3: Distributed Architecture (The VDAIC Arena) 🤖">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -471,10 +471,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-the-container-ghost-in-the-shell" class="md-nav__link">
+  <a href="#2-the-golem-client-containerization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The Container (Ghost in the Shell)
+        2. The Golem Client (Containerization)
       
     </span>
   </a>
@@ -482,10 +482,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-the-client-interface-network-bridge" class="md-nav__link">
+  <a href="#3-the-legacy-champions-the-opposition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. The Client Interface (Network Bridge)
+        3. The Legacy Champions (The Opposition)
       
     </span>
   </a>
@@ -648,15 +648,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-3-distributed-architecture-the-cyber-marine" class="md-nav__link">
+  <a href="#phase-3-distributed-architecture-the-vdaic-arena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 3: Distributed Architecture (The Cyber-Marine) 🤖
+        Phase 3: Distributed Architecture (The VDAIC Arena) 🤖
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Phase 3: Distributed Architecture (The Cyber-Marine) 🤖">
+    <nav class="md-nav" aria-label="Phase 3: Distributed Architecture (The VDAIC Arena) 🤖">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -671,10 +671,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-the-container-ghost-in-the-shell" class="md-nav__link">
+  <a href="#2-the-golem-client-containerization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The Container (Ghost in the Shell)
+        2. The Golem Client (Containerization)
       
     </span>
   </a>
@@ -682,10 +682,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-the-client-interface-network-bridge" class="md-nav__link">
+  <a href="#3-the-legacy-champions-the-opposition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. The Client Interface (Network Bridge)
+        3. The Legacy Champions (The Opposition)
       
     </span>
   </a>
@@ -778,27 +778,36 @@
 <li>[x] <strong>Action Logic:</strong> Thresholding and conflict suppression logic.</li>
 </ul>
 <hr />
-<h2 id="phase-3-distributed-architecture-the-cyber-marine">Phase 3: Distributed Architecture (The Cyber-Marine) 🤖</h2>
-<p><em>Goal:</em> Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server as an external player client. This scales the training and inference pipeline without requiring engine-level C++ modifications.</p>
+<h2 id="phase-3-distributed-architecture-the-vdaic-arena">Phase 3: Distributed Architecture (The VDAIC Arena) 🤖</h2>
+<p><em>Goal:</em> Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server. Benchmark Golem against the historical champions of the Visual Doom AI Competition (VDAIC).</p>
 <h3 id="1-the-host-server-arena">1. The Host Server (Arena)</h3>
 <ul>
-<li>[ ] <strong>Dedicated Host Script:</strong> Create a <code>host.py</code> script to initialize a central ViZDoom instance in <code>-host N -deathmatch</code> mode. This node manages physics and state but does not require a neural network.</li>
-<li>[ ] <strong>Multiplayer Configuration:</strong> Update <code>custom.cfg</code> and select WADs with proper multiplayer spawn points (e.g., <code>cig.wad</code>).</li>
+<li>[ ] <strong>Dedicated Host Script:</strong> Create <code>app/handlers/host.py</code> to initialize a central ViZDoom instance in <code>-host N -deathmatch</code> mode. This node manages physics and state but does not require a neural network.</li>
+<li>[ ] <strong>Multiplayer Configuration:</strong> Update configs and select WADs with proper multiplayer spawn points (e.g., the official <code>cig.wad</code> used in the tournaments).</li>
+<li>[ ] <strong>Host Container:</strong> Create a lightweight <code>Dockerfile.host</code> that only installs the ViZDoom engine and the host script.</li>
 </ul>
-<h3 id="2-the-container-ghost-in-the-shell">2. The Container (Ghost in the Shell)</h3>
+<h3 id="2-the-golem-client-containerization">2. The Golem Client (Containerization)</h3>
 <ul>
-<li>[ ] <strong>Dockerfile:</strong> Package the trained Golem Brain (<code>.pth</code>), Python 3.10+, PyTorch, and the ViZDoom engine dependencies (SDL2, OpenAL) into a lightweight Linux base image.</li>
-<li>[ ] <strong>Headless Rendering:</strong> Configure the container to render the 64x64 ViZDoom visual buffer completely off-screen, bypassing the need for an X11 window display.</li>
+<li>[ ] <strong>Headless Rendering:</strong> Configure the ViZDoom engine inside the client script (<code>run_client.py</code>) to render the visual buffer entirely off-screen, bypassing X11/display requirements.</li>
+<li>[ ] <strong>Network Synchronization:</strong> Utilize ViZDoom's <code>Mode.PLAYER</code> (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server.</li>
+<li>[ ] <strong>Modular Dockerfile:</strong> Create <code>Dockerfile.client</code>. The image should package Python 3.10+, PyTorch, and ViZDoom, but <strong>omit the model weights</strong>. </li>
+<li>[ ] <strong>Volume Mounting:</strong> Configure the container entrypoint to load the <code>golem.pth</code> brain and <code>app.yaml</code> configuration from a mounted volume directory (e.g., <code>-v ./data/fluid:/app/data</code>).</li>
 </ul>
-<h3 id="3-the-client-interface-network-bridge">3. The Client Interface (Network Bridge)</h3>
+<h3 id="3-the-legacy-champions-the-opposition">3. The Legacy Champions (The Opposition)</h3>
 <ul>
-<li>[ ] <strong>Multiplayer Inference Script:</strong> Create <code>run_client.py</code>. Instead of launching a local game, this script uses ViZDoom's <code>-join &lt;IP&gt;</code> launch parameter to connect to the Host.</li>
-<li>[ ] <strong>State Synchronization:</strong> Utilize ViZDoom's <code>Mode.PLAYER</code> (Sync Mode) to ensure the LNN's inference tick-rate stays perfectly aligned with the network server, preventing action drift or network drops.</li>
+<li>[ ] <strong>Archive Retrieval:</strong> Clone the legacy Dockerfiles and weights for the 2016/2017 VDAIC winners (e.g., <em>Arnold</em> by CMU, <em>IntelAct</em> by Intel Labs) from the official GitHub archives.</li>
+<li>[ ] <strong>Legacy Container Builds:</strong> Build the historical images. (Note: These will likely require older base images like Ubuntu 16.04 and deprecated versions of PyTorch/TensorFlow).</li>
 </ul>
 <h3 id="4-orchestration-the-swarm">4. Orchestration (The Swarm)</h3>
 <ul>
-<li>[ ] <strong>Docker Compose:</strong> Create a <code>docker-compose.yml</code> to effortlessly spin up 1 Host and <span class="arithmatex">\(N\)</span> Agent containers simultaneously on a single machine or cluster.</li>
-<li>[ ] <strong>Agent Parameterization:</strong> Pass unique names, colors, and hyperparameters to individual containers via environment variables so the agents can be easily identified in the deathmatch logs.</li>
+<li>[ ] <strong>Docker Compose:</strong> Create a <code>docker-compose.yml</code> to effortlessly network the swarm. </li>
+<li>[ ] <strong>The Roster:</strong> Define the services in the compose file to simultaneously spin up:<ul>
+<li>1x Host Arena Server</li>
+<li>2x Legacy Champion Bots (e.g., Arnold, IntelAct)</li>
+<li>Nx Golem Agents (using the same image, but mounting different profile volumes like <code>basic</code> or <code>fluid</code> to test action spaces against each other).</li>
+</ul>
+</li>
+<li>[ ] <strong>Agent Parameterization:</strong> Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.</li>
 </ul>
 <hr />
 <h2 id="distant-future">Distant Future</h2>

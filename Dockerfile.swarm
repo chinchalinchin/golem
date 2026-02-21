@@ -1,0 +1,42 @@
+# Dockerfile.swarm
+FROM python:3.10-slim
+
+# Install ViZDoom dependencies for headless Linux rendering
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    bzip2 \
+    cmake \
+    curl \
+    git \
+    libboost-all-dev \
+    libbz2-dev \
+    libfluidsynth-dev \
+    libfreetype6-dev \
+    libgme-dev \
+    libgtk2.0-dev \
+    libjpeg-dev \
+    libopenal-dev \
+    libpng-dev \
+    libsdl2-dev \
+    libwildmidi-dev \
+    libzmq3-dev \
+    nasm \
+    pkg-config \
+    tar \
+    timidity \
+    unzip \
+    wget \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire refactored codebase
+COPY . .
+
+# Set default command (overridden by docker-compose)
+CMD ["python", "main.py"]

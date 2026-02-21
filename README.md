@@ -119,6 +119,45 @@ Watch the LNN play the game live. The agent manages a persistent hidden state (`
 python main.py run --module combat
 ```
 
+## ⚔️ Multiplayer Benchmarking (The VDAIC Arena)
+
+Golem features a containerized, deterministic lockstep networking mode to benchmark its Liquid Neural Network against historical champions from the Visual Doom AI Competition (VDAIC).
+
+### 1. Build the Golem Swarm Image
+
+Build the unified Docker image that contains the ViZDoom engine, Python 3.10, and the Golem source code.
+
+```bash
+docker buildx build \
+    -f Dockerfile.swarm \
+    --platform linux/amd64 \
+    -t golem-swarm:latest .
+```
+
+### 2. Build Legacy Champions (IntelAct)
+
+To pit Golem against the 2017 VDAIC champion, you must clone the historical repository and build its legacy Python 2.7 environment. The legacy Intelact Dockerfile requires patching to use an `ubuntu:16.04` base image and a CPU-only TensorFlow 0.9.0 wheel to run on modern hardware. The historical repository has been forked and these updates have been committed there.
+
+```bash
+# Clone the repository
+git clone [https://github.com/chinchalinchin/VDAIC2017](https://github.com/chinchalinchin/VDAIC2017)
+cd VDAIC2017
+cp cig2017.wad intelact/
+cp _vizdoom.cfg intelact/
+docker buildx build \
+    -f intelact/Dockerfile \
+    --platform linux/amd64 \
+    -t intelact:local intelact/
+```
+
+### 3. Enter the Arena
+
+From the Golem project root, use Docker Compose to orchestrate the swarm. This spins up the headless Host server, mounts your local data/ directory so Golem can read its trained weights, and boots the legacy IntelAct adversary.
+
+```bash
+docker-compose up
+```
+
 ## Continuous Integration
 
 The Github Actions defined in `.github/workflows/ci.yml` run the unit tests in `tests/*` and compile the docs in `docs/*`. These actions are run inside of a container built with the `Dockerfile.ci` image. This image pre-packages all of the runtime dependencies.
@@ -141,3 +180,4 @@ docker buildx build \
 * [ViZDoom Official Documentation](https://vizdoom.farama.org/)
 * [Pynput Documentation](https://pynput.readthedocs.io/en/latest/)
 * [Liquid Neural Networks (Hasani et al.)](https://arxiv.org/abs/2006.04439)
+

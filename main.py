@@ -6,10 +6,20 @@ import logging
 
 from app.models.config import GolemConfig
 from app.utils import setup_logging
-from app.pipeline import audit, inspect, train, run, intervene
+from app.pipeline import audit, inspect, intervene, train, record, run
+from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")
 
+FUNCTIONS = [
+    "record",
+    "inspect",
+    "train",
+    "run",
+    "audit",
+    "intervene",
+    "spectate"
+]
 def main():
     parser = argparse.ArgumentParser(description="Golem: DOOM LNN Agent Manager")
     parser.add_argument("function", choices=["record", "inspect", "train", "run", "audit", "intervene"], help="Operation")
@@ -24,19 +34,29 @@ def main():
         print(f"CRITICAL: {e}")
         exit(1)
 
-    # Dispatch
+    # Dispatch Pipeline
     if args.function == "record":
         record(cfg, args.module)
     elif args.function == "inspect":
         inspect(cfg, args.file)
     elif args.function == "train":
-        train_agent(cfg, args.module)
+        train(cfg, args.module)
     elif args.function == "run":
-        run_agent(cfg, args.module)
+        run(cfg, args.module)
     elif args.function == "audit":
         audit(cfg, args.module)
     elif args.function == "intervene":
         intervene(cfg, args.module)
+
+    # Dispatch Client/Server
+    elif args.function == "server":
+        server(cfg, module_name=args.module, players=args.players)
+    elif args.function == "client":
+        client(cfg, module_name=args.module)
+    elif args.function == "spectate":
+        spectate(cfg, module_name=args.module)
+    elif args.function == "remote":
+        remote(cfg, module_name=args.module)
 
 if __name__ == "__main__":
     main()

@@ -16,7 +16,7 @@ from app.utils import resolve_path, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
-def run_client(cfg: GolemConfig, module_name: str = "cig_arena"):
+def client(cfg: GolemConfig, module_name: str = "cig_arena"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():

@@ -1,12 +1,10 @@
 version: '3.8'
 
-# Use an extension field to define shared environment variables
 x-shared-env: &shared-env
-  # This sets the default module to cig_arena if not explicitly set in a .env file
   ARENA_MODULE: ${ARENA_MODULE:-cig_arena}
+  ARENA_PLAYERS: 3
 
 services:
-  # 1. The Arena Server
   arena-host:
     build: 
       context: .
@@ -15,12 +13,12 @@ services:
     container_name: vizdoom-host
     environment:
       <<: *shared-env
-    # The shell interpolation ($$ARENA_MODULE) ensures Docker Compose passes the environment variable into the command
-    command: ["sh", "-c", "python main.py host --module $$ARENA_MODULE --players 3"]
+    ports:
+      - "5029:5029/udp"
+    command: ["sh", "-c", "python main.py host --module $$ARENA_MODULE --players $$ARENA_PLAYERS"]
     networks:
       - doom-net
 
-  # 2. Golem Agent (Fluid Profile)
   golem-fluid:
     image: golem-swarm:latest
     container_name: golem-agent-1
@@ -37,13 +35,11 @@ services:
     networks:
       - doom-net
 
-  # 3. The Legacy Champion (IntelAct)
   intelact-legacy:
     image: intelact:local
     container_name: intelact-agent-1
     depends_on:
       - arena-host
-    # Intelact's internal run script doesn't use our module system, it defaults to cig2017.wad internally
     command: ["python", "run_agent.py", "arena-host"]
     networks:
       - doom-net

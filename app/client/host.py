@@ -9,7 +9,7 @@ from app.utils import resolve_path, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
-def host_server(cfg: GolemConfig, module_name: str = "cig_arena", players: int = 3, timelimit: int = 10):
+def server(cfg: GolemConfig, module_name: str = "cig_arena", players: int = 3, timelimit: int = 10):
     logger.info(f"Starting Host Arena Server for {players} players...")
     
     game = DoomGame()

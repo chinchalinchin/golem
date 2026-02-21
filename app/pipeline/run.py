@@ -1,18 +1,22 @@
-import torch
-import cv2
-import numpy as np
+# Application Libraries
 import logging
 import time
 from pathlib import Path
+
+# External Libraries
+import torch
+import cv2
+import numpy as np
 from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 
+# Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
 from app.utils import resolve_path, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
-def run_agent(cfg: GolemConfig, module_name: str = "basic"):
+def run(cfg: GolemConfig, module_name: str = "basic"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():

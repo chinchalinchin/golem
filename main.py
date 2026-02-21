@@ -6,11 +6,7 @@ import logging
 
 from app.models.config import GolemConfig
 from app.utils import setup_logging
-from app.pipeline.record import record_data
-from app.pipeline.analyze import inspect_data, audit_agent
-from app.pipeline.train import train_agent
-from app.pipeline.run import run_agent
-from app.pipeline.intervene import intervene_agent
+from app.pipeline import audit, inspect, train, run, intervene
 
 logger = logging.getLogger("main")
 
@@ -30,17 +26,17 @@ def main():
 
     # Dispatch
     if args.function == "record":
-        record_data(cfg, args.module)
+        record(cfg, args.module)
     elif args.function == "inspect":
-        inspect_data(cfg, args.file)
+        inspect(cfg, args.file)
     elif args.function == "train":
         train_agent(cfg, args.module)
     elif args.function == "run":
         run_agent(cfg, args.module)
     elif args.function == "audit":
-        audit_agent(cfg, args.module)
+        audit(cfg, args.module)
     elif args.function == "intervene":
-        intervene_agent(cfg, args.module)
+        intervene(cfg, args.module)
 
 if __name__ == "__main__":
     main()

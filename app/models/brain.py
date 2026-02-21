@@ -1,7 +1,32 @@
+"""
+Brain Module: Neural Circuit Policy architecture for Golem.
+
+This module defines the primary continuous-time neural network (LNN) used by the agent,
+combining a dynamically scaling Convolutional Neural Network (CNN) visual cortex with
+a Closed-form Continuous-time (CfC) liquid recurrent core.
+"""
+
 import torch.nn as nn
 from ncps.torch import CfC
 
 class DoomLiquidNet(nn.Module):
+    r"""
+    A continuous-time neural network for visual processing and temporal sequential decision-making.
+
+    This network acts as the agent's brain. It processes raw pixel buffers through a 
+    Convolutional Neural Network (Visual Cortex) to extract spatial features, which are 
+    then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). 
+    The CfC core manages the agent's temporal state using differential equation approximations,
+    allowing it to handle variable time-steps without requiring expensive ODE solvers.
+
+    Args:
+        n_actions (int): The number of output actions for the Motor Cortex head.
+        cortical_depth (int, optional): The number of convolutional layers to generate. 
+            Each layer halves the spatial dimensions and doubles the feature channels. 
+            Default: ``2``.
+        working_memory (int, optional): The number of hidden units in the CfC liquid core,
+            representing the capacity of the agent's temporal memory. Default: ``64``.
+    """
     def __init__(self, n_actions, cortical_depth=2, working_memory=64):
         super().__init__()
         
@@ -38,6 +63,20 @@ class DoomLiquidNet(nn.Module):
         self.output = nn.Linear(working_memory, n_actions)
 
     def forward(self, x, hx=None):
+        r"""
+        Performs a forward pass through the visual cortex and liquid core.
+
+        Args:
+            x (Tensor): A batched sequence of visual frames of shape 
+                :math:`(\text{Batch}, \text{Time}, C, H, W)`.
+            hx (Tensor, optional): The previous hidden state of the liquid core of shape 
+                :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.
+
+        Returns:
+            tuple: A tuple containing:
+                - Tensor: The unnormalized action logits of shape :math:`(\text{Batch}, \text{Time}, \text{n\_actions})`.
+                - Tensor: The updated hidden state (working memory) for the next time-step.
+        """
         # x: (Batch, Time, C, H, W)
         batch, time, c, h, w = x.size()
         

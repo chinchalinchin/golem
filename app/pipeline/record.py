@@ -8,7 +8,7 @@ from app.utils import resolve_path, get_unique_filename, get_vizdoom_scenario
 
 logger = logging.getLogger(__name__)
 
-def record_data(cfg: GolemConfig, module_name: str = "basic"):
+def record(cfg: GolemConfig, module_name: str = "basic"):
     if module_name not in cfg.modules:
         logger.error(f"Module '{module_name}' not found. Available: {list(cfg.modules.keys())}")
         return

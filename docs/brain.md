@@ -2,13 +2,17 @@
 
 The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells.
 
-## 1. Visual Cortex (CNN)T
+## 1. Visual Cortex (CNN)
 
-he input observation $o_t$ is first processed by a standard Convolutional Neural Network (CNN) to extract spatial features. This hierarchy reduces the high-dimensional pixel space into a flattened, latent feature vector $I(t)$. Given an input tensor of $3 \times 64 \times 64$, the sequential convolutions and pooling operations yield:
+The input observation $o_t$ is first processed by a Convolutional Neural Network (CNN) to extract spatial features. This hierarchy reduces the high-dimensional pixel space into a flattened, latent feature vector $I(t)$. 
+
+The architecture scales dynamically based on the configured `cortical_depth` ($D$). Given an input tensor of $3 \times 64 \times 64$, the sequential convolutions (kernel size 4, stride 2) and ReLU activations compress the spatial manifold. For example, a depth of $D=2$ yields $I(t) \in \mathbb{R}^{12544}$, while deeper configurations (e.g., $D=4$) aggressively pool the feature maps to a much smaller dense representation:
 
 $$
-I(t) \in \mathbb{R}^{12544}
+I(t) \in \mathbb{R}^{W_f}
 $$
+
+Where $W_f$ is the dynamically calculated flat size fed into the liquid core.
 
 ## 2. Liquid Core (CfC) & State Persistence
 
@@ -32,7 +36,7 @@ Because the underlying differential mathematics assume a continuous temporal flo
 
 ## 3. Motor Cortex (Linear Head)
 
-The liquid hidden state $x(t) \in \mathbb{R}^{64}$ is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile $\rho$, the output weight matrix dynamically scales its dimensionality $n_\rho \in \{8, 9, 10\}$:
+The liquid hidden state $x(t) \in \mathbb{R}^{W_m}$ (where $W_m$ is the dynamically configured `working_memory`, e.g., 64 or 128) is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile $\rho$, the output weight matrix dynamically scales its dimensionality $n_\rho \in \{8, 9, 10\}$:
 
 $$
 \mathbf{z}_t = W_{out} x(t) + b_{out}
@@ -43,3 +47,11 @@ This produces raw logits $\mathbf{z}_t$, which are subsequently passed through a
 $$
 \hat{\mathbf{y}}_t = \sigma(\mathbf{z}_t)
 $$
+
+---
+
+## API Reference
+
+Because the architecture is fully dynamic, the `DoomLiquidNet` class constructs its layers on-the-fly based on the active `app.yaml` configuration profile.
+
+::: app.models.brain.DoomLiquidNet

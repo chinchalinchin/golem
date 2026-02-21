@@ -1,13 +1,25 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
+"""
+Training Module: Behavioral Cloning Loop.
+
+This module handles the supervised learning pipeline for the Golem agent. 
+It implements a behavioral cloning loop that maps visual sequence inputs 
+(screen buffers) to expert action vectors using Binary Cross-Entropy loss, 
+effectively teaching the agent to mimic human gameplay demonstrations.
+"""
+
+# Standard Libraries
 import logging
-import os
 import time
 from datetime import datetime
 from pathlib import Path
 
+# External Libraries
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+
+# Application Libraries
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
@@ -15,7 +27,26 @@ from app.utils import resolve_path, get_unique_filename
 
 logger = logging.getLogger(__name__)
 
-def train_agent(cfg: GolemConfig, module_name: str = None):
+def train(cfg: GolemConfig, module_name: str = None):
+    r"""
+    Trains the Liquid Neural Network using captured expert demonstrations.
+
+    This function orchestrates the dataset streaming and the model's training loop. 
+    It dynamically selects the best available hardware accelerator (CUDA, MPS, or CPU), 
+    initializes the dataset with optional mirror augmentation, and optimizes the 
+    network weights using the Adam optimizer.
+
+    If an active model already exists for the current profile (e.g., ``fluid``), 
+    it loads the existing weights to perform continuous fine-tuning. Upon completion, 
+    the updated model is saved to both a timestamped archive and the active profile slot.
+
+    Args:
+        cfg (GolemConfig): The centralized application configuration object.
+        module_name (str, optional): The specific data module to train against 
+            (e.g., "combat", "navigation"). If ``"all"`` or ``None``, it trains 
+            across all available data for the active profile (Generalization Mode). 
+            Default: ``None``.
+    """
     if torch.backends.mps.is_available():
         device = torch.device("mps")
         logger.info("Apple Metal (MPS) acceleration detected and enabled.")

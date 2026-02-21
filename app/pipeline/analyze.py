@@ -1,3 +1,12 @@
+"""
+Analysis Module: Diagnostics and Validation.
+
+This module provides tools for inspecting the integrity of the ETL pipeline's 
+output data and auditing the performance of trained models. It ensures datasets 
+are balanced and normal, and generates precision/recall matrices to evaluate 
+model convergence.
+"""
+
 import logging
 from pathlib import Path
 
@@ -14,9 +23,22 @@ from app.utils import resolve_path
 
 logger = logging.getLogger(__name__)
 
-def inspect_data(cfg: GolemConfig, target_file: str = None):
-    """Analyzes the shape and class balance of a training file."""
-    
+def inspect(cfg: GolemConfig, target_file: str = None):
+    r"""
+    Analyzes a training dataset file for shape integrity and class balance.
+
+    This function loads a specific ``.npz`` recording and validates that the 
+    visual frames are properly normalized. It also aggregates the action vectors 
+    to report the distribution of actions taken, specifically flagging high 
+    "idle time" which can cause the network to converge to inaction due to 
+    class imbalance.
+
+    Args:
+        cfg (GolemConfig): The centralized application configuration object.
+        target_file (str, optional): The specific filename to inspect. If ``None``, 
+            it automatically loads the most recently generated data file for the 
+            currently active profile. Default: ``None``.
+    """
     active_profile = cfg.brain.mode
     prefix_clean = cfg.data.prefix.rstrip('_')
     
@@ -83,9 +105,22 @@ def inspect_data(cfg: GolemConfig, target_file: str = None):
         logger.error(f"Failed to inspect data: {e}", exc_info=True)
 
 
-def audit_agent(cfg: GolemConfig, module_name: str = "all"):
-    """
-    Runs inference on a subset of data and reports metrics.
+def audit(cfg: GolemConfig, module_name: str = "all"):
+    r"""
+    Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.
+
+    This function performs a forward pass on a subset of the dataset (up to 50 batches) 
+    without updating the model weights. It compares the model's action probabilities 
+    against the ground-truth human actions and calculates the Precision, Recall, 
+    and Support for each action class. This is critical for identifying whether the 
+    agent is successfully learning rare actions (like shooting) or if it has fallen 
+    into a convergence trap.
+
+    Args:
+        cfg (GolemConfig): The centralized application configuration object.
+        module_name (str, optional): The specific module to audit against 
+            (e.g., "combat", "navigation"). If "all", it evaluates against all 
+            available data for the active profile. Default: ``"all"``.
     """
     device = torch.device('mps') if torch.backends.mps.is_available() else torch.device("cpu")
 
@@ -102,8 +137,8 @@ def audit_agent(cfg: GolemConfig, module_name: str = "all"):
     dataset = DoomStreamingDataset(str(data_dir), seq_len=32, file_pattern=file_pattern)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
-    # 2. Load Brain
-    model_path = Path(resolve_path(cfg.data.dirs["training"])) / "golem.pth"
+    # 2. Load Brain (Isolated by active profile)
+    model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     
     try:
         model = DoomLiquidNet(

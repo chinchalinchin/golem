@@ -21,40 +21,40 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# 1. Translation Dictionary: Doom Command -> ViZDoom Action
+ACTION_MAP = {
+    "+forward": "MOVE_FORWARD",
+    "+back": "MOVE_BACKWARD",
+    "+moveleft": "MOVE_LEFT",
+    "+moveright": "MOVE_RIGHT",
+    "+left": "TURN_LEFT",
+    "+right": "TURN_RIGHT",
+    "+attack": "ATTACK",
+    "+use": "USE",
+    "weapnext": "SELECT_NEXT_WEAPON",
+    '"slot 2"': "SELECT_WEAPON2",
+    '"slot 3"': "SELECT_WEAPON3"
+}
+# 2. Translation Dictionary: YAML String -> pynput Key Name
+PYNPUT_MAP = {
+    'leftarrow': 'left',
+    'rightarrow': 'right',
+    'space': 'space'
+}
+
 class InterventionController:
     """Background listener to capture raw OS keyboard state during overrides."""
     def __init__(self, action_names, active_bindings):
         self.action_names = action_names
         self.intervening = False
         self.keys_pressed = set()
+    
         
-        # 1. Translation Dictionary: Doom Command -> ViZDoom Action
-        command_to_action = {
-            "+forward": "MOVE_FORWARD",
-            "+back": "MOVE_BACKWARD",
-            "+moveleft": "MOVE_LEFT",
-            "+moveright": "MOVE_RIGHT",
-            "+left": "TURN_LEFT",
-            "+right": "TURN_RIGHT",
-            "+attack": "ATTACK",
-            "+use": "USE",
-            "weapnext": "SELECT_NEXT_WEAPON",
-            '"slot 2"': "SELECT_WEAPON2",
-            '"slot 3"': "SELECT_WEAPON3"
-        }
-        
-        # 2. Translation Dictionary: YAML String -> pynput Key Name
-        yaml_to_pynput = {
-            'leftarrow': 'left',
-            'rightarrow': 'right',
-            'space': 'space'
-        }
-        
-        # 3. Dynamically build the key map
+        # Dynamically build the key map
         self.key_map = {}
         for yaml_key, doom_cmd in active_bindings.items():
-            norm_key = yaml_to_pynput.get(yaml_key, str(yaml_key).lower())
-            action_name = command_to_action.get(doom_cmd)
+            norm_key = PYNPUT_MAP.get(yaml_key, str(yaml_key).lower())
+            action_name = ACTION_MAP.get(doom_cmd)
             
             if action_name:
                 self.key_map[norm_key] = action_name
@@ -97,7 +97,7 @@ class InterventionController:
     
 # -----------------------------------------------------------------
 
-def intervene_agent(cfg: GolemConfig, module_name: str = "combat"):
+def intervene(cfg: GolemConfig, module_name: str = "combat"):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():

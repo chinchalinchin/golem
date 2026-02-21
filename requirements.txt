@@ -1,13 +1,15 @@
-vizdoom 
-ncps 
-torch 
-torchvision 
+# Application
 opencv-python
-pydantic
-PyYaml
 scikit-learn
 Jinja2
+ncps 
+pydantic
 pynput
+PyYaml
+torch 
+torchvision 
+vizdoom 
 # Documentation
 mkdocs
 mkdocs-material
+mkdocstrings[python]

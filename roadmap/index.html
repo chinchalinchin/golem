@@ -509,6 +509,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-4-multi-modal-sensor-fusion-phenomenology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-configuration-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Configuration Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-etl-pipeline-record-transform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The ETL Pipeline (Record &amp; Transform)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-brain-architecture-redesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Brain (Architecture Redesign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -709,6 +759,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-4-multi-modal-sensor-fusion-phenomenology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-configuration-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Configuration Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-etl-pipeline-record-transform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The ETL Pipeline (Record &amp; Transform)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-brain-architecture-redesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Brain (Architecture Redesign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -808,6 +908,25 @@
 </ul>
 </li>
 <li>[ ] <strong>Agent Parameterization:</strong> Pass unique names and colors via environment variables so the agents can be easily identified in the deathmatch logs.</li>
+</ul>
+<h2 id="phase-4-multi-modal-sensor-fusion-phenomenology">Phase 4: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂</h2>
+<p><em>Goal:</em> Expand the agent's sensory perception beyond the 2D pixel array by integrating ViZDoom's raw depth and audio buffers into the Liquid Neural Network, effectively granting stereopsis and audition without exposing underlying game-state variables.</p>
+<h3 id="1-the-configuration-layer">1. The Configuration Layer</h3>
+<ul>
+<li>[ ] <strong>Sensor Toggles:</strong> Update <code>app.yaml</code> to include a <code>brain.sensors</code> block with boolean toggles for <code>depth</code> and <code>audio</code>.</li>
+<li>[ ] <strong>Dynamic Action Space:</strong> Update <code>config.py</code> to parse these toggles and pass them to the ETL and Model initialization layers.</li>
+</ul>
+<h3 id="2-the-etl-pipeline-record-transform">2. The ETL Pipeline (Record &amp; Transform)</h3>
+<ul>
+<li>[ ] <strong>Depth Extraction:</strong> Modify <code>record.py</code> to capture <code>state.depth_buffer</code>. Normalize the 1D distance matrix to <span class="arithmatex">\([0, 1]\)</span>.</li>
+<li>[ ] <strong>Audio Extraction:</strong> Modify <code>record.py</code> to capture <code>state.audio_buffer</code>. Normalize the raw stereo waveforms.</li>
+<li>[ ] <strong>Tensor Packaging:</strong> Update the <code>.npz</code> saving mechanism to store <code>depth</code> and <code>audio</code> arrays only if they are enabled in the active profile, preventing massive file bloat for purely visual agents.</li>
+</ul>
+<h3 id="3-the-brain-architecture-redesign">3. The Brain (Architecture Redesign)</h3>
+<ul>
+<li>[ ] <strong>Stereopsis Integration:</strong> If <code>depth</code> is enabled, modify the Visual Cortex CNN input channels from <span class="arithmatex">\(C=3\)</span> (RGB) to <span class="arithmatex">\(C=4\)</span> (RGB + Depth).</li>
+<li>[ ] <strong>Auditory Cortex:</strong> If <code>audio</code> is enabled, implement a parallel 1D Convolutional Neural Network (<code>nn.Conv1d</code>) to extract features from the high-frequency audio buffer.</li>
+<li>[ ] <strong>Sensor Fusion:</strong> Concatenate the flattened visual/depth feature vector with the auditory feature vector before passing the unified tensor into the Liquid <code>CfC</code> core.</li>
 </ul>
 <hr />
 <h2 id="distant-future">Distant Future</h2>

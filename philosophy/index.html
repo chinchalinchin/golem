@@ -8,10 +8,8 @@
       
       
       
-        <link rel="canonical" href="https://chinchalinchin.github.io/golem/issues/">
+        <link rel="canonical" href="https://chinchalinchin.github.io/golem/philosophy/">
       
-      
-        <link rel="prev" href="../roadmap/">
       
       
       
@@ -23,7 +21,7 @@
     
     
       
-        <title>Issues - Golem</title>
+        <title>Philosophy of Golem - Golem</title>
       
     
     
@@ -74,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#issue-board-open-issues-enhancements" class="md-skip">
+        <a href="#philosophy-of-golem" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Issues
+              Philosophy of Golem
             
           </span>
         </div>
@@ -349,37 +347,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Issues
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../issues/" class="md-nav__link">
         
   
   
@@ -395,59 +366,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-hold-w-convergence-trap-class-imbalance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The "Hold W" Convergence Trap (Class Imbalance)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pipeline-infrastructure-optimizations-synchronous-data-loading" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pipeline Infrastructure Optimizations (Synchronous Data Loading)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stateful-backpropagation-through-time-bptt-amnesia" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stateful Backpropagation Through Time (BPTT) Amnesia
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -479,10 +397,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-hold-w-convergence-trap-class-imbalance" class="md-nav__link">
+  <a href="#1-phenomenological-purity-epistemology" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The "Hold W" Convergence Trap (Class Imbalance)
+        1. Phenomenological Purity (Epistemology)
       
     </span>
   </a>
@@ -490,10 +408,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pipeline-infrastructure-optimizations-synchronous-data-loading" class="md-nav__link">
+  <a href="#2-time-as-a-continuous-flow-ontology" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pipeline Infrastructure Optimizations (Synchronous Data Loading)
+        2. Time as a Continuous Flow (Ontology)
       
     </span>
   </a>
@@ -501,10 +419,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stateful-backpropagation-through-time-bptt-amnesia" class="md-nav__link">
+  <a href="#3-the-fallibility-of-the-expert-behavioral-cloning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stateful Backpropagation Through Time (BPTT) Amnesia
+        3. The Fallibility of the Expert (Behavioral Cloning)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architectural-scaling-biological-plasticity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architectural Scaling (Biological Plasticity)
       
     </span>
   </a>
@@ -531,37 +460,38 @@
   
 
 
-<h1 id="issue-board-open-issues-enhancements">Issue Board: Open Issues &amp; Enhancements</h1>
-<h2 id="the-hold-w-convergence-trap-class-imbalance">The "Hold W" Convergence Trap (Class Imbalance)</h2>
-<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium</p>
-<p><strong>Description:</strong></p>
-<p>DOOM datasets—especially navigation-focused modules like <code>my_way_home.wad</code>—are inherently unbalanced. An agent will spend 90% of an episode holding <code>MOVE_FORWARD</code>, which causes standard Binary Cross-Entropy (<code>BCEWithLogitsLoss</code>) to converge to a local minimum. The agent learns that perpetually predicting <code>MOVE_FORWARD</code> and ignoring visual stimuli yields the lowest overall loss. </p>
-<p><strong>Proposed Solution:</strong></p>
-<p>Replace standard BCE with a <strong>Focal Loss</strong> function, or apply <strong>Dynamic Sample Weighting</strong> within the <code>DoomStreamingDataset</code>. </p>
-<p>Focal loss adds a modulating factor <span class="arithmatex">\((1 - p_t)^\gamma\)</span> to the standard cross-entropy criterion, dynamically scaling down the gradient of easily classified, high-frequency actions (like walking forward), and heavily penalizing the network when it misses rare, high-value actions (like <code>ATTACK</code> or <code>USE</code>).</p>
-<p><strong>Implementation Notes:</strong></p>
+<h1 id="philosophy-of-golem">Philosophy of Golem</h1>
+<p>The architecture of Golem represents a fundamental departure from both classical algorithmic game AI (Finite State Machines) and modern Large Language Models (LLMs). Rather than hard-coding conditional logic or predicting the next token in a sequence, Golem is built on principles of <strong>Embodied Cognition</strong> and <strong>Biologically Inspired Computing</strong>. </p>
+<p>This document outlines the philosophical assumptions and epistemological constraints that dictate how the agent is trained and how it interacts with its environment.</p>
+<h2 id="1-phenomenological-purity-epistemology">1. Phenomenological Purity (Epistemology)</h2>
+<p>In classical game AI, bots are typically "omniscient." They read the engine's memory addresses to know their exact <span class="arithmatex">\((X, Y, Z)\)</span> coordinates, the precise integer value of their health, and the locations of enemies through walls. This creates a brittle, mechanical intelligence that operates outside the physics of the world it inhabits.</p>
+<p>Golem is constrained to a strict <strong>Phenomenological Boundary</strong>. The agent only knows what it can "experience" through its sensory inputs. </p>
 <ul>
-<li>Calculate dataset action distributions during the <code>transform</code> or <code>dataset</code> loading phase.</li>
-<li>Pass the resulting weights tensor to the loss function in <code>train.py</code>.</li>
+<li><strong>The Rejection of Latent State:</strong> We explicitly discard the underlying game state variables <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> provided by the ViZDoom API. The agent's reality is entirely constructed from the raw pixel buffer <span class="arithmatex">\(o_t \in \Omega\)</span>. </li>
+<li><strong>The "Doomguy" Heuristic (Physiological Awareness):</strong> To grant the agent a sense of mortality, we preserve the classic DOOM status bar (HUD) within its visual field. Rather than reading a health integer, the agent must learn to interpret its own physical deterioration by recognizing the pixel distortion of the marine's bloody face. </li>
+<li><strong>Derivatives over Statics:</strong> While static UI elements normally cause standard Convolutional Neural Networks (CNNs) to overfit to spurious correlations, Golem's liquid core relies on differential equations. It naturally ignores static plastic bezels (<span class="arithmatex">\(\frac{dx}{dt} = 0\)</span>) and hyper-fixates on sudden flashes of damage or ammunition changes (<span class="arithmatex">\(\frac{dx}{dt} &gt; 0\)</span>).</li>
 </ul>
-<h2 id="pipeline-infrastructure-optimizations-synchronous-data-loading">Pipeline Infrastructure Optimizations (Synchronous Data Loading)</h2>
-<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium</p>
-<p><strong>Description:</strong></p>
-<p>The <code>DoomStreamingDataset</code> currently applies dynamic NumPy transposition, mirroring, and PyTorch tensor casting synchronously inside <code>__getitem__</code>. In <code>train.py</code>, the <code>DataLoader</code> is instantiated without multiprocessing or memory pinning. This creates an I/O bottleneck where the GPU idles while waiting for the CPU to transform the next batch.</p>
-<p><strong>Proposed Solution:</strong></p>
-<p>Refactor the <code>DataLoader</code> initialization in <code>train.py</code> to offload ETL transformations to background processes. Implement <code>num_workers</code> (e.g., 4), enable <code>pin_memory=True</code> for faster Host-to-Device memory transfers, and establish a <code>prefetch_factor</code>.</p>
-<h2 id="stateful-backpropagation-through-time-bptt-amnesia">Stateful Backpropagation Through Time (BPTT) Amnesia</h2>
-<p><strong>Status:</strong> Open | <strong>Priority:</strong> High</p>
-<p><strong>Description:</strong></p>
-<p>The LNN's Closed-form Continuous (CfC) cells require a continuous flow of time to accurately accumulate evidence and trigger action potentials. Currently, the training loop implicitly initializes the hidden state <code>hx</code> as <code>None</code> (a zero-tensor) for every 32-frame sequence batch. This forces computational amnesia at the boundary of every sequence, breaking the mathematical continuity of the ODEs representing the agent's memory.</p>
-<p><strong>Proposed Solution:</strong></p>
-<p>Implement Stateful BPTT in <code>train.py</code>:</p>
-<ol>
-<li>Disable <code>shuffle=True</code> across sequences of the same trajectory to ensure chronological streaming.</li>
-<li>Retain the hidden state output <code>hx</code> from the previous batch.</li>
-<li>Detach the state from the computational graph (<code>hx = hx.detach()</code>) to prevent backpropagating into infinite history.</li>
-<li>Pass the detached state as the prior for the subsequent batch.</li>
-</ol>
+<p>By restricting the agent to phenomenological variables, we force the neural network to develop robust, generalized heuristics (e.g., "red screen tint implies danger") rather than memorizing a specific map's coordinate grid.</p>
+<h2 id="2-time-as-a-continuous-flow-ontology">2. Time as a Continuous Flow (Ontology)</h2>
+<p>Standard Recurrent Neural Networks (RNNs), Transformers, and Deep Q-Networks (DQNs) treat time as a sequence of discrete, uniform snapshots. They are inherently stateless between ticks. </p>
+<p>Biological organisms do not experience time as a slideshow; they experience it as a continuous flow. Golem utilizes <strong>Liquid Time-Constant (LTC)</strong> networks, which are mathematically modeled as a system of Ordinary Differential Equations (ODEs):</p>
+<div class="arithmatex">\[
+\frac{dx(t)}{dt} = -\left[w_\tau + f(x(t), I(t); \theta)\right] \odot x(t) + A \odot f(x(t), I(t); \theta)
+\]</div>
+<ul>
+<li><strong>Inherent Causality:</strong> Because the hidden state <span class="arithmatex">\(x(t)\)</span> represents an integrated accumulation of past evidence, the Liquid Neural Network (LNN) acts as a highly sensitive change-detector. It does not just analyze a frame; it analyzes the <em>delta</em> between frames. This allows the network to naturally deduce cause-and-effect relationships (e.g., "Pressing <code>ATTACK</code> causes the pixels in the center of the screen to explode").</li>
+<li><strong>Temporal Elasticity:</strong> The environment operates at a fixed 35 Hz, but network latency and rendering variations introduce micro-fluctuations. Standard discrete networks break down when the temporal gap between frames is inconsistent. Because the LNN is a continuous function solved via the Closed-form Continuous (CfC) approximation, it can evaluate its state at any arbitrary temporal slice without catastrophic failure.</li>
+</ul>
+<h2 id="3-the-fallibility-of-the-expert-behavioral-cloning">3. The Fallibility of the Expert (Behavioral Cloning)</h2>
+<p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>. The philosophical premise of BC is that the human demonstrator's trajectory represents the optimal policy <span class="arithmatex">\(\pi^*\)</span>. The network attempts to minimize the Binary Cross-Entropy between its predicted logits and the expert's keystrokes.</p>
+<p>However, pure imitation relies on a flawed assumption: that the expert is perfect, and the agent will execute the imitation perfectly. </p>
+<ul>
+<li><strong>The Covariate Shift Problem:</strong> During live inference, microscopic mathematical variations will eventually push the agent into a sub-optimal state outside the bounds of the training data (e.g., walking into a corner). Because the expert was never recorded staring at a corner, the agent has no phenomenological frame of reference for how to escape. Errors compound until the agent collapses into a permanent equilibrium.</li>
+<li><strong>DAgger (Dataset Aggregation) as the Epistemological Cure:</strong> To resolve this, Golem employs an active intervention pipeline. The human operator monitors the autonomous agent and forcibly overrides its neural pathway when it makes a mistake. This generates <code>_recovery</code> traces, formally teaching the agent not just how to succeed, but how to recognize its own failures and return to the optimal path. We introduce "sin" (error) into the dataset so the agent can learn the concept of "redemption" (correction).</li>
+</ul>
+<h2 id="4-architectural-scaling-biological-plasticity">4. Architectural Scaling (Biological Plasticity)</h2>
+<p>The architecture of the brain is not hardcoded. Just as biological neural circuits scale based on the complexity of the organism, Golem's <code>DoomLiquidNet</code> scales dynamically via configuration (<code>app.yaml</code>).</p>
+<p>The depth of the visual cortex (<code>cortical_depth</code>) and the capacity of the temporal recurrence (<code>working_memory</code>) expand to match the dimensionality of the active action superset <span class="arithmatex">\(\rho\)</span>. This ensures computational resources are not wasted on simple navigation tasks, while preserving the capacity required for complex, multi-modal deathmatches.</p>
 
 
 

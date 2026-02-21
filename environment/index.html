@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -121,46 +123,6 @@
     
     
     
-    
-      
-      
-        <label class="md-header__button md-icon" for="__search">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        </label>
-        <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-      
     
     
       <div class="md-header__source">
@@ -254,6 +216,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -317,10 +306,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#observation-space-omega" class="md-nav__link">
+  <a href="#observation-space" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Observation Space (\(\Omega\))
+        Observation Space
       
     </span>
   </a>
@@ -328,10 +317,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#action-space-mathcala_rho" class="md-nav__link">
+  <a href="#action-space" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action Space (\(\mathcal{A}_\rho\))
+        Action Space
       
     </span>
   </a>
@@ -339,10 +328,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#temporal-dynamics" class="md-nav__link">
+  <a href="#temporal-dynamics-network-synchronization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Temporal Dynamics
+        Temporal Dynamics &amp; Network Synchronization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DoomStreamingDataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset.__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset.__len__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __len__
       
     </span>
   </a>
@@ -371,7 +404,7 @@
   <span class="md-ellipsis">
     
   
-    The Brain (LNN)
+    The Brain
   
 
     
@@ -492,10 +525,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#observation-space-omega" class="md-nav__link">
+  <a href="#observation-space" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Observation Space (\(\Omega\))
+        Observation Space
       
     </span>
   </a>
@@ -503,10 +536,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#action-space-mathcala_rho" class="md-nav__link">
+  <a href="#action-space" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action Space (\(\mathcal{A}_\rho\))
+        Action Space
       
     </span>
   </a>
@@ -514,10 +547,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#temporal-dynamics" class="md-nav__link">
+  <a href="#temporal-dynamics-network-synchronization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Temporal Dynamics
+        Temporal Dynamics &amp; Network Synchronization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DoomStreamingDataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset.__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app.models.dataset.DoomStreamingDataset.__len__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __len__
       
     </span>
   </a>
@@ -546,18 +623,20 @@
 
 <h1 id="the-environment-vizdoom">The Environment: ViZDoom</h1>
 <p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the <em>DOOM</em> engine. We utilize <strong>ViZDoom</strong> as the API bridge to extract observations and inject actions. Formally, this POMDP is defined by the tuple <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma)\)</span>. </p>
-<h2 id="observation-space-omega">Observation Space (<span class="arithmatex">\(\Omega\)</span>)</h2>
-<p>While the true underlying engine state <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t \in \Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to a downsampled tensor representing its egocentric visual field.</p>
+<h2 id="observation-space">Observation Space</h2>
+<p>While the true underlying engine state <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t \in \Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to its egocentric sensory field. With the introduction of multi-modal sensor fusion, this observation space scales dynamically based on the active configuration.</p>
+<p>The primary visual and spatial tensor <span class="arithmatex">\(o_{vis}\)</span> is defined as:</p>
 <div class="arithmatex">\[
-o_t \in \mathbb{R}^{3 \times 64 \times 64}
+o_{vis} \in \mathbb{R}^{C \times 64 \times 64}
 \]</div>
 <ul>
-<li><strong>Channels:</strong> 3 (RGB).</li>
+<li><strong>Channels (<span class="arithmatex">\(C\)</span>):</strong> 3 (RGB) by default, expanding to 4 if the stereoscopic depth buffer is enabled.</li>
 <li><strong>Resolution:</strong> 64x64 pixels (processed via bilinear interpolation).</li>
 <li><strong>Normalization:</strong> <span class="arithmatex">\(o_{i,j,k} \in [0, 1]\)</span>.</li>
 </ul>
-<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn visual heuristics (e.g., a "red screen tint" implies damage), encouraging robust topological generalization across unseen levels.</p>
-<h2 id="action-space-mathcala_rho">Action Space (<span class="arithmatex">\(\mathcal{A}_\rho\)</span>)</h2>
+<p>If the auditory sensor is enabled, the agent also receives an audio tensor <span class="arithmatex">\(o_{aud}\)</span> containing the raw, high-frequency stereo waveforms from the engine.</p>
+<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, or a specific audio waveform implies a nearby threat), encouraging robust topological generalization across unseen levels.</p>
+<h2 id="action-space">Action Space</h2>
 <p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>. </p>
 <p>Let <span class="arithmatex">\(\rho \in \{\text{basic}, \text{classic}, \text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
 <ol>
@@ -570,13 +649,726 @@ o_t \in \mathbb{R}^{3 \times 64 \times 64}
 y_t \in \{0, 1\}^{n_\rho}
 \]</div>
 <p>During inference, this distribution is thresholded at <span class="arithmatex">\(0.5\)</span> to produce the deterministic binary vector fed back into the ViZDoom engine. This dynamic scaling prevents data sparsity and gradient dilution that would occur if unused weapon keys were permanently mapped to the output layer during non-combat tasks.</p>
-<h2 id="temporal-dynamics">Temporal Dynamics</h2>
+<h2 id="temporal-dynamics-network-synchronization">Temporal Dynamics &amp; Network Synchronization</h2>
 <p>The environment runs at a fixed tic rate of 35 Hz (<span class="arithmatex">\(\Delta t \approx 28.5\text{ms}\)</span>). Because standard RNNs are discrete, they struggle with the asynchronous loop of live gameplay. Golem utilizes Liquid Time-Constant (LTC) networks to model the hidden state <span class="arithmatex">\(x(t)\)</span> as an Ordinary Differential Equation (ODE). </p>
-<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock, we employ a <strong>Frame Skip</strong> (or sleep-cycle) heuristic to lock the inference latency (<span class="arithmatex">\(\tau_{inf}\)</span>) to the engine's tic rate:</p>
-<div class="arithmatex">\[
-\tau_{total} = \tau_{inf} + \tau_{sleep} \approx 28\text{ms}
-\]</div>
-<p>This ensures the numerical integration steps within the LNN correctly correspond to the simulated passage of time within the POMDP.</p>
+<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock across a distributed architecture, Golem relies on <strong>Deterministic Lockstep</strong> networking via ViZDoom's <code>Mode.PLAYER</code> (Sync Mode). </p>
+<p>Instead of relying on manual sleep heuristics (which are prone to drift and desynchronization), the central Host Server dictates the flow of time. The Host collects asynchronous <code>ticcmds</code> (action vectors) from all connected clients. The local ViZDoom engine inside the Golem container explicitly blocks execution until it receives the synchronized broadcast back from the Host. This guarantees that the numerical integration steps within the LNN perfectly align with the simulated passage of time within the multiplayer POMDP, regardless of hardware inference speeds.</p>
+<hr />
+<h2 id="api-reference">API Reference</h2>
+<p>The extraction and temporal windowing of the observation space is handled dynamically by the streaming dataset module.</p>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="app.models.dataset.DoomStreamingDataset"></a>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="torch.utils.data.Dataset">Dataset</span></code></p>
+
+
+
+        <p>A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</p>
+<p>This class loads raw frame and action arrays from compressed <code>.npz</code> files 
+into memory. Rather than copying the data to create individual sequence 
+tensors, it builds a lightweight pointer map. During training, it slices 
+continuous arrays into overlapping sequences of length <code>seq_len</code> on-the-fly.</p>
+<p>It also supports dynamic horizontal mirror augmentation to double the effective
+dataset size while mitigating left/right turning bias.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>data_dir</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The directory containing the <code>.npz</code> training files.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>seq_len</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The temporal length of the sequence window to slice. 
+Default: <code>32</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>32</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>file_pattern</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The glob pattern used to locate training files 
+within <code>data_dir</code>. Default: <code>"*.npz"</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;*.npz&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>augment</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>True</code>, dynamically mirrors frames horizontally 
+and swaps corresponding left/right action labels. Default: <code>False</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>action_names</code>
+            </td>
+            <td>
+                  <code>list of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The ordered list of string action names 
+(e.g., <code>["MOVE_FORWARD", "TURN_LEFT", ...]</code>) used to calculate 
+which indices to swap during mirror augmentation. Default: <code>None</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>app/models/dataset.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 18</span>
+<span class="normal"> 19</span>
+<span class="normal"> 20</span>
+<span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</span>
+
+<span class="sd">    This class loads raw frame and action arrays from compressed ``.npz`` files </span>
+<span class="sd">    into memory. Rather than copying the data to create individual sequence </span>
+<span class="sd">    tensors, it builds a lightweight pointer map. During training, it slices </span>
+<span class="sd">    continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.</span>
+
+<span class="sd">    It also supports dynamic horizontal mirror augmentation to double the effective</span>
+<span class="sd">    dataset size while mitigating left/right turning bias.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_dir (str or Path): The directory containing the ``.npz`` training files.</span>
+<span class="sd">        seq_len (int, optional): The temporal length of the sequence window to slice. </span>
+<span class="sd">            Default: ``32``.</span>
+<span class="sd">        file_pattern (str, optional): The glob pattern used to locate training files </span>
+<span class="sd">            within ``data_dir``. Default: ``&quot;*.npz&quot;``.</span>
+<span class="sd">        augment (bool, optional): If ``True``, dynamically mirrors frames horizontally </span>
+<span class="sd">            and swaps corresponding left/right action labels. Default: ``False``.</span>
+<span class="sd">        action_names (list of str, optional): The ordered list of string action names </span>
+<span class="sd">            (e.g., ``[&quot;MOVE_FORWARD&quot;, &quot;TURN_LEFT&quot;, ...]``) used to calculate </span>
+<span class="sd">            which indices to swap during mirror augmentation. Default: ``None``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*.npz&quot;</span><span class="p">,</span> <span class="n">augment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">augment</span> <span class="o">=</span> <span class="n">augment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span> <span class="o">=</span> <span class="n">action_names</span> <span class="ow">or</span> <span class="p">[]</span>
+
+        <span class="c1"># Memory stores</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depth_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span> <span class="o">=</span> <span class="p">[]</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_swap_map</span><span class="p">()</span>
+
+        <span class="n">files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">file_pattern</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">file_idx</span><span class="p">,</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">frames</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;frames&#39;</span><span class="p">]</span>
+                <span class="n">actions</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;actions&#39;</span><span class="p">]</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="s1">&#39;depths&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">depth_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;depths&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;audios&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;audios&#39;</span><span class="p">])</span>
+
+                <span class="n">total_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">total_frames</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset mapped to RAM using pointers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span><span class="si">}</span><span class="s2"> sequences available. Modalities: [Visual: True, Depth: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="si">}</span><span class="s2">, Audio: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_swap_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a mapping of action indices that must be swapped when applying </span>
+<span class="sd">        horizontal mirror augmentation.</span>
+
+<span class="sd">        This ensures that when a frame is visually flipped, an action like </span>
+<span class="sd">        ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;MOVE_LEFT&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;MOVE_RIGHT&quot;</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;TURN_LEFT&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;TURN_RIGHT&quot;</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the total number of sliding window sequences available.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The total sequence count, including augmented sequences if enabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves a temporal sequence of frames and corresponding actions by index.</span>
+
+<span class="sd">        The retrieved frames are dynamically transposed from the storage shape of </span>
+<span class="sd">        :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
+<span class="sd">        If the index maps to an augmented sequence, the visual tensor is flipped </span>
+<span class="sd">        horizontally and lateral actions are swapped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): The index of the sequence pointer in the internal map.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: A tuple containing:</span>
+<span class="sd">                - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.</span>
+<span class="sd">                - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="n">window_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+        <span class="n">window_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+
+        <span class="n">window_frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">window_frames</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_frames</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_actions</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="p">:</span>
+            <span class="n">window_depths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+            <span class="n">window_depths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">window_depths</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">x_depth</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_depths</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+            <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_depth</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+
+        <span class="n">x_aud</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+            <span class="n">window_audios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+            <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_audios</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">is_mirrored</span><span class="p">:</span>
+            <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+                <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_aud</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">y_flip</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
+                <span class="n">y_flip</span><span class="p">[:,</span> <span class="n">left_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">right_idx</span><span class="p">]</span>
+                <span class="n">y_flip</span><span class="p">[:,</span> <span class="n">right_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">left_idx</span><span class="p">]</span>
+
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+            <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y_flip</span>
+
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+
+        <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="app.models.dataset.DoomStreamingDataset.__getitem__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieves a temporal sequence of frames and corresponding actions by index.</p>
+<p>The retrieved frames are dynamically transposed from the storage shape of 
+:math:<code>(H, W, C)</code> to the PyTorch convolutional shape of :math:<code>(C, H, W)</code>.
+If the index maps to an augmented sequence, the visual tensor is flipped 
+horizontally and lateral actions are swapped.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>idx</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The index of the sequence pointer in the internal map.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>tuple</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A tuple containing:
+- Tensor: A sequence of visual frames of shape :math:<code>(\text{seq\_len}, C, H, W)</code>.
+- Tensor: A sequence of action vectors of shape :math:<code>(\text{seq\_len}, \text{n\_actions})</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app/models/dataset.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves a temporal sequence of frames and corresponding actions by index.</span>
+
+<span class="sd">    The retrieved frames are dynamically transposed from the storage shape of </span>
+<span class="sd">    :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
+<span class="sd">    If the index maps to an augmented sequence, the visual tensor is flipped </span>
+<span class="sd">    horizontally and lateral actions are swapped.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        idx (int): The index of the sequence pointer in the internal map.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple containing:</span>
+<span class="sd">            - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.</span>
+<span class="sd">            - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="n">window_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+    <span class="n">window_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+
+    <span class="n">window_frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">window_frames</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_frames</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_actions</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="p">:</span>
+        <span class="n">window_depths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+        <span class="n">window_depths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">window_depths</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_depth</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_depths</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+        <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_depth</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+
+    <span class="n">x_aud</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+        <span class="n">window_audios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+        <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_audios</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">is_mirrored</span><span class="p">:</span>
+        <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+            <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_aud</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">y_flip</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
+            <span class="n">y_flip</span><span class="p">[:,</span> <span class="n">left_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">right_idx</span><span class="p">]</span>
+            <span class="n">y_flip</span><span class="p">[:,</span> <span class="n">right_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">left_idx</span><span class="p">]</span>
+
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+        <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y_flip</span>
+
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+        <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+
+    <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="app.models.dataset.DoomStreamingDataset.__len__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__len__</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the total number of sliding window sequences available.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>int</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The total sequence count, including augmented sequences if enabled.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app/models/dataset.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the total number of sliding window sequences available.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: The total sequence count, including augmented sequences if enabled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 

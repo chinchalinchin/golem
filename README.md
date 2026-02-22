@@ -76,6 +76,41 @@ source ./.venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### 🗺️ Procedural Generation (Oblige)
+
+To prevent spatial overfitting and Covariate Shift, Golem utilizes Oblige 7.70 to procedurally generate training maps on the fly. Because the official binaries are outdated, macOS/Apple Silicon users must build the engine from source.
+
+Download and Extract: Download the source from [this link](http://sourceforge.net/projects/oblige/files/Oblige/7.70/oblige-770-source.zip) and extract it to a directory adjacent to Golem (e.g., ../oblige).
+
+Install Dependencies:
+
+```bash
+brew install fltk zlib
+```
+
+Patch FLTK Version Check: Oblige 7.70 expects FLTK 1.3. Bypass this check to compile with modern 1.4+ versions,
+
+```bash
+cd ../oblige
+sed -i '' 's/#error "Require FLTK version 1.3.0 or later"/\/\/ Bypassed FLTK 1.4.x version check/g' gui/ui_window.cc
+```
+
+Link Homebrew Libraries and Compile,
+
+```bash
+export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/zlib/lib:$LIBRARY_PATH"
+export CPATH="/opt/homebrew/include:/opt/homebrew/opt/zlib/include:$CPATH"
+make -f Makefile.macos
+```
+
+Update `conf/app.yaml` to point to the compiled executable,
+
+```yaml
+randomizer:
+  executable: "/absolute/path/to/oblige/Oblige"
+  output: "data/wads/"
+```
+
 ## 🛠 Usage
 
 ### 1. Configure
@@ -88,6 +123,14 @@ Launch the engine in Spectator Mode to capture training data.
 
 ```bash
 python main.py record --module combat
+```
+
+### 3. Generate
+
+Compile a randomized BSP map using Oblige and immediately launch a recording session to train spatial generalization.
+
+```bash
+python main.py generate --episodes 5
 ```
 
 ### 3. Intervene
@@ -136,7 +179,7 @@ python main.py run --module combat
 
 Golem features a containerized, deterministic lockstep networking mode to benchmark its Liquid Neural Network against historical champions from the Visual Doom AI Competition (VDAIC).
 
-### 1. Build the Golem Swarm Image
+### 1. Build the Golem Agent Image
 
 Build the unified Docker image that contains the ViZDoom engine, Python 3.10, and the Golem source code.
 

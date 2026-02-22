@@ -36,17 +36,30 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 │   ├── pipeline/       # ML Modules (analyze, intervene, record, run, train)
 │   ├── models/         # Data Models (brain, config, dataset)
 │   ├── templates/      # Jinja2 templates for reporting
-│   └── utils.py        # Application utilities
+│   └── utils           # Application utilities
 ├── tests/              # Unit Tests
 └── main.py             # CLI Entrypoint
 ```
 
-The `./data/model/<mode>/` directory archives models using the naming schema, `<YYYY-MM-DD>.c-<depth>.w-<length>.<increment>.pth`, where:
+
+
+The `./data/model/<mode>/` directory archives models using the naming schema,
+
+`{YYYY-MM-DD}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}.{increment}`
+
+Where,
 
 * `YYYY-MM-DD`: The date the model was trained.
-* `<depth>`: The cortical depth (`brain.cortical_depth`) of the model.
-* `<length>`: The working memory (`brain.working_memory`) of the model.
-* `<increment>`: Auto-incrementing integer to prevent overwrites.
+* `c`: The cortical depth (`brain.cortical_depth`) of the model.
+* `w`: The working memory (`brain.working_memory`) of the model.
+* `v`: The visual field (`brain.sensors.visual`) of the model.
+* `d`: The visual depth field (`brain.sensors.depth`) of the model.
+* `a`: The audio field (`brain.sensors.audio`) of the model.
+* `t`: The thermal field (`brain.sensors.thermal`) of the model.
+* `sr`: The sample rate of the DSP (`brain.dsp.sample_rate`) of the model.
+* `nf`: The length of the STFT signal (`brain.dsp.nfft`) for the model.
+* `hl`: The hop length (`brain.dsp.hop_length`) of the model.
+* `increment`: Auto-incrementing integer to prevent overwrites.
 
 The active model for any given profile is always saved to `./data/<mode>/golem.pth` to isolate action-space dimensions and prevent PyTorch tensor mismatch errors during inference.
 

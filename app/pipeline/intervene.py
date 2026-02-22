@@ -15,12 +15,14 @@ import numpy as np
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_unique_filename, \
-                         get_vizdoom_game, register_command, \
-                         SensoryExtractor
+from app.utils.conf import resolve_path, get_unique_filename, register_command
+from app.utils.model import SensoryExtractor
+from app.utils.doom import get_game
+
 
 logger = logging.getLogger(__name__)
 
+# Module Level Constants
 # 1. Translation Dictionary: Doom Command -> ViZDoom Action
 ACTION_MAP = {
     "+forward": "MOVE_FORWARD",
@@ -35,12 +37,14 @@ ACTION_MAP = {
     '"slot 2"': "SELECT_WEAPON2",
     '"slot 3"': "SELECT_WEAPON3"
 }
+
 # 2. Translation Dictionary: YAML String -> pynput Key Name
 PYNPUT_MAP = {
     'leftarrow': 'left',
     'rightarrow': 'right',
     'space': 'space'
 }
+
 
 class InterventionController:
     """
@@ -160,7 +164,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     scenario = module.scenario
     map_name = module.map
 
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)
+    game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)
     game.init()
 
     # Get active bindings for the enabled brain mode

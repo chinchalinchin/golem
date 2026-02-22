@@ -5,7 +5,7 @@ import inspect as py_inspect # Aliased to prevent shadowing the inspect command
 
 # Application Libraries
 from app.models.config import GolemConfig
-from app.utils import setup_logging, COMMAND_REGISTRY
+from app.utils.conf import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
 from app.pipeline import audit, inspect, intervene, train, record, run, summary

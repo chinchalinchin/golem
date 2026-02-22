@@ -16,7 +16,7 @@ data:
 # ------------------------------------------------------ BRAIN
 brain:
   mode: "simple"
-  cortical_depth: 4
+  cortical_depth: 3
   working_memory: 128
   sensors:
     visual: true
@@ -35,9 +35,13 @@ training:
   batch_size: 16
   learning_rate: 0.0001
   epochs: 150
-  sequence_length: 64
+  sequence_length: 32
   augmentation:
     mirror: true
+# ------------------------------------------------------ MODULES
+randomizer:
+  executable: "/path/to/your/Oblige/Oblige"  # Path to the executable
+  output: "data/wads/"                   # Where to store generated maps
 # ------------------------------------------------------ MODULES
 modules:
   # --- Original ViZDoom Defaults ---
@@ -97,7 +101,7 @@ modules:
     episodes: 1
   doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom2.wad"
-    map: "map02"
+    map: "map01"
     episodes: 1
   plutonia:
     scenario: "/Users/gmoore/Home/games/doom/wads/plutonia.wad"

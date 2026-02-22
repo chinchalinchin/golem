@@ -6,20 +6,23 @@ output data and auditing the performance of trained models. It ensures datasets
 are balanced and normal, and generates precision/recall matrices to evaluate 
 model convergence.
 """
-
+# Standard Libraries
 import logging
 from pathlib import Path
 
+# External Libraries
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
 from sklearn.metrics import accuracy_score
 from jinja2 import Environment, FileSystemLoader
 
+# Application Libraries
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, register_command, apply_latest_parameters
+from app.utils.conf import resolve_path, register_command
+from app.utils.model import apply_latest_parameters
 
 logger = logging.getLogger(__name__)
 

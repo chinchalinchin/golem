@@ -2,12 +2,20 @@
 Multiplayer Host Module.
 Initializes a central ViZDoom Arena.
 """
+# Standard Libraries
 import logging
+
+# External Libraries
 from vizdoom import DoomGame, Mode
+
+# Application Libraries
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_vizdoom_scenario, register_command
+from app.utils.conf import resolve_path, register_command
+from app.utils.doom import get_scenario
+
 
 logger = logging.getLogger(__name__)
+
 
 @register_command("server")
 def server(cfg: GolemConfig, module_name: str = "cig_arena", players: int = 3, timelimit: int = 10):
@@ -23,7 +31,7 @@ def server(cfg: GolemConfig, module_name: str = "cig_arena", players: int = 3, t
         logger.error(f"Module '{module_name}' not found. Defaulting to 'deathmatch'.")
         module_name = "deathmatch"
         
-    scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
+    scenario_path = get_scenario(cfg.modules[module_name].scenario)
     game.set_doom_scenario_path(scenario_path)
     
     # +sv_forcerespawn 1: Auto-respawn upon death

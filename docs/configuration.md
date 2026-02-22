@@ -48,8 +48,6 @@ The **`batch_size`** (e.g., 16) determines how many temporal sequences are proce
 
 #### Focal Loss Dynamics: `alpha` and `gamma`
 
-
-
 To counteract severe class imbalance in human demonstrations (the "Hold W" convergence trap), Golem utilizes a Focal Loss function instead of standard Binary Cross-Entropy.
 
 The **`gamma`** parameter acts as a dynamic focusing mechanism. In standard classification, frequent and "easy" actions (like walking forward) accumulate massive loss gradients simply by volume, effectively drowning out the gradients of rare, critical actions (like firing a weapon). By setting `gamma > 0`, the loss function exponentially scales down the contribution of predictions the model is already confident about. If the network successfully predicts a navigation frame, its gradient contribution approaches zero, forcing the optimizer to focus computational effort on the sparse, difficult combat sequences it is currently failing. 

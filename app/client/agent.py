@@ -16,7 +16,8 @@ from vizdoom import DoomGame, Mode, ScreenFormat, ScreenResolution
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_vizdoom_scenario, register_command
+from app.utils.conf import resolve_path, register_command
+from app.utils.doom import get_scenario
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def client(cfg: GolemConfig, module_name: str = "cig_arena"):
         return
 
     cfg_path = resolve_path(cfg.config[active_profile])
-    scenario_path = get_vizdoom_scenario(cfg.modules[module_name].scenario)
+    scenario_path = get_scenario(cfg.modules[module_name].scenario)
 
     game = DoomGame()
     game.load_config(cfg_path)    

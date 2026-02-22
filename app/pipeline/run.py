@@ -9,9 +9,9 @@ import torch
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, get_vizdoom_game, \
-                        register_command, apply_latest_parameters, \
-                        SensoryExtractor
+from app.utils.conf import resolve_path, register_command
+from app.utils.model import apply_latest_parameters, SensoryExtractor
+from app.utils.doom import get_game
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     scenario = module.scenario
     map_name = module.map
 
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)   
+    game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)   
     game.init()
 
     logger.info("Golem is waking up...")

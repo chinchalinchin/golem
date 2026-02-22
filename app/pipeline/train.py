@@ -23,8 +23,8 @@ from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
 from app.models.loss import FocalLossWithLogits
-from app.utils import resolve_path, get_unique_filename, register_command, \
-                        apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
+from app.utils.conf import resolve_path, get_unique_filename, register_command
+from app.utils.model import apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
 
 logger = logging.getLogger(__name__)
 

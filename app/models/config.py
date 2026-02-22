@@ -9,9 +9,14 @@ import yaml
 from pydantic import BaseModel
 
 # Application Libraries
-from app.utils import resolve_path
+from app.utils.conf import resolve_path
 
 logger = logging.getLogger(__name__)
+
+
+class RandomizerConfig(BaseModel):
+    executable: str
+    output: str
 
 class ModuleConfig(BaseModel):
     scenario: str
@@ -67,6 +72,7 @@ class GolemConfig(BaseModel):
     data: DataConfig
     training: TrainingConfig
     brain: BrainConfig
+    randomizer: RandomizerConfig
     modules: Dict[str, ModuleConfig]
 
     @classmethod

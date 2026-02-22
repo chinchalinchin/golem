@@ -8,9 +8,9 @@ import vizdoom
 
 # Application Libraries
 from app.models.config import GolemConfig
-from app.utils import resolve_path, get_unique_filename, \
-                        get_vizdoom_game, register_command, \
-                        SensoryExtractor
+from app.utils.conf import resolve_path, get_unique_filename, register_command
+from app.utils.doom import get_game
+from app.utils.model import SensoryExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     logger.info("Press [TAB] at any time to kill the recording, drop the last 2 seconds, and save.")
     
     # Explicitly set SPECTATOR mode to allow manual human input via keyboard
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
+    game = get_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
     game.init()
     
     active_bindings = cfg.keybindings.get(active_profile, {})

@@ -6,7 +6,7 @@ Golem is trained via **Behavioral Cloning (BC)**, a foundational paradigm of Imi
 
 Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state $x(t)$, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., `data/fluid/`).
 
-Given an expert trajectory of length $T$, defined as $\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation $o_t$ is a composite of visual and auditory inputs. The input tensor sequences $\mathbf{X}^{(vis)}_i$ and $\mathbf{X}^{(aud)}_i$, and the target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
+Given an expert trajectory of length $T$, defined as $\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation $o_t$ is a composite of visual, auditory, and thermal inputs. The input tensor sequences $\mathbf{X}^{(vis)}_i$, $\mathbf{X}^{(aud)}_i$, and $\mathbf{X}^{(thm)}_i$, and the target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
 
 $$
 \mathbf{X}^{(vis)}_i=\{o^{(vis)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(vis)}_i\in\mathbb{R}^{L\times C\times64\times64}
@@ -14,6 +14,10 @@ $$
 
 $$
 \mathbf{X}^{(aud)}_i=\{o^{(aud)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(aud)}_i\in\mathbb{R}^{L\times2\times H_{mels}\times W_{time}}
+$$
+
+$$
+\mathbf{X}^{(thm)}_i=\{o^{(thm)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(thm)}_i\in\{0,1\}^{L\times1\times64\times64}
 $$
 
 $$
@@ -26,13 +30,12 @@ Where $C \in \{3,4\}$ depends on whether the depth buffer is enabled, and $n_\rh
 
 At each time step $t$, the network outputs a vector of raw logits $\mathbf{z}_t\in\mathbb{R}^{n_\rho}$. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using **Binary Cross-Entropy** with Logits Loss.
 
+
 The loss $\mathcal{L}$ for a single sequence of length $L$ over $n_\rho$ independent binary action channels is computed as:
 
 $$
 \mathcal{L}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
 $$
-
-
 
 Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the ground truth label, and $z_{t,j}$ is the network's prediction. The network parameters $\theta$ are updated via Backpropagation Through Time (BPTT).
 
@@ -40,13 +43,16 @@ Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the groun
 
 Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Hold W Trap" (convergence to a permanent state of forward movement due to high dataset idle times).
 
-Golem counteracts spatial bias dynamically via **Mirror Augmentation**. During data streaming, the dataset yields a reflected visual observation tensor $o'^{(vis)}_t$ across the vertical axis (width):
+Golem counteracts spatial bias dynamically via **Mirror Augmentation**. During data streaming, the dataset yields reflected visual and thermal observation tensors $o'^{(vis)}_t$ and $o'^{(thm)}_t$ across the vertical axis (width):
+
 
 $$
 o'^{(vis)}_{t,c,h,w}=o^{(vis)}_{t,c,h,W-w-1}
 $$
 
-
+$$
+o'^{(thm)}_{t,c,h,w}=o^{(thm)}_{t,c,h,W-w-1}
+$$
 
 If the auditory sensor is enabled, perfect spatial symmetry must also be maintained across the agent's "hearing." This is achieved by physically swapping the left and right stereo channels (channel index 0 and 1) across the 2D Mel Spectrogram:
 
@@ -73,7 +79,7 @@ A fundamental flaw of pure Behavioral Cloning is **Covariate Shift** (the "Perfe
 
 To cure this, Golem employs **DAgger (Dataset Aggregation)**. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. This intervention steers the agent back to the optimal path, automatically appending a `_recovery` dataset trace to the active profile's training directory. This explicitly teaches the network how to correct trajectory deviations.
 
-## 5. Diagnostic Auditing
+## 5. Diagnostic Auditing & Validation
 
 Because the aggregate BCE loss scalar $\mathcal{L}(\theta)$ fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static `audit` module.
 
@@ -96,6 +102,10 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 $$
 
 Where $TP$, $FP$, and $FN$ represent True Positives, False Positives, and False Negatives, respectively.
+
+### Addressing Redundancy (Stride)
+
+During normal training, the sliding window overlaps by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the `audit` dataloader enforces a sequence stride equal to $L$, meaning non-overlapping segments are tested to precisely evaluate every frame only once.
 
 ---
 

@@ -2,6 +2,7 @@
 
 The `app.yaml` file acts as the central nervous system for Golem. It defines the active brain architecture, training hyperparameters, dataset routing, and environment multi-modality. This single source of truth ensures that the ETL pipelines and the PyTorch models remain perfectly synchronized without requiring hardcoded magic numbers.
 
+
 ## Configuration Blocks
 
 ### 1. `app`
@@ -39,6 +40,7 @@ The **`learning_rate`** (e.g., 0.0001) controls the step size the Adam optimizer
 
 The **`batch_size`** (e.g., 16) determines how many temporal sequences are processed concurrently before a weight update occurs. 
 
+
 * **Small Batch Size:** Results in "noisy" gradient estimates. This noise acts as a natural regularizer, often helping the network escape sharp, suboptimal local minima and generalize better to unseen environments. However, it trains slower sequentially.
 * **Large Batch Size:** Provides a highly accurate gradient estimate and allows for massive hardware parallelization (faster wall-clock time per epoch). However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.
 
@@ -53,7 +55,7 @@ Defines the active architecture of the Neural Circuit Policy (NCP).
 | **`mode`** | The active profile (`basic`, `classic`, or `fluid`). This dictates which configuration dictionary is loaded across the pipeline. |
 | **`cortical_depth`** | The number of CNN layers in the visual cortex. Higher depths aggressively pool spatial features into denser representations. |
 | **`working_memory`** | The number of hidden units in the CfC liquid core, defining the capacity of the agent's continuous temporal state. |
-| **`sensors`** | Boolean toggles (`visual`, `depth`, `audio`) that dynamically scale the input channels and parallel network branches (e.g., activating the 2D Auditory Cortex). |
+| **`sensors`** | Boolean toggles (`visual`, `depth`, `audio`, `thermal`) that dynamically scale the input channels and parallel network branches (e.g., activating the parallel 2D Auditory and Thermal Cortices for multi-modal sensor fusion). |
 
 #### Signal Processing Dynamics: `dsp`
 

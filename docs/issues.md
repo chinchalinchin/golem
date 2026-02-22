@@ -107,3 +107,25 @@ We currently lack explainable AI (XAI) tooling to verify that the agent's distin
 **Proposed Solution:**
 
 Integrate the `captum` library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an `examine` command that takes a single sequence from the dataset, runs `captum.attr.LayerGradCam` on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side `.png` files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.
+
+## Issue 10: "USE" Action Starvation (Door-Blindness)
+
+**Status:** Open | **Priority:** High
+
+**Description:**
+The full dataset audit reveals 0 support for the `USE` action. The expert demonstrations do not contain any instances of opening doors or activating switches. Consequently, the LNN will permanently stall if it encounters interactive geometry.
+
+**Proposed Solution:**
+Either (A) record a dedicated dataset module in a scenario heavy with doors (e.g., a custom puzzle WAD) to introduce the stimulus to the neural network, or (B) dynamically drop the `USE` action from the `basic.cfg` superset to reduce the dimensionality of the Motor Cortex head and save redundant parameter updates.
+
+## Issue 11: Audit Validation Leak & Redundancy (Train/Test Split)
+
+**Status:** Open | **Priority:** Medium
+
+**Description:**
+The `audit` command currently evaluates the model against the `data/training/` directory. This causes a validation leak, resulting in an artificially inflated accuracy score (~97%) because the model is tested on its own training data. Furthermore, evaluating overlapping sliding windows inflates the sample count by a factor of 32.
+
+**Proposed Solution:**
+1. Establish a dedicated `data/validation/` directory. Update the ETL pipeline (`record.py`, `intervene.py`) to randomly route 10-15% of recorded episodes into this holdout folder.
+2. Modify the `audit` command to strictly target this validation directory.
+3. Add a `stride` parameter to `DoomStreamingDataset`. During `audit`, set `stride=32` so the dataloader yields non-overlapping sequences, evaluating each frame exactly once.

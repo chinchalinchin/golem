@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://chinchalinchin.github.io/golem/environment/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../configuration/">
       
       
         <link rel="next" href="../brain/">
@@ -219,14 +219,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../philsophy.md" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Philosophy
+    Configuration
   
 
     
@@ -451,6 +451,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../roadmap/" class="md-nav__link">
         
   
@@ -622,37 +649,54 @@
 
 
 <h1 id="the-environment-vizdoom">The Environment: ViZDoom</h1>
-<p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the <em>DOOM</em> engine. We utilize <strong>ViZDoom</strong> as the API bridge to extract observations and inject actions. Formally, this POMDP is defined by the tuple <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma)\)</span>. </p>
+<p>Golem operates within a Partially Observable Markov Decision Process (POMDP) defined by the DOOM engine. We utilize ViZDoom as the API bridge to extract observations and inject actions. Formally, this POMDP is defined by the tuple <span class="arithmatex">\((\mathcal{S},\mathcal{A},\mathcal{T},\mathcal{R},\Omega,\mathcal{O},\gamma)\)</span>.</p>
 <h2 id="observation-space">Observation Space</h2>
-<p>While the true underlying engine state <span class="arithmatex">\(s_t \in \mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t \in \Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to its egocentric sensory field. With the introduction of multi-modal sensor fusion, this observation space scales dynamically based on the active configuration.</p>
+<p>While the true underlying engine state <span class="arithmatex">\(s_t\in\mathcal{S}\)</span> contains exact entity coordinates and internal variables, the agent's observation <span class="arithmatex">\(o_t\in\Omega\)</span> at time <span class="arithmatex">\(t\)</span> is strictly constrained to its egocentric sensory field. With the introduction of multi-modal sensor fusion, this observation space scales dynamically based on the active configuration.</p>
 <p>The primary visual and spatial tensor <span class="arithmatex">\(o_{vis}\)</span> is defined as:</p>
 <div class="arithmatex">\[
-o_{vis} \in \mathbb{R}^{C \times 64 \times 64}
+o_{vis}\in\mathbb{R}^{C\times64\times64}
 \]</div>
 <ul>
-<li><strong>Channels (<span class="arithmatex">\(C\)</span>):</strong> 3 (RGB) by default, expanding to 4 if the stereoscopic depth buffer is enabled.</li>
-<li><strong>Resolution:</strong> 64x64 pixels (processed via bilinear interpolation).</li>
-<li><strong>Normalization:</strong> <span class="arithmatex">\(o_{i,j,k} \in [0, 1]\)</span>.</li>
+<li><strong>Channels</strong> (<span class="arithmatex">\(C\)</span>): 3 (RGB) by default, expanding to 4 if the stereoscopic depth buffer is enabled.</li>
+<li><strong>Resolution</strong>: 64x64 pixels (processed via bilinear interpolation).</li>
+<li><strong>Normalization</strong>: <span class="arithmatex">\(o_{i,j,k}\in[0,1]\)</span>.</li>
 </ul>
-<p>If the auditory sensor is enabled, the agent also receives an audio tensor <span class="arithmatex">\(o_{aud}\)</span> containing the raw, high-frequency stereo waveforms from the engine.</p>
-<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, or a specific audio waveform implies a nearby threat), encouraging robust topological generalization across unseen levels.</p>
+<p>If the auditory sensor is enabled, the agent also receives an audio tensor <span class="arithmatex">\(o_{aud}\)</span>. While initially extracted from the engine as raw, high-frequency stereo waveforms, the ETL pipeline mathematically transforms these 1D arrays into dense 2D time-frequency representations (Mel Spectrograms) to leverage spatial locality within the convolutional network.</p>
+<p>The Digital Signal Processing (DSP) transformation is mathematically defined by the active <code>dsp</code> configuration block:</p>
+<ul>
+<li><strong>Strict Normalization</strong>: The raw buffer is scaled to zero-mean and unit-variance to stabilize gradients.</li>
+<li><strong>Mel Scale Transformation</strong>: The normalized waveform is processed via a Short-Time Fourier Transform (STFT) mapped to the Mel scale, governed by the <code>sample_rate</code>, <code>n_fft</code>, <code>hop_length</code>, and <code>n_mels</code> hyperparameters.</li>
+<li><strong>Decibel Scaling</strong>: The resulting magnitudes are compressed logarithmically using an Amplitude-to-DB conversion.</li>
+</ul>
+<p>The resulting multi-modal audio tensor is defined as:</p>
+<div class="arithmatex">\[
+o_{aud}\in\mathbb{R}^{C\times H_{mels}\times W_{time}}
+\]</div>
+<p>Where <span class="arithmatex">\(C=2\)</span> (stereo channels), <span class="arithmatex">\(H_{mels}\)</span> represents the frequency bins dictated by <code>n_mels</code>, and <span class="arithmatex">\(W_{time}\)</span> is the temporal width calculated dynamically from the engine's audio buffer capacity and the STFT <code>hop_length</code>.</p>
+<p>If the thermal sensor is enabled, the agent also receives a discrete thermal tensor <span class="arithmatex">\(o_{thm}\)</span>. Extracted via ViZDoom's semantic segmentation <code>labels_buffer</code>, this modality isolates active, dynamic entities (e.g., monsters, projectiles, and interactive items) from the static environmental background plane. </p>
+<p>The transformation pipeline applies a strict binary threshold operation (<span class="arithmatex">\(o_{i,j}=1\text{ if }\text{label}_{i,j}&gt;0\text{ else }0\)</span>) to the raw buffer and subsequently downsamples the mask to <span class="arithmatex">\(64\times64\)</span> utilizing nearest-neighbor interpolation to prevent edge anti-aliasing artifacts that would otherwise blur distinct entity boundaries.</p>
+<p>The resulting thermal mask tensor is defined as:</p>
+<div class="arithmatex">\[
+o_{thm}\in\{0,1\}^{1\times64\times64}
+\]</div>
+<p>We explicitly discard latent game variables (e.g., Health, Ammo, Coordinates) from the observation vector to force the model to learn multi-modal heuristics (e.g., a "red screen tint" implies damage, a specific visual spectrogram pattern implies a nearby threat, or a binary thermal cluster denotes a dynamic entity), encouraging robust topological generalization across unseen levels.</p>
 <h2 id="action-space">Action Space</h2>
-<p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>. </p>
-<p>Let <span class="arithmatex">\(\rho \in \{\text{basic}, \text{classic}, \text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
-<ol>
-<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}} = 8\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{basic}} = \{ \text{Fwd}, \text{Back}, \text{MoveL}, \text{MoveR}, \text{TurnL}, \text{TurnR}, \text{Attack}, \text{Use} \}\)</span></li>
-<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}} = 9\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{fluid}} = \mathcal{A}_{\text{basic}} \cup \{ \text{NextWeapon} \}\)</span></li>
-<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}} = 10\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{classic}} = \mathcal{A}_{\text{basic}} \cup \{ \text{Weapon2}, \text{Weapon3} \}\)</span></li>
-</ol>
+<p>Unlike standard architectures that utilize a rigid output structure, Golem's action space is a discrete, multi-label domain dynamically conditioned on the active environment configuration profile, denoted as <span class="arithmatex">\(\rho\)</span>.</p>
+<p>Let <span class="arithmatex">\(\rho\in\{\text{basic},\text{classic},\text{fluid}\}\)</span>. The dimensionality of the action space <span class="arithmatex">\(n_\rho\)</span> expands or contracts based on the superset defined by <span class="arithmatex">\(\rho\)</span>:</p>
+<ul>
+<li><strong>Basic Profile</strong> (<span class="arithmatex">\(n_{\text{basic}}=8\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{basic}}=\{\text{Fwd},\text{Back},\text{MoveL},\text{MoveR},\text{TurnL},\text{TurnR},\text{Attack},\text{Use}\}\)</span></li>
+<li><strong>Fluid Profile</strong> (<span class="arithmatex">\(n_{\text{fluid}}=9\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{fluid}}=\mathcal{A}_{\text{basic}}\cup\{\text{NextWeapon}\}\)</span></li>
+<li><strong>Classic Profile</strong> (<span class="arithmatex">\(n_{\text{classic}}=10\)</span>): <span class="arithmatex">\(\mathcal{A}_{\text{classic}}=\mathcal{A}_{\text{basic}}\cup\{\text{Weapon2},\text{Weapon3}\}\)</span></li>
+</ul>
 <p>At any time step <span class="arithmatex">\(t\)</span>, the output vector <span class="arithmatex">\(y_t\)</span> is drawn from a Multivariate Bernoulli distribution over these actions. Assuming conditional independence between individual key presses given the latent state representation, the network predicts the probability vector <span class="arithmatex">\(\mathbf{p}_t\)</span>, yielding:</p>
 <div class="arithmatex">\[
-y_t \in \{0, 1\}^{n_\rho}
+y_t\in\{0,1\}^{n_\rho}
 \]</div>
 <p>During inference, this distribution is thresholded at <span class="arithmatex">\(0.5\)</span> to produce the deterministic binary vector fed back into the ViZDoom engine. This dynamic scaling prevents data sparsity and gradient dilution that would occur if unused weapon keys were permanently mapped to the output layer during non-combat tasks.</p>
 <h2 id="temporal-dynamics-network-synchronization">Temporal Dynamics &amp; Network Synchronization</h2>
-<p>The environment runs at a fixed tic rate of 35 Hz (<span class="arithmatex">\(\Delta t \approx 28.5\text{ms}\)</span>). Because standard RNNs are discrete, they struggle with the asynchronous loop of live gameplay. Golem utilizes Liquid Time-Constant (LTC) networks to model the hidden state <span class="arithmatex">\(x(t)\)</span> as an Ordinary Differential Equation (ODE). </p>
-<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock across a distributed architecture, Golem relies on <strong>Deterministic Lockstep</strong> networking via ViZDoom's <code>Mode.PLAYER</code> (Sync Mode). </p>
-<p>Instead of relying on manual sleep heuristics (which are prone to drift and desynchronization), the central Host Server dictates the flow of time. The Host collects asynchronous <code>ticcmds</code> (action vectors) from all connected clients. The local ViZDoom engine inside the Golem container explicitly blocks execution until it receives the synchronized broadcast back from the Host. This guarantees that the numerical integration steps within the LNN perfectly align with the simulated passage of time within the multiplayer POMDP, regardless of hardware inference speeds.</p>
+<p>The environment runs at a fixed tic rate of 35 Hz (<span class="arithmatex">\(\Delta t\approx28.5\text{ms}\)</span>). Because standard RNNs are discrete, they struggle with the asynchronous loop of live gameplay. Golem utilizes Liquid Time-Constant (LTC) networks to model the hidden state <span class="arithmatex">\(x(t)\)</span> as an Ordinary Differential Equation (ODE).</p>
+<p>To maintain strict temporal consistency between the continuous differential solver and the discrete game clock across a distributed architecture, Golem relies on Deterministic Lockstep networking via ViZDoom's <code>Mode.PLAYER</code> (Sync Mode).</p>
+<p>Instead of relying on manual sleep heuristics (which are prone to drift and desynchronization), the central Host Server dictates the flow of time. The Host collects asynchronous ticcmds (action vectors) from all connected clients. The local ViZDoom engine inside the Golem container explicitly blocks execution until it receives the synchronized broadcast back from the Host. This guarantees that the numerical integration steps within the LNN perfectly align with the simulated passage of time within the multiplayer POMDP, regardless of hardware inference speeds.</p>
 <hr />
 <h2 id="api-reference">API Reference</h2>
 <p>The extraction and temporal windowing of the observation space is handled dynamically by the streaming dataset module.</p>
@@ -674,7 +718,9 @@ y_t \in \{0, 1\}^{n_\rho}
 into memory. Rather than copying the data to create individual sequence 
 tensors, it builds a lightweight pointer map. During training, it slices 
 continuous arrays into overlapping sequences of length <code>seq_len</code> on-the-fly.</p>
-<p>It also supports dynamic horizontal mirror augmentation to double the effective
+<p>It supports multi-modal sensor fusion, dynamically yielding a dictionary of active 
+sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.
+It also supports dynamic horizontal mirror augmentation to double the effective
 dataset size while mitigating left/right turning bias.</p>
 
 
@@ -748,7 +794,7 @@ within <code>data_dir</code>. Default: <code>"*.npz"</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>True</code>, dynamically mirrors frames horizontally 
+                <p>If <code>True</code>, dynamically mirrors visual and thermal frames horizontally 
 and swaps corresponding left/right action labels. Default: <code>False</code>.</p>
               </div>
             </td>
@@ -774,6 +820,22 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
                   <code>None</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>dsp_config</code>
+            </td>
+            <td>
+                  <code><span title="DSPConfig">DSPConfig</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DSP tuning parameters for the Mel Spectrogram.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -786,8 +848,7 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>app/models/dataset.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 18</span>
-<span class="normal"> 19</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 19</span>
 <span class="normal"> 20</span>
 <span class="normal"> 21</span>
 <span class="normal"> 22</span>
@@ -939,7 +1000,50 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="normal">168</span>
 <span class="normal">169</span>
 <span class="normal">170</span>
-<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</span>
 
@@ -948,6 +1052,8 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="sd">    tensors, it builds a lightweight pointer map. During training, it slices </span>
 <span class="sd">    continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.</span>
 
+<span class="sd">    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active </span>
+<span class="sd">    sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.</span>
 <span class="sd">    It also supports dynamic horizontal mirror augmentation to double the effective</span>
 <span class="sd">    dataset size while mitigating left/right turning bias.</span>
 
@@ -957,26 +1063,30 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="sd">            Default: ``32``.</span>
 <span class="sd">        file_pattern (str, optional): The glob pattern used to locate training files </span>
 <span class="sd">            within ``data_dir``. Default: ``&quot;*.npz&quot;``.</span>
-<span class="sd">        augment (bool, optional): If ``True``, dynamically mirrors frames horizontally </span>
+<span class="sd">        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally </span>
 <span class="sd">            and swaps corresponding left/right action labels. Default: ``False``.</span>
 <span class="sd">        action_names (list of str, optional): The ordered list of string action names </span>
 <span class="sd">            (e.g., ``[&quot;MOVE_FORWARD&quot;, &quot;TURN_LEFT&quot;, ...]``) used to calculate </span>
 <span class="sd">            which indices to swap during mirror augmentation. Default: ``None``.</span>
+<span class="sd">        dsp_config (DSPConfig, optional): DSP tuning parameters for the Mel Spectrogram.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*.npz&quot;</span><span class="p">,</span> <span class="n">augment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*.npz&quot;</span><span class="p">,</span> <span class="n">augment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsp_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">augment</span> <span class="o">=</span> <span class="n">augment</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span> <span class="o">=</span> <span class="n">action_names</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span> <span class="o">=</span> <span class="n">dsp_config</span>
 
         <span class="c1"># Memory stores</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">depth_arrays</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thermal_arrays</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span> <span class="o">=</span> <span class="p">[]</span> 
 
@@ -1000,6 +1110,9 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
                 <span class="k">if</span> <span class="s1">&#39;audios&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;audios&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;thermals&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">thermal_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;thermals&#39;</span><span class="p">])</span>
 
                 <span class="n">total_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">total_frames</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">:</span>
@@ -1010,14 +1123,26 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset mapped to RAM using pointers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span><span class="si">}</span><span class="s2"> sequences available. Modalities: [Visual: True, Depth: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="si">}</span><span class="s2">, Audio: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+        <span class="c1"># Setup DSP transforms if audio is present</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">MelSpectrogram</span><span class="p">(</span>
+                <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+                <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+                <span class="n">hop_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span><span class="o">.</span><span class="n">hop_length</span><span class="p">,</span>
+                <span class="n">n_mels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span><span class="o">.</span><span class="n">n_mels</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">AmplitudeToDB</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset mapped to RAM using pointers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span><span class="si">}</span><span class="s2"> sequences available. Modalities: [Visual: True, Depth: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="si">}</span><span class="s2">, Audio: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="si">}</span><span class="s2">, Thermal: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_swap_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs a mapping of action indices that must be swapped when applying </span>
 <span class="sd">        horizontal mirror augmentation.</span>
 
-<span class="sd">        This ensures that when a frame is visually flipped, an action like </span>
+<span class="sd">        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like </span>
 <span class="sd">        ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1040,17 +1165,21 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves a temporal sequence of frames and corresponding actions by index.</span>
 
-<span class="sd">        The retrieved frames are dynamically transposed from the storage shape of </span>
+<span class="sd">        The retrieved visual frames are dynamically transposed from the storage shape of </span>
 <span class="sd">        :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
-<span class="sd">        If the index maps to an augmented sequence, the visual tensor is flipped </span>
-<span class="sd">        horizontally and lateral actions are swapped.</span>
+<span class="sd">        If the index maps to an augmented sequence, the visual and thermal tensors are flipped </span>
+<span class="sd">        horizontally and lateral actions are swapped. For audio, the waveforms </span>
+<span class="sd">        are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            idx (int): The index of the sequence pointer in the internal map.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple: A tuple containing:</span>
-<span class="sd">                - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.</span>
+<span class="sd">                - dict: A dictionary of active sensory inputs:</span>
+<span class="sd">                    - ``&#39;visual&#39;`` (Tensor): Visual frames of shape :math:`(\text{seq\_len}, C, 64, 64)`.</span>
+<span class="sd">                    - ``&#39;audio&#39;`` (Tensor, optional): Mel spectrograms of shape :math:`(\text{seq\_len}, 2, H_{mels}, W_{time})`.</span>
+<span class="sd">                    - ``&#39;thermal&#39;`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.</span>
 <span class="sd">                - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -1073,10 +1202,23 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
             <span class="n">window_audios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
             <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_audios</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span><span class="p">:</span>
+                <span class="n">x_aud</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span><span class="p">(</span><span class="n">x_aud</span><span class="p">)</span>
+                <span class="n">x_aud</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span><span class="p">(</span><span class="n">x_aud</span><span class="p">)</span>
+
+        <span class="n">x_thm</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+            <span class="n">window_thermals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermal_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+            <span class="n">window_thermals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">window_thermals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">x_thm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_thermals</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">is_mirrored</span><span class="p">:</span>
             <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+                <span class="c1"># Flip channel 1 (stereo channels) for spatial auditory swapping</span>
                 <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_aud</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+                <span class="n">x_thm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_thm</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
 
             <span class="n">y_flip</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
@@ -1086,11 +1228,15 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
             <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
                 <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
             <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y_flip</span>
 
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
             <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
 
         <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
 </code></pre></div></td></tr></table></div>
@@ -1121,10 +1267,11 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
     <div class="doc doc-contents ">
 
         <p>Retrieves a temporal sequence of frames and corresponding actions by index.</p>
-<p>The retrieved frames are dynamically transposed from the storage shape of 
+<p>The retrieved visual frames are dynamically transposed from the storage shape of 
 :math:<code>(H, W, C)</code> to the PyTorch convolutional shape of :math:<code>(C, H, W)</code>.
-If the index maps to an augmented sequence, the visual tensor is flipped 
-horizontally and lateral actions are swapped.</p>
+If the index maps to an augmented sequence, the visual and thermal tensors are flipped 
+horizontally and lateral actions are swapped. For audio, the waveforms 
+are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1173,7 +1320,10 @@ horizontally and lateral actions are swapped.</p>
             <td>
               <div class="doc-md-description">
                 <p>A tuple containing:
-- Tensor: A sequence of visual frames of shape :math:<code>(\text{seq\_len}, C, H, W)</code>.
+- dict: A dictionary of active sensory inputs:
+    - <code>'visual'</code> (Tensor): Visual frames of shape :math:<code>(\text{seq\_len}, C, 64, 64)</code>.
+    - <code>'audio'</code> (Tensor, optional): Mel spectrograms of shape :math:<code>(\text{seq\_len}, 2, H_{mels}, W_{time})</code>.
+    - <code>'thermal'</code> (Tensor, optional): Binary thermal masks of shape :math:<code>(\text{seq\_len}, 1, 64, 64)</code>.
 - Tensor: A sequence of action vectors of shape :math:<code>(\text{seq\_len}, \text{n\_actions})</code>.</p>
               </div>
             </td>
@@ -1184,29 +1334,7 @@ horizontally and lateral actions are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">137</span>
 <span class="normal">138</span>
 <span class="normal">139</span>
 <span class="normal">140</span>
@@ -1240,21 +1368,68 @@ horizontally and lateral actions are swapped.</p>
 <span class="normal">168</span>
 <span class="normal">169</span>
 <span class="normal">170</span>
-<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves a temporal sequence of frames and corresponding actions by index.</span>
 
-<span class="sd">    The retrieved frames are dynamically transposed from the storage shape of </span>
+<span class="sd">    The retrieved visual frames are dynamically transposed from the storage shape of </span>
 <span class="sd">    :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
-<span class="sd">    If the index maps to an augmented sequence, the visual tensor is flipped </span>
-<span class="sd">    horizontally and lateral actions are swapped.</span>
+<span class="sd">    If the index maps to an augmented sequence, the visual and thermal tensors are flipped </span>
+<span class="sd">    horizontally and lateral actions are swapped. For audio, the waveforms </span>
+<span class="sd">    are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        idx (int): The index of the sequence pointer in the internal map.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple: A tuple containing:</span>
-<span class="sd">            - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.</span>
+<span class="sd">            - dict: A dictionary of active sensory inputs:</span>
+<span class="sd">                - ``&#39;visual&#39;`` (Tensor): Visual frames of shape :math:`(\text{seq\_len}, C, 64, 64)`.</span>
+<span class="sd">                - ``&#39;audio&#39;`` (Tensor, optional): Mel spectrograms of shape :math:`(\text{seq\_len}, 2, H_{mels}, W_{time})`.</span>
+<span class="sd">                - ``&#39;thermal&#39;`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.</span>
 <span class="sd">            - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -1277,10 +1452,23 @@ horizontally and lateral actions are swapped.</p>
         <span class="n">window_audios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
         <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_audios</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span><span class="p">:</span>
+            <span class="n">x_aud</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mel_transform</span><span class="p">(</span><span class="n">x_aud</span><span class="p">)</span>
+            <span class="n">x_aud</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amp_to_db</span><span class="p">(</span><span class="n">x_aud</span><span class="p">)</span>
+
+    <span class="n">x_thm</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+        <span class="n">window_thermals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermal_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
+        <span class="n">window_thermals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">window_thermals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_thm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">window_thermals</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
     <span class="k">if</span> <span class="n">is_mirrored</span><span class="p">:</span>
         <span class="n">x_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
+            <span class="c1"># Flip channel 1 (stereo channels) for spatial auditory swapping</span>
             <span class="n">x_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_aud</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+            <span class="n">x_thm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">x_thm</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
 
         <span class="n">y_flip</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
@@ -1290,11 +1478,15 @@ horizontally and lateral actions are swapped.</p>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
             <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
         <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y_flip</span>
 
     <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;visual&#39;</span><span class="p">:</span> <span class="n">x_vis</span><span class="p">}</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="p">:</span>
         <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_aud</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
+        <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
 
     <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
 </code></pre></div></td></tr></table></div>
@@ -1341,14 +1533,14 @@ horizontally and lateral actions are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the total number of sliding window sequences available.</span>
 

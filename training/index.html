@@ -219,14 +219,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../philsophy.md" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Philosophy
+    Configuration
   
 
     
@@ -404,13 +404,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-diagnostic-auditing" class="md-nav__link">
+  <a href="#5-diagnostic-auditing-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Diagnostic Auditing
+        5. Diagnostic Auditing &amp; Validation
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="5. Diagnostic Auditing &amp; Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addressing-redundancy-stride" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addressing Redundancy (Stride)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -524,6 +541,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -653,13 +697,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-diagnostic-auditing" class="md-nav__link">
+  <a href="#5-diagnostic-auditing-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Diagnostic Auditing
+        5. Diagnostic Auditing &amp; Validation
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="5. Diagnostic Auditing &amp; Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addressing-redundancy-stride" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addressing Redundancy (Stride)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -793,54 +854,69 @@
 <p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy <span class="arithmatex">\(\pi^*\)</span>, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.</p>
 <h2 id="1-sliding-window-temporal-loading">1. Sliding Window Temporal Loading</h2>
 <p>Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state <span class="arithmatex">\(x(t)\)</span>, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., <code>data/fluid/</code>).</p>
-<p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau = \{ (o_1, y_1), (o_2, y_2), \dots, (o_T, y_T) \}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. The input tensor sequence <span class="arithmatex">\(\mathbf{X}_i\)</span> and target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
+<p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation <span class="arithmatex">\(o_t\)</span> is a composite of visual, auditory, and thermal inputs. The input tensor sequences <span class="arithmatex">\(\mathbf{X}^{(vis)}_i\)</span>, <span class="arithmatex">\(\mathbf{X}^{(aud)}_i\)</span>, and <span class="arithmatex">\(\mathbf{X}^{(thm)}_i\)</span>, and the target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
 <div class="arithmatex">\[
-\mathbf{X}_i = \{ o_t \}_{t=i}^{i+L-1}, \quad \mathbf{X}_i \in \mathbb{R}^{L \times 3 \times 64 \times 64}
+\mathbf{X}^{(vis)}_i=\{o^{(vis)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(vis)}_i\in\mathbb{R}^{L\times C\times64\times64}
 \]</div>
 <div class="arithmatex">\[
-\mathbf{Y}_i = \{ y_t \}_{t=i}^{i+L-1}, \quad \mathbf{Y}_i \in \{0, 1\}^{L \times n_\rho}
+\mathbf{X}^{(aud)}_i=\{o^{(aud)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(aud)}_i\in\mathbb{R}^{L\times2\times H_{mels}\times W_{time}}
 \]</div>
-<p>Where <span class="arithmatex">\(n_\rho\)</span> is the dimensionality of the action space dictated by the active environment profile <span class="arithmatex">\(\rho\)</span> (e.g., Basic, Classic, Fluid).</p>
+<div class="arithmatex">\[
+\mathbf{X}^{(thm)}_i=\{o^{(thm)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(thm)}_i\in\{0,1\}^{L\times1\times64\times64}
+\]</div>
+<div class="arithmatex">\[
+\mathbf{Y}_i=\{y_t\}_{t=i}^{i+L-1},\quad\mathbf{Y}_i\in\{0,1\}^{L\times n_\rho}
+\]</div>
+<p>Where <span class="arithmatex">\(C \in \{3,4\}\)</span> depends on whether the depth buffer is enabled, and <span class="arithmatex">\(n_\rho\)</span> is the dimensionality of the action space dictated by the active environment profile <span class="arithmatex">\(\rho\)</span> (e.g., Basic, Classic, Fluid).</p>
 <h2 id="2-the-objective-function-bce-loss">2. The Objective Function (BCE Loss)</h2>
-<p>At each time step <span class="arithmatex">\(t\)</span>, the network outputs a vector of raw logits <span class="arithmatex">\(\mathbf{z}_t \in \mathbb{R}^{n_\rho}\)</span>. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using <strong>Binary Cross-Entropy</strong> with Logits Loss.</p>
+<p>At each time step <span class="arithmatex">\(t\)</span>, the network outputs a vector of raw logits <span class="arithmatex">\(\mathbf{z}_t\in\mathbb{R}^{n_\rho}\)</span>. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using <strong>Binary Cross-Entropy</strong> with Logits Loss.</p>
 <p>The loss <span class="arithmatex">\(\mathcal{L}\)</span> for a single sequence of length <span class="arithmatex">\(L\)</span> over <span class="arithmatex">\(n_\rho\)</span> independent binary action channels is computed as:</p>
 <div class="arithmatex">\[
-\mathcal{L}(\theta) = - \frac{1}{L \cdot n_\rho} \sum_{t=1}^{L} \sum_{j=1}^{n_\rho} \left[ y_{t,j} \log(\sigma(z_{t,j})) + (1 - y_{t,j}) \log(1 - \sigma(z_{t,j})) \right]
+\mathcal{L}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
 \]</div>
 <p>Where <span class="arithmatex">\(\sigma(\cdot)\)</span> is the Sigmoid activation function, <span class="arithmatex">\(y_{t,j}\)</span> is the ground truth label, and <span class="arithmatex">\(z_{t,j}\)</span> is the network's prediction. The network parameters <span class="arithmatex">\(\theta\)</span> are updated via Backpropagation Through Time (BPTT).</p>
 <h2 id="3-class-imbalance-mirror-augmentation">3. Class Imbalance &amp; Mirror Augmentation</h2>
 <p>Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Hold W Trap" (convergence to a permanent state of forward movement due to high dataset idle times).</p>
-<p>Golem counteracts spatial bias dynamically via <strong>Mirror Augmentation</strong>. During data streaming, the dataset yields a reflected observation tensor <span class="arithmatex">\(o'_t\)</span> across the vertical axis (width):</p>
+<p>Golem counteracts spatial bias dynamically via <strong>Mirror Augmentation</strong>. During data streaming, the dataset yields reflected visual and thermal observation tensors <span class="arithmatex">\(o'^{(vis)}_t\)</span> and <span class="arithmatex">\(o'^{(thm)}_t\)</span> across the vertical axis (width):</p>
 <div class="arithmatex">\[
-o'_{t, c, h, w} = o_{t, c, h, W - w - 1}
+o'^{(vis)}_{t,c,h,w}=o^{(vis)}_{t,c,h,W-w-1}
 \]</div>
-<p>To maintain ground-truth causality, the corresponding target vector <span class="arithmatex">\(y'_t\)</span> must undergo a specific permutation. Let <span class="arithmatex">\(P_\rho\)</span> be an <span class="arithmatex">\(n_\rho \times n_\rho\)</span> permutation matrix defined by the active profile <span class="arithmatex">\(\rho\)</span>, which swaps the indices corresponding to strictly spatial actions:</p>
+<div class="arithmatex">\[
+o'^{(thm)}_{t,c,h,w}=o^{(thm)}_{t,c,h,W-w-1}
+\]</div>
+<p>If the auditory sensor is enabled, perfect spatial symmetry must also be maintained across the agent's "hearing." This is achieved by physically swapping the left and right stereo channels (channel index 0 and 1) across the 2D Mel Spectrogram:</p>
+<div class="arithmatex">\[
+o'^{(aud)}_{t,c_{flip},h_{mel},w_{time}}=o^{(aud)}_{t,1-c_{flip},h_{mel},w_{time}}
+\]</div>
+<p>To maintain ground-truth causality, the corresponding target vector <span class="arithmatex">\(y'_t\)</span> must undergo a specific permutation. Let <span class="arithmatex">\(P_\rho\)</span> be an <span class="arithmatex">\(n_\rho\times n_\rho\)</span> permutation matrix defined by the active profile <span class="arithmatex">\(\rho\)</span>, which swaps the indices corresponding to strictly spatial actions:</p>
 <ul>
-<li><span class="arithmatex">\(idx_{\text{MoveLeft}} \leftrightarrow idx_{\text{MoveRight}}\)</span></li>
-<li><span class="arithmatex">\(idx_{\text{TurnLeft}} \leftrightarrow idx_{\text{TurnRight}}\)</span></li>
+<li><span class="arithmatex">\(idx_{\text{MoveLeft}}\leftrightarrow idx_{\text{MoveRight}}\)</span></li>
+<li><span class="arithmatex">\(idx_{\text{TurnLeft}}\leftrightarrow idx_{\text{TurnRight}}\)</span></li>
 </ul>
 <p>All state-invariant actions (e.g., Attack, Use, NextWeapon) map to the identity matrix within <span class="arithmatex">\(P_\rho\)</span>. The augmented target vector is thus:</p>
 <div class="arithmatex">\[
-y'_t = P_\rho y_t
+y'_t=P_\rho y_t
 \]</div>
 <p>This geometric inversion enforces perfect spatial symmetry in the agent's spatial reasoning, effectively doubling the dataset's topological variance without requiring additional recording sessions.</p>
 <h2 id="4-covariate-shift-dagger-intervention">4. Covariate Shift &amp; DAgger Intervention</h2>
 <p>A fundamental flaw of pure Behavioral Cloning is <strong>Covariate Shift</strong> (the "Perfect Play" trap). If the network is trained exclusively on flawless expert demonstrations, it never learns how to recover from mistakes. During live inference, a microscopic mathematical error will push the agent slightly off the optimal trajectory. Because this sub-optimal state <span class="arithmatex">\(s_{err}\)</span> exists outside the training distribution, the agent's predictions become chaotic, and the errors rapidly compound until the agent is completely stuck.</p>
 <p>To cure this, Golem employs <strong>DAgger (Dataset Aggregation)</strong>. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. This intervention steers the agent back to the optimal path, automatically appending a <code>_recovery</code> dataset trace to the active profile's training directory. This explicitly teaches the network how to correct trajectory deviations.</p>
-<h2 id="5-diagnostic-auditing">5. Diagnostic Auditing</h2>
+<h2 id="5-diagnostic-auditing-validation">5. Diagnostic Auditing &amp; Validation</h2>
 <p>Because the aggregate BCE loss scalar <span class="arithmatex">\(\mathcal{L}(\theta)\)</span> fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static <code>audit</code> module.</p>
-<p>The audit evaluates the trained weights over a validation slice by generating a strictly thresholded (<span class="arithmatex">\(\sigma(\mathbf{z}) &gt; 0.5\)</span>) Confusion Matrix for every individual channel <span class="arithmatex">\(j\)</span> in the <span class="arithmatex">\(n_\rho\)</span> action space. It evaluates the network based on:</p>
+<p>The audit evaluates the trained weights over a validation slice by generating a strictly thresholded (<span class="arithmatex">\(\sigma(\mathbf{z})&gt;0.5\)</span>) Confusion Matrix for every individual channel <span class="arithmatex">\(j\)</span> in the <span class="arithmatex">\(n_\rho\)</span> action space. It evaluates the network based on:</p>
 <p><strong>Precision (<span class="arithmatex">\(P_j\)</span>)</strong></p>
 <p>The probability that the agent's decision to act was correct.</p>
 <div class="arithmatex">\[
-P_j = \frac{TP_j}{TP_j + FP_j}
+P_j=\frac{TP_j}{TP_j+FP_j}
 \]</div>
 <p><strong>Recall (<span class="arithmatex">\(R_j\)</span>)</strong>: </p>
 <p>The probability that the agent successfully reacted to an environmental stimulus requiring action <span class="arithmatex">\(j\)</span>.</p>
 <div class="arithmatex">\[
-R_j = \frac{TP_j}{TP_j + FN_j}
+R_j=\frac{TP_j}{TP_j+FN_j}
 \]</div>
 <p>Where <span class="arithmatex">\(TP\)</span>, <span class="arithmatex">\(FP\)</span>, and <span class="arithmatex">\(FN\)</span> represent True Positives, False Positives, and False Negatives, respectively.</p>
+<h3 id="addressing-redundancy-stride">Addressing Redundancy (Stride)</h3>
+<p>During normal training, the sliding window overlaps by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the <code>audit</code> dataloader enforces a sequence stride equal to <span class="arithmatex">\(L\)</span>, meaning non-overlapping segments are tested to precisely evaluate every frame only once.</p>
 <hr />
 <h2 id="api-reference">API Reference</h2>
 <p>The data extraction, LNN optimization, and evaluation mechanics are orchestrated by the handlers below.</p>
@@ -1056,7 +1132,10 @@ Default: <code>None</code>.</p>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
-<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1103,7 +1182,8 @@ Default: <code>None</code>.</p>
         <span class="n">seq_len</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">,</span>
         <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">,</span>
         <span class="n">augment</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">augmentation</span><span class="o">.</span><span class="n">mirror</span><span class="p">,</span>
-        <span class="n">action_names</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_names</span> 
+        <span class="n">action_names</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_names</span><span class="p">,</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1139,7 +1219,8 @@ Default: <code>None</code>.</p>
         <span class="n">n_actions</span><span class="o">=</span><span class="n">n_actions</span><span class="p">,</span>
         <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
         <span class="n">working_memory</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
-        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
+        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">state_dict</span><span class="p">:</span>
@@ -1160,10 +1241,11 @@ Default: <code>None</code>.</p>
         <span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
             <span class="n">x_vis</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
             <span class="n">x_aud</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">x_thm</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
             <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">predictions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">)</span>            
+            <span class="n">predictions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="n">x_thm</span><span class="p">)</span>           
 
             <span class="c1"># Use dynamic n_actions for the safety check</span>
             <span class="k">if</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n_actions</span><span class="p">:</span>
@@ -1214,9 +1296,7 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/intervene.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">117</span>
 <span class="normal">118</span>
 <span class="normal">119</span>
 <span class="normal">120</span>
@@ -1349,7 +1429,21 @@ Default: <code>None</code>.</p>
 <span class="normal">247</span>
 <span class="normal">248</span>
 <span class="normal">249</span>
-<span class="normal">250</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1377,6 +1471,17 @@ Default: <code>None</code>.</p>
         <span class="n">working_memory</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
         <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="n">mel_transform</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">amp_to_db</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">:</span>
+        <span class="n">mel_transform</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">MelSpectrogram</span><span class="p">(</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">n_fft</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+            <span class="n">hop_length</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">hop_length</span><span class="p">,</span>
+            <span class="n">n_mels</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_mels</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">amp_to_db</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">AmplitudeToDB</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">))</span>
@@ -1409,6 +1514,7 @@ Default: <code>None</code>.</p>
     <span class="n">recovery_depths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">recovery_audios</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">recovery_actions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">recovery_thermals</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;======================================================&quot;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;DAgger Mode Active. Golem is running autonomously.&quot;</span><span class="p">)</span>
@@ -1417,42 +1523,41 @@ Default: <code>None</code>.</p>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Release [LEFT SHIFT] to save the recovery memory and resume.&quot;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;======================================================&quot;</span><span class="p">)</span>
 
+    <span class="c1"># TODO: make this configurable or pass it in through the CLI</span>
     <span class="n">episodes</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episodes</span><span class="p">):</span>
         <span class="n">game</span><span class="o">.</span><span class="n">new_episode</span><span class="p">()</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="n">game</span><span class="o">.</span><span class="n">is_episode_finished</span><span class="p">():</span>
+            <span class="c1"># Physiological Reset (Death)</span>
+            <span class="k">if</span> <span class="n">game</span><span class="o">.</span><span class="n">is_player_dead</span><span class="p">():</span>
+                <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span>
+
             <span class="n">state</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
-            <span class="n">raw_frame</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">screen_buffer</span>
 
-            <span class="n">processed_frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">raw_frame</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
-            <span class="n">x_vis_np</span> <span class="o">=</span> <span class="n">processed_frame</span>
-
-            <span class="n">processed_depth</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span> <span class="ow">and</span> <span class="n">state</span><span class="o">.</span><span class="n">depth_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">processed_depth</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">depth_buffer</span><span class="p">,</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
-                <span class="n">x_vis_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">x_vis_np</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">processed_depth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-
-            <span class="n">raw_audio</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span> <span class="ow">and</span> <span class="n">state</span><span class="o">.</span><span class="n">audio_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">raw_audio</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">audio_buffer</span>
-
-            <span class="n">tensor_vis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x_vis_np</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-            <span class="n">tensor_aud</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">raw_audio</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="n">raw_audio</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="c1"># Centralized Extraction &amp; Tensor formatting</span>
+            <span class="n">extracted</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">get_numpy_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">)</span>
+            <span class="n">tensors</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">to_tensors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">mel_transform</span><span class="p">,</span> <span class="n">amp_to_db</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="n">logits</span><span class="p">,</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">tensor_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">tensor_aud</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="n">hx</span><span class="p">)</span>
+                <span class="n">logits</span><span class="p">,</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span>
+                    <span class="n">tensors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visual&#39;</span><span class="p">),</span> 
+                    <span class="n">x_aud</span><span class="o">=</span><span class="n">tensors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;audio&#39;</span><span class="p">),</span> 
+                    <span class="n">x_thm</span><span class="o">=</span><span class="n">tensors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;thermal&#39;</span><span class="p">),</span> 
+                    <span class="n">hx</span><span class="o">=</span><span class="n">hx</span>
+                <span class="p">)</span>                
                 <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">controller</span><span class="o">.</span><span class="n">intervening</span><span class="p">:</span>
                 <span class="n">action</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">get_action_vector</span><span class="p">()</span>
-                <span class="n">recovery_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processed_frame</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">processed_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">recovery_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processed_depth</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">raw_audio</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">recovery_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">raw_audio</span><span class="p">)</span>
+                <span class="c1"># Append arrays using dictionary safeties</span>
+                <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
+
                 <span class="n">recovery_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">game</span><span class="o">.</span><span class="n">get_episode_time</span><span class="p">()</span> <span class="o">%</span> <span class="mi">35</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1474,11 +1579,12 @@ Default: <code>None</code>.</p>
                         <span class="n">save_dict</span><span class="p">[</span><span class="s1">&#39;depths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">recovery_depths</span><span class="p">)</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovery_audios</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">save_dict</span><span class="p">[</span><span class="s1">&#39;audios&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">recovery_audios</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovery_thermals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">save_dict</span><span class="p">[</span><span class="s1">&#39;thermals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">recovery_thermals</span><span class="p">)</span>
 
                     <span class="n">np</span><span class="o">.</span><span class="n">savez_compressed</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="o">**</span><span class="n">save_dict</span><span class="p">)</span>
 
-                    <span class="n">recovery_frames</span><span class="p">,</span> <span class="n">recovery_depths</span><span class="p">,</span> <span class="n">recovery_audios</span><span class="p">,</span> <span class="n">recovery_actions</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
-
+                    <span class="n">recovery_frames</span><span class="p">,</span> <span class="n">recovery_depths</span><span class="p">,</span> <span class="n">recovery_audios</span><span class="p">,</span> <span class="n">recovery_thermals</span><span class="p">,</span> <span class="n">recovery_actions</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
             <span class="n">game</span><span class="o">.</span><span class="n">make_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.028</span><span class="p">)</span>
 
@@ -1786,14 +1892,30 @@ available data for the active profile. Default: <code>"all"</code>.</p>
                   <code>&#39;all&#39;</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>full</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>True</code>, evaluates the entire dataset instead 
+of capping at 50 sequence batches. Default: <code>False</code></p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/analyze.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">108</span>
-<span class="normal">109</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
 <span class="normal">110</span>
 <span class="normal">111</span>
 <span class="normal">112</span>
@@ -1929,8 +2051,20 @@ available data for the active profile. Default: <code>"all"</code>.</p>
 <span class="normal">242</span>
 <span class="normal">243</span>
 <span class="normal">244</span>
-<span class="normal">245</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">):</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>
 
@@ -1946,6 +2080,8 @@ available data for the active profile. Default: <code>"all"</code>.</p>
 <span class="sd">        module_name (str, optional): The specific module to audit against </span>
 <span class="sd">            (e.g., &quot;combat&quot;, &quot;navigation&quot;). If &quot;all&quot;, it evaluates against all </span>
 <span class="sd">            available data for the active profile. Default: ``&quot;all&quot;``.</span>
+<span class="sd">        full (bool, optional): If ``True``, evaluates the entire dataset instead </span>
+<span class="sd">            of capping at 50 sequence batches. Default: ``False``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;mps&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
@@ -1959,7 +2095,14 @@ available data for the active profile. Default: <code>"all"</code>.</p>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">file_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_clean</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">*.npz&quot;</span>
 
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">DoomStreamingDataset</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data_dir</span><span class="p">),</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">DoomStreamingDataset</span><span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">data_dir</span><span class="p">),</span> 
+        <span class="n">seq_len</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">,</span>
+        <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">,</span>
+        <span class="n">augment</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">augmentation</span><span class="o">.</span><span class="n">mirror</span><span class="p">,</span>
+        <span class="n">action_names</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_names</span><span class="p">,</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
+    <span class="p">)</span>
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># 2. Discover Brain Architecture &amp; Load Model</span>
@@ -1987,7 +2130,8 @@ available data for the active profile. Default: <code>"all"</code>.</p>
             <span class="n">n_actions</span><span class="o">=</span><span class="n">n_actions</span><span class="p">,</span>
             <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
             <span class="n">working_memory</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
-            <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
+            <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span>
+            <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>  <span class="c1"># &lt;--- New</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
@@ -2001,7 +2145,7 @@ available data for the active profile. Default: <code>"all"</code>.</p>
 
     <span class="n">all_preds</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">all_targets</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">max_batches</span> <span class="o">=</span> <span class="mi">50</span> 
+    <span class="n">max_batches</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">full</span> <span class="k">else</span> <span class="mi">50</span>
 
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
@@ -2010,8 +2154,9 @@ available data for the active profile. Default: <code>"all"</code>.</p>
 
             <span class="n">x_vis</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
             <span class="n">x_aud</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">x_thm</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">else</span> <span class="kc">None</span>
 
-            <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">)</span>
+            <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="n">x_thm</span><span class="p">)</span>
             <span class="n">preds</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 

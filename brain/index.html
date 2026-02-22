@@ -219,14 +219,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../philsophy.md" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Philosophy
+    Configuration
   
 
     
@@ -344,10 +344,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-auditory-cortex-1d-cnn" class="md-nav__link">
+  <a href="#2-auditory-cortex-2d-cnn-mel-spectrograms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Auditory Cortex (1D CNN)
+        2. Auditory Cortex (2D CNN &amp; Mel Spectrograms)
       
     </span>
   </a>
@@ -355,15 +355,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-liquid-core-cfc-state-persistence" class="md-nav__link">
+  <a href="#3-thermal-cortex-parallel-2d-cnn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Liquid Core (CfC) &amp; State Persistence
+        3. Thermal Cortex (Parallel 2D CNN)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. Liquid Core (CfC) &amp; State Persistence">
+    <nav class="md-nav" aria-label="3. Thermal Cortex (Parallel 2D CNN)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sensor-fusion-concatenation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sensor Fusion Concatenation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-liquid-core-cfc-state-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Liquid Core (CfC) &amp; State Persistence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Liquid Core (CfC) &amp; State Persistence">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -383,10 +411,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-motor-cortex-linear-head" class="md-nav__link">
+  <a href="#5-motor-cortex-linear-head" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Motor Cortex (Linear Head)
+        5. Motor Cortex (Linear Head)
       
     </span>
   </a>
@@ -449,6 +477,33 @@
     
   
     Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
   
 
     
@@ -553,10 +608,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-auditory-cortex-1d-cnn" class="md-nav__link">
+  <a href="#2-auditory-cortex-2d-cnn-mel-spectrograms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Auditory Cortex (1D CNN)
+        2. Auditory Cortex (2D CNN &amp; Mel Spectrograms)
       
     </span>
   </a>
@@ -564,15 +619,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-liquid-core-cfc-state-persistence" class="md-nav__link">
+  <a href="#3-thermal-cortex-parallel-2d-cnn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Liquid Core (CfC) &amp; State Persistence
+        3. Thermal Cortex (Parallel 2D CNN)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. Liquid Core (CfC) &amp; State Persistence">
+    <nav class="md-nav" aria-label="3. Thermal Cortex (Parallel 2D CNN)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sensor-fusion-concatenation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sensor Fusion Concatenation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-liquid-core-cfc-state-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Liquid Core (CfC) &amp; State Persistence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Liquid Core (CfC) &amp; State Persistence">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -592,10 +675,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-motor-cortex-linear-head" class="md-nav__link">
+  <a href="#5-motor-cortex-linear-head" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Motor Cortex (Linear Head)
+        5. Motor Cortex (Linear Head)
       
     </span>
   </a>
@@ -656,42 +739,49 @@
 
 
 <h1 id="the-brain-liquid-neural-networks">The Brain: Liquid Neural Networks</h1>
-<p>The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells. With the introduction of multi-modal sensor fusion, the brain can dynamically scale its perception across visual, spatial (depth), and auditory domains.</p>
+<p>The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells. With the introduction of multi-modal sensor fusion, the brain can dynamically scale its perception across visual, spatial (depth), auditory, and thermal domains.</p>
 <h2 id="1-visual-cortex-cnn">1. Visual Cortex (CNN)</h2>
 <p>The input observation <span class="arithmatex">\(o_t\)</span> is first processed by a Convolutional Neural Network (CNN) to extract spatial features. This hierarchy reduces the high-dimensional pixel space into a flattened, latent feature vector <span class="arithmatex">\(V(t)\)</span>. </p>
-<p>The architecture scales dynamically based on the configured <code>cortical_depth</code> (<span class="arithmatex">\(D\)</span>) and active <code>sensors</code>. Given an input tensor of <span class="arithmatex">\(C \times 64 \times 64\)</span> (where <span class="arithmatex">\(C=3\)</span> for standard RGB, or <span class="arithmatex">\(C=4\)</span> if the stereoscopic depth buffer is enabled), the sequential convolutions (kernel size 4, stride 2) and ReLU activations compress the spatial manifold. For example, a depth of <span class="arithmatex">\(D=2\)</span> yields a highly dimensional feature map, while deeper configurations (e.g., <span class="arithmatex">\(D=4\)</span>) aggressively pool the feature maps to a much smaller dense representation.</p>
-<h2 id="2-auditory-cortex-1d-cnn">2. Auditory Cortex (1D CNN)</h2>
-<p>If the <code>audio</code> sensor is enabled, Golem expands its phenomenology by routing the raw, high-frequency stereo audio buffer through a parallel 1D Convolutional Neural Network (<code>nn.Conv1d</code>). </p>
-<p>This pathway consists of sequential 1D convolutions (e.g., kernel size 8, stride 4) and an <code>AdaptiveAvgPool1d</code> layer to extract auditory features, outputting a latent audio vector <span class="arithmatex">\(A(t)\)</span>. </p>
-<p>If multiple modalities are active, their respective feature vectors are concatenated:</p>
+<p>The architecture scales dynamically based on the configured <code>cortical_depth</code> (<span class="arithmatex">\(D\)</span>) and active <code>sensors</code>. Given an input tensor of <span class="arithmatex">\(C\times64\times64\)</span> (where <span class="arithmatex">\(C=3\)</span> for standard RGB, or <span class="arithmatex">\(C=4\)</span> if the stereoscopic depth buffer is enabled), the sequential convolutions (kernel size 4, stride 2) and ReLU activations compress the spatial manifold. For example, a depth of <span class="arithmatex">\(D=4\)</span> aggressively pools the feature maps to a highly dense representation, outputting a flattened latent feature vector <span class="arithmatex">\(V(t)\in\mathbb{R}^{1024}\)</span>.</p>
+<h2 id="2-auditory-cortex-2d-cnn-mel-spectrograms">2. Auditory Cortex (2D CNN &amp; Mel Spectrograms)</h2>
+<p>If the <code>audio</code> sensor is enabled, Golem expands its phenomenology by processing the raw, high-frequency stereo audio buffer from the engine. </p>
+<p>To ensure network stability and prevent gradient explosion, the raw audio arrays are first strictly normalized (zero-mean, unit-variance) during the extraction phase. During data loading and live inference, the normalized 1D waveforms are mathematically converted into dense 2D time-frequency tensors (scaled to decibels) using <code>torchaudio</code> transforms.</p>
+<p>This transformation allows the network to process audio as a spatial map. The resulting Mel Spectrogram is routed through a parallel 2D Convolutional Neural Network (<code>nn.Conv2d</code>). By leveraging spatial locality, this architecture mathematically aligns sound classification with the existing visual processing hierarchy, enabling the model to recognize the "visual" shape of acoustic cues (such as a monster's growl or a plasma rifle firing) while naturally compressing high-frequency acoustic noise.</p>
+<p>This pathway consists of sequential 2D convolutions (e.g., kernel size 3, stride 2, padding 1) and an <code>AdaptiveAvgPool2d((1, 1))</code> layer to extract the final auditory features, outputting a latent audio vector <span class="arithmatex">\(A(t)\)</span>. </p>
+<h2 id="3-thermal-cortex-parallel-2d-cnn">3. Thermal Cortex (Parallel 2D CNN)</h2>
+<p>If the <code>thermal</code> sensor is enabled, Golem utilizes ViZDoom's semantic segmentation <code>labels_buffer</code> to decouple spatial navigation from active enemy detection. This isolates dynamic entities (monsters, projectiles, items) from the static background geometry, projecting them as a binary "thermal" mask that severely reduces the visual noise the model must parse during combat.</p>
+<p>The extracted binary mask is resized to <span class="arithmatex">\(1\times64\times64\)</span> utilizing nearest-neighbor interpolation to prevent edge anti-aliasing artifacts, and routed through an isolated, parallel 2D Convolutional Neural Network (<code>nn.Conv2d</code>). This pathway scales identically to the Visual Cortex based on the <code>cortical_depth</code> (<span class="arithmatex">\(D\)</span>), but initiates with a specialized filter width. It utilizes sequential convolutions (kernel size 4, stride 2) and ReLU activations, starting at 16 output channels and doubling at each layer, allowing the network to learn independent dynamic entity-tracking filters. </p>
+<p>This pathway compresses the binary mask into a latent thermal vector <span class="arithmatex">\(T(t)\in\mathbb{R}^{512}\)</span> (at <span class="arithmatex">\(D=4\)</span>).</p>
+<h3 id="sensor-fusion-concatenation">Sensor Fusion Concatenation</h3>
+<p>If multiple modalities are active, their respective flattened feature vectors are dynamically concatenated:</p>
 <div class="arithmatex">\[
-I(t) = V(t) \oplus A(t)
+I(t)=V(t)\oplus A(t)\oplus T(t)
 \]</div>
-<p>Where <span class="arithmatex">\(I(t) \in \mathbb{R}^{W_f}\)</span> is the final, unified multi-modal representation fed into the liquid core, and <span class="arithmatex">\(W_f\)</span> is the dynamically calculated flat size.</p>
-<h2 id="3-liquid-core-cfc-state-persistence">3. Liquid Core (CfC) &amp; State Persistence</h2>
+<p>Where <span class="arithmatex">\(I(t)\in\mathbb{R}^{W_f}\)</span> is the final, unified multi-modal representation fed into the liquid core, missing modalities are omitted, and <span class="arithmatex">\(W_f\)</span> is the dynamically calculated flat size of all active cortices combined. For example, combining the aforementioned visual (<span class="arithmatex">\(1024\)</span>) and thermal (<span class="arithmatex">\(512\)</span>) cortices yields a unified <span class="arithmatex">\(W_f=1536\)</span> input vector.</p>
+<h2 id="4-liquid-core-cfc-state-persistence">4. Liquid Core (CfC) &amp; State Persistence</h2>
 <p>Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete, uniform steps. In contrast, <strong>Liquid Time-Constant (LTC)</strong> networks model the hidden state <span class="arithmatex">\(x(t)\)</span> as a system of Ordinary Differential Equations (ODEs) responding to a continuous flow of time:</p>
 <div class="arithmatex">\[
-\frac{dx(t)}{dt} = -\left[w_\tau + f(x(t), I(t); \theta)\right] \odot x(t) + A \odot f(x(t), I(t); \theta)
+\frac{dx(t)}{dt}=-\left[w_\tau+f(x(t),I(t);\theta)\right]\odot x(t)+A\odot f(x(t),I(t);\theta)
 \]</div>
-<p>However, solving this ODE numerically during live gameplay introduces severe computational latency. To achieve the <span class="arithmatex">\(\approx 28\text{ms}\)</span> inference target required by the ViZDoom engine, Golem utilizes the Closed-form Continuous (CfC) approximation (Hasani et al., 2022). This mathematically bypasses the numerical solver entirely by approximating the integral with a tight, closed-form gating mechanism:</p>
+<p>However, solving this ODE numerically during live gameplay introduces severe computational latency. To achieve the <span class="arithmatex">\(\approx28\text{ms}\)</span> inference target required by the ViZDoom engine, Golem utilizes the Closed-form Continuous (CfC) approximation (Hasani et al., 2022). This mathematically bypasses the numerical solver entirely by approximating the integral with a tight, closed-form gating mechanism:</p>
 <div class="arithmatex">\[
-x(t) = \sigma(-f(x, I; \theta_f) t) \odot g(x, I; \theta_g) + \left[1 - \sigma(-f(x, I; \theta_f) t)\right] \odot h(x, I; \theta_h)
+x(t)=\sigma(-f(x,I;\theta_f)t)\odot g(x,I;\theta_g)+\left[1-\sigma(-f(x,I;\theta_f)t)\right]\odot h(x,I;\theta_h)
 \]</div>
 <p>Where <span class="arithmatex">\(f\)</span>, <span class="arithmatex">\(g\)</span>, and <span class="arithmatex">\(h\)</span> represent distinct neural network branches parameterizing the state flow, and <span class="arithmatex">\(\odot\)</span> denotes the Hadamard product.</p>
 <h3 id="the-amnesia-constraint-stateful-inference">The "Amnesia" Constraint (Stateful Inference)</h3>
-<p>Because the underlying differential mathematics assume a continuous temporal flow, the network must accumulate evidence to build action potential. During asynchronous live gameplay (inference), the engine feeds the visual and auditory cortices discrete buffers. The hidden state <span class="arithmatex">\(hx\)</span> must be explicitly captured and recursively fed back into the network on the subsequent frame. Failing to persist this state across the deployment loop lobotomizes the network 35 times a second, preventing the CfC activation threshold from ever being reached.</p>
-<h2 id="4-motor-cortex-linear-head">4. Motor Cortex (Linear Head)</h2>
-<p>The liquid hidden state <span class="arithmatex">\(x(t) \in \mathbb{R}^{W_m}\)</span> (where <span class="arithmatex">\(W_m\)</span> is the dynamically configured <code>working_memory</code>, e.g., 64 or 128) is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile <span class="arithmatex">\(\rho\)</span>, the output weight matrix dynamically scales its dimensionality <span class="arithmatex">\(n_\rho \in \{8, 9, 10\}\)</span>:</p>
+<p>Because the underlying differential mathematics assume a continuous temporal flow, the network must accumulate evidence to build action potential. During asynchronous live gameplay (inference), the engine feeds the active cortices discrete buffers. The hidden state <span class="arithmatex">\(hx\)</span> must be explicitly captured and recursively fed back into the network on the subsequent frame. Failing to persist this state across the deployment loop lobotomizes the network 35 times a second, preventing the CfC activation threshold from ever being reached.</p>
+<h2 id="5-motor-cortex-linear-head">5. Motor Cortex (Linear Head)</h2>
+<p>The liquid hidden state <span class="arithmatex">\(x(t)\in\mathbb{R}^{W_m}\)</span> (where <span class="arithmatex">\(W_m\)</span> is the dynamically configured <code>working_memory</code>, e.g., 64 or 128) is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile <span class="arithmatex">\(\rho\)</span>, the output weight matrix dynamically scales its dimensionality <span class="arithmatex">\(n_\rho\in\{8, 9, 10\}\)</span>:</p>
 <div class="arithmatex">\[
-\mathbf{z}_t = W_{out} x(t) + b_{out}
+\mathbf{z}_t=W_{out}x(t)+b_{out}
 \]</div>
 <p>This produces raw logits <span class="arithmatex">\(\mathbf{z}_t\)</span>, which are subsequently passed through a continuous Sigmoid activation function to yield the final predicted probabilities for the multi-label Bernoulli distribution:</p>
 <div class="arithmatex">\[
-\hat{\mathbf{y}}_t = \sigma(\mathbf{z}_t)
+\hat{\mathbf{y}}_t=\sigma(\mathbf{z}_t)
 \]</div>
 <hr />
 <h2 id="api-reference">API Reference</h2>
-<p>Because the architecture is fully dynamic, the <code>DoomLiquidNet</code> class constructs its layers on-the-fly based on the active <code>app.yaml</code> configuration profile and the selected sensor fusion modalities.</p>
+<p>Because the architecture is fully dynamic, the <code>DoomLiquidNet</code> class constructs its layers on-the-fly based on the active <code>app.yaml</code> configuration profile, the selected sensor fusion modalities, and the active Digital Signal Processing (DSP) hyperparameters.</p>
 
 
 <div class="doc doc-object doc-class">
@@ -711,6 +801,8 @@ Convolutional Neural Network (Visual Cortex) to extract spatial features, which 
 then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). 
 The CfC core manages the agent's temporal state using differential equation approximations,
 allowing it to handle variable time-steps without requiring expensive ODE solvers.</p>
+<p>It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory 
+spectrograms, and thermal semantic segmentation masks into a unified latent representation.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -780,10 +872,28 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
                 <code>sensors</code>
             </td>
             <td>
+                  <code><span title="SensorsConfig">SensorsConfig</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>TODO</p>
+                <p>Booleans mapping which multi-modal networks to enable 
+(e.g., visual, depth, audio, thermal).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>dsp_config</code>
+            </td>
+            <td>
+                  <code><span title="DSPConfig">DSPConfig</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Signal processing parameters for audio initialization.</p>
               </div>
             </td>
             <td>
@@ -802,8 +912,7 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>app/models/brain.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 13</span>
-<span class="normal"> 14</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 14</span>
 <span class="normal"> 15</span>
 <span class="normal"> 16</span>
 <span class="normal"> 17</span>
@@ -900,7 +1009,41 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="normal">108</span>
 <span class="normal">109</span>
 <span class="normal">110</span>
-<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomLiquidNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomLiquidNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A continuous-time neural network for visual processing and temporal sequential decision-making.</span>
 
@@ -910,6 +1053,9 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="sd">    The CfC core manages the agent&#39;s temporal state using differential equation approximations,</span>
 <span class="sd">    allowing it to handle variable time-steps without requiring expensive ODE solvers.</span>
 
+<span class="sd">    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory </span>
+<span class="sd">    spectrograms, and thermal semantic segmentation masks into a unified latent representation.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        n_actions (int): The number of output actions for the Motor Cortex head.</span>
 <span class="sd">        cortical_depth (int, optional): The number of convolutional layers to generate. </span>
@@ -917,11 +1063,14 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="sd">            Default: ``2``.</span>
 <span class="sd">        working_memory (int, optional): The number of hidden units in the CfC liquid core,</span>
 <span class="sd">            representing the capacity of the agent&#39;s temporal memory. Default: ``64``.</span>
-<span class="sd">        sensors: TODO</span>
+<span class="sd">        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable </span>
+<span class="sd">            (e.g., visual, depth, audio, thermal).</span>
+<span class="sd">        dsp_config (DSPConfig, optional): Signal processing parameters for audio initialization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">,</span> <span class="n">cortical_depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">working_memory</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">sensors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">,</span> <span class="n">cortical_depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">working_memory</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">sensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsp_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sensors</span> <span class="o">=</span> <span class="n">sensors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dsp_config</span> <span class="o">=</span> <span class="n">dsp_config</span>
 
         <span class="c1"># 1. Build the Visual Cortex (CNN) dynamically</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
@@ -941,41 +1090,62 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
         <span class="n">flat_size</span> <span class="o">=</span> <span class="n">in_channels</span> <span class="o">*</span> <span class="p">(</span><span class="n">current_img_size</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
-        <span class="c1"># 2. Build Auditory Cortex (Parallel 1D CNN)</span>
+        <span class="c1"># 2. Build Auditory Cortex (Parallel 2D CNN)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_audio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensors</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="s1">&#39;audio&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_audio</span><span class="p">:</span>
             <span class="n">aud_layers</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">a_in</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Stereo channels</span>
+            <span class="n">a_in</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Stereo channels over a 2D Time-Frequency Spectrogram</span>
             <span class="n">a_out</span> <span class="o">=</span> <span class="mi">16</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-                <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv1d</span><span class="p">(</span><span class="n">a_in</span><span class="p">,</span> <span class="n">a_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+                <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">a_in</span><span class="p">,</span> <span class="n">a_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
                 <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
                 <span class="n">a_in</span> <span class="o">=</span> <span class="n">a_out</span>
                 <span class="n">a_out</span> <span class="o">*=</span> <span class="mi">2</span>
-            <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool1d</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
             <span class="n">aud_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">audio_conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">aud_layers</span><span class="p">)</span>
 
             <span class="n">flat_size</span> <span class="o">+=</span> <span class="n">a_in</span> 
 
-        <span class="c1"># 3. Liquid Core</span>
+        <span class="c1"># 3. Build Thermal Cortex (Parallel 2D CNN)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_thermal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensors</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="s1">&#39;thermal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_thermal</span><span class="p">:</span>
+            <span class="n">thm_layers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">t_in</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Binary Thermal Mask</span>
+            <span class="n">t_out</span> <span class="o">=</span> <span class="mi">16</span>
+            <span class="n">t_img_size</span> <span class="o">=</span> <span class="mi">64</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cortical_depth</span><span class="p">):</span>
+                <span class="n">thm_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+                <span class="n">thm_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+                <span class="n">t_img_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_img_size</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">t_in</span> <span class="o">=</span> <span class="n">t_out</span>
+                <span class="n">t_out</span> <span class="o">*=</span> <span class="mi">2</span>
+            <span class="n">thm_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thermal_conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">thm_layers</span><span class="p">)</span>
+
+            <span class="n">flat_size</span> <span class="o">+=</span> <span class="n">t_in</span> <span class="o">*</span> <span class="p">(</span><span class="n">t_img_size</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># 4. Liquid Core</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">liquid_rnn</span> <span class="o">=</span> <span class="n">CfC</span><span class="p">(</span>
             <span class="n">input_size</span><span class="o">=</span><span class="n">flat_size</span><span class="p">,</span> 
             <span class="n">units</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span> 
             <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span> 
         <span class="p">)</span>
 
-        <span class="c1"># 4. Motor Cortex Head</span>
+        <span class="c1"># 5. Motor Cortex Head</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">working_memory</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Performs a forward pass through the visual cortex and liquid core.</span>
+<span class="sd">        Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x_vis (Tensor): A batched sequence of visual frames of shape </span>
 <span class="sd">                :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
-<span class="sd">            x_aud (Tensor, optional): TODO</span>
+<span class="sd">            x_aud (Tensor, optional): A batched sequence of mel spectrograms of shape </span>
+<span class="sd">                :math:`(\text{Batch}, \text{Time}, C, H_{mels}, W_{time})`. Default: ``None``.</span>
+<span class="sd">            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape </span>
+<span class="sd">                :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
 <span class="sd">            hx (Tensor, optional): The previous hidden state of the liquid core of shape </span>
 <span class="sd">                :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
 
@@ -990,10 +1160,16 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
         <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">c_in</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_audio</span> <span class="ow">and</span> <span class="n">x_aud</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_s</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-            <span class="n">a_in</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_s</span><span class="p">)</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_h</span><span class="p">,</span> <span class="n">a_w</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+            <span class="n">a_in</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_h</span><span class="p">,</span> <span class="n">a_w</span><span class="p">)</span>
             <span class="n">a_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_conv</span><span class="p">(</span><span class="n">a_in</span><span class="p">)</span>
             <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">a_feat</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_thermal</span> <span class="ow">and</span> <span class="n">x_thm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">tw</span> <span class="o">=</span> <span class="n">x_thm</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+            <span class="n">t_in</span> <span class="o">=</span> <span class="n">x_thm</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">tw</span><span class="p">)</span>
+            <span class="n">t_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermal_conv</span><span class="p">(</span><span class="n">t_in</span><span class="p">)</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">t_feat</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">r_in</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">r_out</span><span class="p">,</span> <span class="n">new_hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">liquid_rnn</span><span class="p">(</span><span class="n">r_in</span><span class="p">,</span> <span class="n">hx</span><span class="p">)</span>
@@ -1019,14 +1195,14 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
 
 <h2 id="app.models.brain.DoomLiquidNet.forward" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>Performs a forward pass through the visual cortex and liquid core.</p>
+        <p>Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1066,7 +1242,25 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
             </td>
             <td>
               <div class="doc-md-description">
-                <p>TODO</p>
+                <p>A batched sequence of mel spectrograms of shape 
+:math:<code>(\text{Batch}, \text{Time}, C, H_{mels}, W_{time})</code>. Default: <code>None</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>x_thm</code>
+            </td>
+            <td>
+                  <code><span title="Tensor">Tensor</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A batched sequence of binary thermal masks of shape 
+:math:<code>(\text{Batch}, \text{Time}, 1, H, W)</code>. Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
@@ -1120,44 +1314,56 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/brain.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
-<span class="normal"> 82</span>
-<span class="normal"> 83</span>
-<span class="normal"> 84</span>
-<span class="normal"> 85</span>
-<span class="normal"> 86</span>
-<span class="normal"> 87</span>
-<span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
 <span class="normal">110</span>
-<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Performs a forward pass through the visual cortex and liquid core.</span>
+<span class="sd">    Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        x_vis (Tensor): A batched sequence of visual frames of shape </span>
 <span class="sd">            :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
-<span class="sd">        x_aud (Tensor, optional): TODO</span>
+<span class="sd">        x_aud (Tensor, optional): A batched sequence of mel spectrograms of shape </span>
+<span class="sd">            :math:`(\text{Batch}, \text{Time}, C, H_{mels}, W_{time})`. Default: ``None``.</span>
+<span class="sd">        x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape </span>
+<span class="sd">            :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
 <span class="sd">        hx (Tensor, optional): The previous hidden state of the liquid core of shape </span>
 <span class="sd">            :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
 
@@ -1172,10 +1378,16 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
     <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">c_in</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_audio</span> <span class="ow">and</span> <span class="n">x_aud</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_s</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-        <span class="n">a_in</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_s</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_h</span><span class="p">,</span> <span class="n">a_w</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">a_in</span> <span class="o">=</span> <span class="n">x_aud</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">a_h</span><span class="p">,</span> <span class="n">a_w</span><span class="p">)</span>
         <span class="n">a_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_conv</span><span class="p">(</span><span class="n">a_in</span><span class="p">)</span>
         <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">a_feat</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_thermal</span> <span class="ow">and</span> <span class="n">x_thm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">tw</span> <span class="o">=</span> <span class="n">x_thm</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">t_in</span> <span class="o">=</span> <span class="n">x_thm</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">tw</span><span class="p">)</span>
+        <span class="n">t_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermal_conv</span><span class="p">(</span><span class="n">t_in</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">t_feat</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">r_in</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">r_out</span><span class="p">,</span> <span class="n">new_hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">liquid_rnn</span><span class="p">(</span><span class="n">r_in</span><span class="p">,</span> <span class="n">hx</span><span class="p">)</span>

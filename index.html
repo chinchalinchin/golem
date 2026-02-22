@@ -12,7 +12,7 @@
       
       
       
-        <link rel="next" href="environment/">
+        <link rel="next" href="configuration/">
       
       
         
@@ -325,14 +325,14 @@
   
   
     <li class="md-nav__item">
-      <a href="philsophy.md" class="md-nav__link">
+      <a href="configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Philosophy
+    Configuration
   
 
     
@@ -414,6 +414,33 @@
     
   
     Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
   
 
     
@@ -601,23 +628,28 @@
 </div>
 <hr />
 <h2 id="system-architecture">🏗 System Architecture</h2>
-<p>The project follows a strict <strong>ETL (Extract, Transform, Load)</strong> pipeline pattern to decouple the game engine from the inference model. </p>
+<p>The project follows a strict <strong>ETL (Extract, Transform, Load)</strong> pipeline pattern to decouple the game engine from the multi-modal inference model. </p>
 <pre class="mermaid"><code>graph LR
-    A[ViZDoom Engine] --&gt;|Raw Buffer| B(Extract &amp; Transform)
-    B --&gt;|Tensor| C{The Brain}
+    A[ViZDoom Engine] --&gt;|RGB / Depth / Audio / Labels| B(Extract &amp; Transform)
+    B --&gt;|Multi-Modal Tensors| C{The Brain}
     C --&gt;|Logits| D[Action Vector]
     D --&gt;|Input| A
 
     style C fill:#f96,stroke:#333,stroke-width:2px</code></pre>
 <h3 id="data-pipeline-phases">Data Pipeline Phases</h3>
 <ol>
-<li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw screen buffer. Game variables (health, ammo, coordinates) are explicitly discarded to force visual heuristic learning.</li>
-<li><strong>Transform (Normalization):</strong> * <strong>Downsampling:</strong> Bilinear interpolation (64x64).<ul>
-<li><strong>Normalization:</strong> Min-max scaling ().</li>
+<li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw phenomenological buffers (RGB screen, stereoscopic depth, high-frequency stereo audio, and semantic labels). Latent game variables (health, ammo, coordinates) are explicitly discarded to force multi-modal heuristic learning.</li>
+<li>
+<p><strong>Transform (Normalization &amp; DSP):</strong> * <strong>Visual &amp; Depth:</strong> Downsampling via bilinear interpolation (64x64) and min-max scaling ().</p>
+<ul>
+<li><strong>Thermal:</strong> Binary thresholding of the semantic labels buffer to isolate active entities, followed by nearest-neighbor downsampling (64x64).</li>
+<li><strong>Audio:</strong> Zero-mean, unit-variance normalization, transformed via STFT into dense 2D time-frequency Mel Spectrograms, and logarithmically scaled to decibels.</li>
 <li><strong>Channel Permutation:</strong> Matrix transposition for PyTorch (<code>N, C, H, W</code>).</li>
 </ul>
 </li>
-<li><strong>Load (Inference/Training):</strong> Feeds sequence tensors into the dynamically scaled <strong>Neural Circuit Policy (NCP)</strong> to generate action probability distributions.</li>
+<li>
+<p><strong>Load (Inference/Training):</strong> Feeds dynamic sequence tensors into the parallel Convolutional Neural Networks (Visual, Auditory, Thermal cortices) before concatenating the latent features into the <strong>Neural Circuit Policy (NCP)</strong> to generate action probability distributions.</p>
+</li>
 </ol>
 <hr />
 <h2 id="setup">🚀 Setup</h2>
@@ -626,9 +658,11 @@
 <ul>
 <li><strong>Python:</strong> 3.10+</li>
 <li><strong>C++ Compiler:</strong> ViZDoom requires a modern C++ compiler (clang/gcc) and libraries (SDL2, OpenAL) if building wheels from source.</li>
-<li><strong>Hardware Acceleration:</strong></li>
+<li><strong>Hardware Acceleration:</strong><ul>
 <li><strong>Apple Silicon:</strong> Metal (MPS) is supported automatically.</li>
 <li><strong>NVIDIA:</strong> Requires CUDA 11.8+.</li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Bash / Zsh</label><label for="__tabbed_1_2">Fish</label></div>
@@ -654,14 +688,23 @@ pip install -r requirements.txt
 <hr />
 <h2 id="usage-cycle">🛠 Usage Cycle</h2>
 <p>Golem operates in a continuous iterative loop. Select a phase below to view the command syntax.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:7"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Intervene</label><label for="__tabbed_2_4">4. Inspect</label><label for="__tabbed_2_5">5. Train</label><label for="__tabbed_2_6">6. Audit</label><label for="__tabbed_2_7">7. Run</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:8"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><input id="__tabbed_2_8" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Intervene</label><label for="__tabbed_2_4">4. Inspect</label><label for="__tabbed_2_5">5. Train</label><label for="__tabbed_2_6">6. Audit</label><label for="__tabbed_2_7">7. Summary</label><label for="__tabbed_2_8">8. Run</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Before running, verify your hyperparameters, architectural depths, and active profile in <strong><code>conf/app.yaml</code></strong>. </p>
-<p>The <code>training.config</code> string defines which superset of actions the agent learns:
-* <strong><code>basic</code></strong>: 8 dimensions (Movement, Attack, Use).
-* <strong><code>classic</code></strong>: 10 dimensions (Basic + explicit <code>slot 2</code> and <code>slot 3</code> keys).
-* <strong><code>fluid</code></strong>: 9 dimensions (Basic + <code>weapnext</code>).</p>
+<p>The <code>training.config</code> string defines which superset of actions the agent learns:</p>
+<ul>
+<li><strong><code>basic</code></strong>: 8 dimensions (Movement, Attack, Use).</li>
+<li><strong><code>classic</code></strong>: 10 dimensions (Basic + explicit <code>slot 2</code> and <code>slot 3</code> keys).</li>
+<li><strong><code>fluid</code></strong>: 9 dimensions (Basic + <code>weapnext</code>).</li>
+</ul>
+<p>The <code>brain.sensors</code> block enables multi-modal phenomenological fusion:</p>
+<ul>
+<li><strong><code>visual</code></strong>: Base RGB screen buffer.</li>
+<li><strong><code>depth</code></strong>: Stereoscopic distance matrix.</li>
+<li><strong><code>audio</code></strong>: High-frequency waveforms transformed into 2D Mel Spectrograms.</li>
+<li><strong><code>thermal</code></strong>: Binary semantic segmentation masks to isolate dynamic entities.</li>
+</ul>
 </div>
 <div class="tabbed-block">
 <p>Launch the engine in <strong>Spectator Mode</strong> to capture training data. The engine binds keys dynamically based on the active profile in <code>app.yaml</code>.</p>
@@ -685,14 +728,23 @@ python<span class="w"> </span>main.py<span class="w"> </span>record<span class="
 </div>
 </div>
 <div class="tabbed-block">
-<p>Run the <strong>Behavioral Cloning</strong> loop to map the visual observations to action vectors via Binary Cross-Entropy. The DataLoader automatically applies dynamic Mirror Augmentation.</p>
+<p>Run the <strong>Behavioral Cloning</strong> loop to map the multi-modal observations to action vectors via Binary Cross-Entropy. The DataLoader automatically applies dynamic spatial Mirror Augmentation.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Trains on ALL available data modules across the active profile</span>
 python<span class="w"> </span>main.py<span class="w"> </span>train<span class="w"> </span>--module<span class="w"> </span>all
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <p>Run a diagnostic Brain Scan to check for class-imbalance failures against the test data.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w"> </span>--module<span class="w"> </span>all
+<div class="highlight"><pre><span></span><code><span class="c1"># Cap the evaluation to 50 sequence batches</span>
+python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w"> </span>--module<span class="w"> </span>all
+
+<span class="c1"># Run a full-corpus evaluation without overlapping sequence strides</span>
+python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w"> </span>--module<span class="w"> </span>all<span class="w"> </span>--full
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Generate a topological breakdown of the active neural architecture via <code>torchinfo</code>. This executes a dummy forward pass to validate that the active sensor cortices are dynamically scaling and concatenating properly into the liquid core.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>summary
 </code></pre></div>
 </div>
 <div class="tabbed-block">

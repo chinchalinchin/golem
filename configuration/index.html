@@ -1,0 +1,916 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://chinchalinchin.github.io/golem/configuration/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../environment/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Configuration - Golem</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#application-configuration-appyaml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Golem" class="md-header__button md-logo" aria-label="Golem" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Golem
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/chinchalinchin/golem" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    chinchalinchin/golem
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Golem" class="md-nav__button md-logo" aria-label="Golem" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Golem
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/chinchalinchin/golem" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    chinchalinchin/golem
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Blocks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Blocks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. training
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. training">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hyperparameter-dynamics-learning_rate-and-batch_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hyperparameter Dynamics: learning_rate and batch_size
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-brain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. brain
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. brain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#signal-processing-dynamics-dsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal Processing Dynamics: dsp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. keybindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../brain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Brain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Blocks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Blocks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. training
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. training">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hyperparameter-dynamics-learning_rate-and-batch_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hyperparameter Dynamics: learning_rate and batch_size
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-brain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. brain
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. brain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#signal-processing-dynamics-dsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal Processing Dynamics: dsp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. keybindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="application-configuration-appyaml">Application Configuration (<code>app.yaml</code>)</h1>
+<p>The <code>app.yaml</code> file acts as the central nervous system for Golem. It defines the active brain architecture, training hyperparameters, dataset routing, and environment multi-modality. This single source of truth ensures that the ETL pipelines and the PyTorch models remain perfectly synchronized without requiring hardcoded magic numbers.</p>
+<h2 id="configuration-blocks">Configuration Blocks</h2>
+<h3 id="1-app">1. <code>app</code></h3>
+<p>General metadata and logging settings for the application.</p>
+<ul>
+<li><strong><code>name</code></strong>: The application identifier (e.g., "Golem").</li>
+<li><strong><code>version</code></strong>: Current software version.</li>
+<li><strong><code>log_level</code></strong>: Standard Python logging level (e.g., <code>INFO</code>, <code>DEBUG</code>, <code>WARNING</code>).</li>
+</ul>
+<h3 id="2-config">2. <code>config</code></h3>
+<p>Maps the high-level brain modes to the specific underlying ViZDoom <code>.cfg</code> files. These files dictate the engine's available buttons and game variables.</p>
+<ul>
+<li><strong><code>basic</code></strong>: Maps to <code>conf/basic.cfg</code> (8 dimensions).</li>
+<li><strong><code>classic</code></strong>: Maps to <code>conf/classic.cfg</code> (10 dimensions).</li>
+<li><strong><code>fluid</code></strong>: Maps to <code>conf/fluid.cfg</code> (9 dimensions).</li>
+</ul>
+<h3 id="3-training">3. <code>training</code></h3>
+<p>Defines the Behavioral Cloning optimization loop dynamics.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Property</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>epochs</code></strong></td>
+<td style="text-align: left;">Total number of complete passes through the training dataset.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>sequence_length</code></strong></td>
+<td style="text-align: left;">The temporal window size (<span class="arithmatex">\(L\)</span>) for Backpropagation Through Time (e.g., 32 frames).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>augmentation.mirror</code></strong></td>
+<td style="text-align: left;">Boolean toggle to enable dynamic horizontal mirror augmentation, doubling topological variance and curing turning bias.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hyperparameter-dynamics-learning_rate-and-batch_size">Hyperparameter Dynamics: <code>learning_rate</code> and <code>batch_size</code></h4>
+<p>The <strong><code>learning_rate</code></strong> (e.g., 0.0001) controls the step size the Adam optimizer takes when updating the LNN's weights against the gradient of the loss function. </p>
+<ul>
+<li><strong>Too High:</strong> The model will overshoot the optimal minima, leading to erratic loss oscillation or complete divergence. </li>
+<li><strong>Too Low:</strong> The model will converge too slowly, wasting computational time, or become trapped in a suboptimal local minimum.</li>
+</ul>
+<p>The <strong><code>batch_size</code></strong> (e.g., 16) determines how many temporal sequences are processed concurrently before a weight update occurs. </p>
+<ul>
+<li><strong>Small Batch Size:</strong> Results in "noisy" gradient estimates. This noise acts as a natural regularizer, often helping the network escape sharp, suboptimal local minima and generalize better to unseen environments. However, it trains slower sequentially.</li>
+<li><strong>Large Batch Size:</strong> Provides a highly accurate gradient estimate and allows for massive hardware parallelization (faster wall-clock time per epoch). However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.</li>
+</ul>
+<p><strong>The Interplay:</strong> These two parameters are mathematically coupled. A common deep learning heuristic is the <em>Linear Scaling Rule</em>: if you double your <code>batch_size</code> (smoothing the gradient), you should generally double your <code>learning_rate</code> to maintain the same training dynamics and convergence speed.</p>
+<h3 id="4-brain">4. <code>brain</code></h3>
+<p>Defines the active architecture of the Neural Circuit Policy (NCP).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Property</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>mode</code></strong></td>
+<td style="text-align: left;">The active profile (<code>basic</code>, <code>classic</code>, or <code>fluid</code>). This dictates which configuration dictionary is loaded across the pipeline.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>cortical_depth</code></strong></td>
+<td style="text-align: left;">The number of CNN layers in the visual cortex. Higher depths aggressively pool spatial features into denser representations.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>working_memory</code></strong></td>
+<td style="text-align: left;">The number of hidden units in the CfC liquid core, defining the capacity of the agent's continuous temporal state.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>sensors</code></strong></td>
+<td style="text-align: left;">Boolean toggles (<code>visual</code>, <code>depth</code>, <code>audio</code>, <code>thermal</code>) that dynamically scale the input channels and parallel network branches (e.g., activating the parallel 2D Auditory and Thermal Cortices for multi-modal sensor fusion).</td>
+</tr>
+</tbody>
+</table>
+<h4 id="signal-processing-dynamics-dsp">Signal Processing Dynamics: <code>dsp</code></h4>
+<p>When the <code>audio</code> sensor is enabled, the <code>dsp</code> block governs how raw 1D audio waveforms are mathematically converted into 2D Mel Spectrograms. </p>
+<ul>
+<li><strong><code>sample_rate</code></strong>: The temporal resolution of the engine's audio buffer (e.g., 44100 Hz).</li>
+<li><strong><code>n_fft</code></strong>: The length of the windowed signal used for the Short-Time Fourier Transform (STFT). Higher values increase frequency resolution but decrease temporal resolution.</li>
+<li><strong><code>n_mels</code></strong>: The number of Mel filterbanks applied. This defines the final height (<span class="arithmatex">\(H_{mels}\)</span>) of the generated spectrogram tensor.</li>
+</ul>
+<p><strong>The Impact of <code>hop_length</code>:</strong></p>
+<p>The <code>hop_length</code> (e.g., 256) defines the number of audio samples between successive STFT windows. It is the fundamental parameter dictating the temporal width (<span class="arithmatex">\(W_{time}\)</span>) of the resulting 2D audio tensor.</p>
+<ul>
+<li><strong>Small <code>hop_length</code>:</strong> The STFT windows overlap heavily, yielding a highly granular, wide spectrogram matrix. The model gains exceptional temporal resolution (able to pinpoint the exact millisecond a monster growls), but memory consumption scales linearly, heavily bottlenecking VRAM during training.</li>
+<li><strong>Large <code>hop_length</code>:</strong> The windows are spaced further apart, creating a narrow, compressed matrix. Training executes significantly faster with a smaller memory footprint, but the LNN may lose the ability to detect transient, high-frequency acoustic events (like a brief weapon click).</li>
+</ul>
+<h3 id="5-data">5. <code>data</code></h3>
+<ul>
+<li><strong><code>prefix</code></strong>: The string prefix for generated tensor arrays (e.g., "golem_").</li>
+<li><strong><code>dirs.training</code> / <code>dirs.model</code></strong>: Relative paths dictating where <code>.npz</code> datasets and <code>.pth</code> weight archives are saved.</li>
+</ul>
+<h3 id="6-modules">6. <code>modules</code></h3>
+<p>A dictionary mapping human-readable task names (e.g., <code>combat</code>, <code>navigation</code>) to their specific <code>.wad</code> scenario files and the default number of episodes to record during extraction.</p>
+<h3 id="7-keybindings">7. <code>keybindings</code></h3>
+<p>A dictionary mapping the agent's action space profiles (<code>basic</code>, <code>classic</code>, <code>fluid</code>) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during <code>record</code> and mapped to <code>pynput</code> listeners during <code>intervene</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.expand", "navigation.indexes"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

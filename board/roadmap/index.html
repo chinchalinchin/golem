@@ -1080,36 +1080,64 @@
 <li>[ ] <strong>State Initialization:</strong> Update <code>run.py</code> and <code>intervene.py</code> to initialize and pass the expanded/tuple-based hidden state <span class="arithmatex">\(hx\)</span> when the second-order architecture is active.</li>
 <li>[ ] <strong>Physiological Reset (Death):</strong> Implement a strict state-check inside the inference loops. If <code>game.is_player_dead()</code> is true, explicitly detach and zero-out the hidden state. This prevents "past life" momentum leakage where the newly respawned agent inadvertently reacts to the accumulated latent velocity of its previous death.</li>
 </ul>
+<div class="admonition danger">
+<p class="admonition-title">Risk Assessment</p>
+</div>
+<p><strong>Training Overhead: Moderate</strong></p>
+<p>The BPTT (Backpropagation Through Time) algorithm must compute gradients through a coupled system of equations:</p>
+<p>$$
+  \frac{dx_1(t)}{dt} = x_2(t), \quad \frac{dx_2(t)}{dt} = f(x_1(t), x_2(t), I(t); \theta)
+  $$</p>
+<p>Because the working_memory capacity must effectively double to accommodate the bipartite Hamiltonian state tuple, VRAM consumption will increase proportionally.</p>
+<p><strong>Runtime Overhead: Low</strong> </p>
+<p>Because the network relies on the Closed-form Continuous (CfC) approximation rather than a traditional numerical solver (like Runge-Kutta), you bypass the severe latency penalties of iterative ODE evaluations. The primary cost is the increased matrix multiplication dimension resulting from the doubled hidden state size.</p>
+<p><strong>Assessment</strong>: Acceptable risks. Cleared to implement.</p>
 <h2 id="phase-7-the-parietal-binding-cross-attention-sensorimotor-integration">Phase 7: The Parietal Binding (Cross-Attention Sensorimotor Integration) 🧠</h2>
 <p><em>Goal:</em> Shift from naive flat tensor concatenation to a structured cross-attention bottleneck. By forcing the Thermal Cortex to query the Visual Cortex, the network learns to synthesize abstract spatial relationships (e.g., "enemy is next to the explosive barrel") rather than just reacting to isolated stimuli.</p>
 <h3 id="1-configuration-taxonomy-layer_1">1. Configuration &amp; Taxonomy Layer</h3>
 <ul>
-<li>[ ] <strong>Attention Toggles:</strong> Update <code>app.yaml</code> to include an <code>attention_heads</code> configuration integer under the <code>brain</code> block (e.g., 4).</li>
-<li>[ ] <strong>State Validation:</strong> Update <code>config.py</code> to accurately parse this parameter and pass it to the model initializer.</li>
+<li>[-] <strong>Attention Toggles:</strong> Update <code>app.yaml</code> to include an <code>attention_heads</code> configuration integer under the <code>brain</code> block (e.g., 4).</li>
+<li>[-] <strong>State Validation:</strong> Update <code>config.py</code> to accurately parse this parameter and pass it to the model initializer.</li>
 </ul>
 <h3 id="2-the-brain-architecture-redesign_1">2. The Brain (Architecture Redesign)</h3>
 <ul>
-<li>[ ] <strong>Multi-Head Attention:</strong> Modify <code>DoomLiquidNet</code> in <code>brain.py</code> to instantiate a <code>nn.MultiheadAttention</code> layer.</li>
-<li>[ ] <strong>Q-K-V Projection:</strong> In the <code>forward</code> pass, project the flattened Thermal feature map (<span class="arithmatex">\(T\)</span>) into the <strong>Query</strong> (<span class="arithmatex">\(Q\)</span>), and the Visual/Depth feature map (<span class="arithmatex">\(V\)</span>) into the <strong>Keys</strong> (<span class="arithmatex">\(K\)</span>) and <strong>Values</strong> (<span class="arithmatex">\(V\)</span>).</li>
-<li>[ ] <strong>Sensorimotor Fusion:</strong> Flatten the resulting contextual output tensor and feed it as the input <span class="arithmatex">\(I(t)\)</span> into the Liquid Core, scaling the <code>working_memory</code> input dynamically.</li>
+<li>[-] <strong>Multi-Head Attention:</strong> Modify <code>DoomLiquidNet</code> in <code>brain.py</code> to instantiate a <code>nn.MultiheadAttention</code> layer.</li>
+<li>[-] <strong>Q-K-V Projection:</strong> In the <code>forward</code> pass, project the flattened Thermal feature map (<span class="arithmatex">\(T\)</span>) into the <strong>Query</strong> (<span class="arithmatex">\(Q\)</span>), and the Visual/Depth feature map (<span class="arithmatex">\(V\)</span>) into the <strong>Keys</strong> (<span class="arithmatex">\(K\)</span>) and <strong>Values</strong> (<span class="arithmatex">\(V\)</span>).</li>
+<li>[-] <strong>Sensorimotor Fusion:</strong> Flatten the resulting contextual output tensor and feed it as the input <span class="arithmatex">\(I(t)\)</span> into the Liquid Core, scaling the <code>working_memory</code> input dynamically.</li>
 </ul>
+<div class="admonition danger">
+<p class="admonition-title">Risk Assessment</p>
+</div>
+<p><strong>Training Overhead: High</strong>.</p>
+<p>Attention mechanisms scale quadratically in complexity. While projecting the flattened feature maps into <span class="arithmatex">\(Q\)</span>, <span class="arithmatex">\(K\)</span>, and <span class="arithmatex">\(V\)</span> matrices adds a modest number of parameters, the actual <span class="arithmatex">\(Q K^\top\)</span> dot-product attention drastically increases memory bandwidth demands and FLOPs during the backward pass.</p>
+<p><strong>Runtime Overhead: High Risk</strong></p>
+<p>Multi-head attention is notoriously memory-bandwidth bound during autoregressive inference. Each attention head requires loading the respective matrices into GPU memory, which can introduce micro-latencies. Unless highly optimized (e.g., utilizing FlashAttention or grouping queries), this phase poses the highest risk of blowing past the ViZDoom engine's <span class="arithmatex">\(35\text{Hz}\)</span> (<span class="arithmatex">\(\approx 28\text{ms}\)</span>) temporal limit, leading to desynchronization in the multiplayer arena.</p>
+<p><strong>Assessment</strong>: Unacceptable risks. Do not implement.</p>
 <hr />
 <h2 id="phase-8-the-prefrontal-hierarchy-multi-scale-liquid-time-constants">Phase 8: The Prefrontal Hierarchy (Multi-Scale Liquid Time-Constants) ⏳</h2>
 <p><em>Goal:</em> Split the Liquid Core into two decoupled Ordinary Differential Equations (ODEs) operating at different frequencies. This allows tactical reflexes to execute in milliseconds while a strategic, long-term context is maintained over seconds, bridging the gap between instinct and abstract strategy.</p>
 <h3 id="1-configuration-layer">1. Configuration Layer</h3>
 <ul>
-<li>[ ] <strong>Hierarchical Timesteps:</strong> Update <code>app.yaml</code> to include a <code>brain.hierarchy</code> block defining <code>fast_hz</code> (e.g., 35) and <code>slow_hz</code> (e.g., 2).</li>
+<li>[-] <strong>Hierarchical Timesteps:</strong> Update <code>app.yaml</code> to include a <code>brain.hierarchy</code> block defining <code>fast_hz</code> (e.g., 35) and <code>slow_hz</code> (e.g., 2).</li>
 </ul>
 <h3 id="2-the-brain-architecture-redesign_2">2. The Brain (Architecture Redesign)</h3>
 <ul>
-<li>[ ] <strong>Bifurcated Core:</strong> Modify <code>brain.py</code> to instantiate two separate <code>CfC</code> modules: <code>FastCore</code> (tactical motor mapping) and <code>SlowCore</code> (strategic context).</li>
-<li>[ ] <strong>Temporal Gating:</strong> Implement a gating mechanism in the <code>forward</code> pass so the <code>SlowCore</code> only integrates periodically (e.g., every 17 frames). </li>
-<li>[ ] <strong>Top-Down Bias:</strong> Pass the hidden state of the <code>SlowCore</code> as a continuous, concatenating bias to the <code>FastCore</code>'s input sequence.</li>
+<li>[-] <strong>Bifurcated Core:</strong> Modify <code>brain.py</code> to instantiate two separate <code>CfC</code> modules: <code>FastCore</code> (tactical motor mapping) and <code>SlowCore</code> (strategic context).</li>
+<li>[-] <strong>Temporal Gating:</strong> Implement a gating mechanism in the <code>forward</code> pass so the <code>SlowCore</code> only integrates periodically (e.g., every 17 frames). </li>
+<li>[-] <strong>Top-Down Bias:</strong> Pass the hidden state of the <code>SlowCore</code> as a continuous, concatenating bias to the <code>FastCore</code>'s input sequence.</li>
 </ul>
 <h3 id="3-the-pipeline-state-management_1">3. The Pipeline (State Management)</h3>
 <ul>
-<li>[ ] <strong>Complex State Persistence:</strong> Adjust the recurrent state tuple <span class="arithmatex">\(hx\)</span> across <code>run.py</code> and <code>intervene.py</code> to persist a dictionary or tuple of hierarchical memories (<code>hx_fast</code>, <code>hx_slow</code>) across the inference loop.</li>
+<li>[-] <strong>Complex State Persistence:</strong> Adjust the recurrent state tuple <span class="arithmatex">\(hx\)</span> across <code>run.py</code> and <code>intervene.py</code> to persist a dictionary or tuple of hierarchical memories (<code>hx_fast</code>, <code>hx_slow</code>) across the inference loop.</li>
 </ul>
+<div class="admonition danger">
+<p class="admonition-title">Risk Assessment</p>
+</div>
+<p><strong>Training Overhead: High</strong></p>
+<p>BPTT must now unroll and track gradients across two vastly different temporal scales. The parameters for the LNN essentially double, and the computational graph becomes highly complex, as the SlowCore's hidden state acts as a continuous bias injection into the FastCore.</p>
+<p><strong>Runtime Overhead: Moderate (with Jitter)</strong> </p>
+<p>The average FLOP count per frame only increases slightly, as the FastCore handles the bulk of the rapid inference. However, this architecture introduces latency jitter. On the frames where the SlowCore triggers its integration (approximately every 17 frames), the computational load spikes. Carefully profile this worst-case frame execution time to ensure it does not break the lockstep networking protocol.</p>
+<p><strong>Assessment</strong>: Awaiting further assessment after Phase 6. Do not implement.</p>
 <hr />
 <h2 id="phase-9-forward-internal-models-predictive-coding">Phase 9: Forward Internal Models (Predictive Coding) 🔮</h2>
 <p><em>Goal:</em> Move beyond pure Behavioral Cloning by forcing the network to anticipate the future. Adding a self-supervised prediction head forces the latent space to encode the physics and movement dynamics of the DOOM engine, naturally inducing strategic planning.</p>
@@ -1127,6 +1155,14 @@
 <li>[ ] <strong>Temporal Offset Streaming:</strong> Update <code>DoomStreamingDataset</code> in <code>dataset.py</code> to dynamically yield a future target tensor <span class="arithmatex">\(T(t+k)\)</span> alongside the standard sequence inputs and action labels.</li>
 <li>[ ] <strong>Composite Loss Function:</strong> Modify the optimization loop in <code>train.py</code> to evaluate both the action logits and the thermal hallucination via a composite loss function: <span class="arithmatex">\(\mathcal{L}_{total} = \mathcal{L}_{BCE\_Action} + \lambda \mathcal{L}_{MSE\_ThermalFuture}\)</span>.</li>
 </ul>
+<div class="admonition danger">
+<p class="admonition-title">Risk Assessment</p>
+</div>
+<p><strong>Training Overhead: Severe</strong></p>
+<p>This is the most computationally expensive upgrade on the board. The dataset must now stream offset future tensors into memory, vastly increasing I/O pressure and RAM utilization. The addition of the Transposed CNN decoder essentially doubles the size of the network. Furthermore, optimizing the composite loss function (<span class="arithmatex">\(\mathcal{L}_{total} = \mathcal{L}_{BCE\_Action} + \lambda \mathcal{L}_{MSE\_ThermalFuture}\)</span>) requires computing gradients for both the classification head and the dense image generation head simultaneously.</p>
+<p><strong>Runtime Overhead: Negligible to Zero</strong></p>
+<p>This is a purely structural training constraint. Because the agent only requires the output of the Linear Motor Cortex to play the game, the entire hallucination decoder can be detached and bypassed during live inference.</p>
+<p><strong>Assessment</strong>: Acceptable, if gated behind a configuration property that is disabled by default. Cleared to implement.</p>
 <hr />
 <h2 id="distant-future">Distant Future</h2>
 <h3 id="the-possession-integration">The Possession (Integration) 👻</h3>

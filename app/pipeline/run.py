@@ -6,14 +6,13 @@ from pathlib import Path
 # External Libraries
 import torch
 import torchaudio
-import cv2
-import numpy as np
 
 # Application Libraries
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
 from app.utils import resolve_path, get_vizdoom_game, \
-                        register_command, get_latest_parameters
+                        register_command, get_latest_parameters, \
+                        SensoryExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -92,48 +91,30 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
         ).to(device)
         amp_to_db = torchaudio.transforms.AmplitudeToDB().to(device)
         
+    # TODO: make this configurable, or pass it in through CLI.
     episodes = 10
     for i in range(episodes):
         game.new_episode()
-        
         hx = None
         
         while not game.is_episode_finished():
+            # Physiological Reset (Death)
+            if game.is_player_dead():
+                hx = None
+                
             state = game.get_state()
-            raw_frame = state.screen_buffer
             
-            processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64)) / 255.0
-            x_vis_np = processed_frame
-            
-            if cfg.brain.sensors.depth and state.depth_buffer is not None:
-                processed_depth = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
-                x_vis_np = np.concatenate((x_vis_np, np.expand_dims(processed_depth, axis=2)), axis=2)
-
-            tensor_vis = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
-            
-            tensor_aud = None
-            if cfg.brain.sensors.audio and state.audio_buffer is not None:
-                raw_audio = state.audio_buffer
-                mean = np.mean(raw_audio, axis=-1, keepdims=True)
-                std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
-                norm_audio = (raw_audio - mean) / std
-                
-                # In intervene.py, if you are appending recovery frames, append `norm_audio` 
-                # (NOT the spectrogram, because dataset.py expects normalized raw audio arrays)
-                
-                # Transform to Spectrogram strictly for live tensor inference
-                tensor_aud = torch.from_numpy(norm_audio).float().unsqueeze(0).unsqueeze(0).to(device)
-                tensor_aud = mel_transform(tensor_aud)
-                tensor_aud = amp_to_db(tensor_aud)
-
-            tensor_thm = None
-            if cfg.brain.sensors.thermal and state.labels_buffer is not None:
-                binary_mask = (state.labels_buffer > 0).astype(np.float32)
-                processed_thermal = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
-                tensor_thm = torch.from_numpy(processed_thermal).float().unsqueeze(0).unsqueeze(0).unsqueeze(0).to(device)
+            # Centralized Extraction & Tensor formatting
+            extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
+            tensors = SensoryExtractor.to_tensors(extracted, device, mel_transform, amp_to_db)
 
             with torch.no_grad():
-                logits, hx = model(tensor_vis, x_aud=tensor_aud, x_thm=tensor_thm, hx=hx)                
+                logits, hx = model(
+                    tensors.get('visual'), 
+                    x_aud=tensors.get('audio'), 
+                    x_thm=tensors.get('thermal'), 
+                    hx=hx
+                )                
                 probs = torch.sigmoid(logits)
             
             action_probs = probs.cpu().numpy()[0, 0]

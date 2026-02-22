@@ -3,14 +3,14 @@ import logging
 from pathlib import Path
 
 # External Libraries
-import cv2
 import numpy as np
 import vizdoom
 
 # Application Libraries
 from app.models.config import GolemConfig
 from app.utils import resolve_path, get_unique_filename, \
-                        get_vizdoom_game, register_command
+                        get_vizdoom_game, register_command, \
+                        SensoryExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -58,31 +58,17 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
             game.new_episode()
             while not game.is_episode_finished():
                 state = game.get_state()
-                raw_frame = state.screen_buffer
-                
-                processed_frame = cv2.resize(raw_frame.transpose(1, 2, 0), (64, 64)) / 255.0
                 action = game.get_last_action()
                 
-                frames.append(processed_frame)
+                # Centralized Extraction
+                extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
+                
+                if 'visual' in extracted: frames.append(extracted['visual'])
+                if 'depth' in extracted: depths.append(extracted['depth'])
+                if 'audio' in extracted: audios.append(extracted['audio'])
+                if 'thermal' in extracted: thermals.append(extracted['thermal'])
+                
                 actions.append(action)
-                
-                if cfg.brain.sensors.depth and state.depth_buffer is not None:
-                    processed_depth = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
-                    depths.append(processed_depth)
-                    
-                if cfg.brain.sensors.audio and state.audio_buffer is not None:
-                    raw_audio = state.audio_buffer
-                    # Normalization: Zero-mean, unit-variance on the raw audio buffer at extraction
-                    mean = np.mean(raw_audio, axis=-1, keepdims=True)
-                    std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
-                    norm_audio = (raw_audio - mean) / std
-                    audios.append(norm_audio)
-                
-                if cfg.brain.sensors.thermal and state.labels_buffer is not None:
-                    binary_mask = (state.labels_buffer > 0).astype(np.float32)
-                    processed_thermal = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
-                    thermals.append(processed_thermal)
-
                 game.advance_action()
                 
         logger.info(f"Saving frames to {output_path}...")

@@ -9,11 +9,41 @@ from typing import Callable, Union, List, Tuple
 
 # External Libraries
 import vizdoom
+import cv2
+import torch
+import vizdoom
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 COMMAND_REGISTRY = {}
+
+# ----------------------------------------------------------------------------
+# --------------------------------------- APPLICATION UTILS
+# ----------------------------------------------------------------------------
+
+def setup_logging(level_str: str = "INFO"):
+    """Configures the root logger with a standard format."""
+    level = getattr(logging, level_str.upper(), logging.INFO)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%H:%M:%S"
+    )
+
+def register_command(name: str = None) -> Callable:
+    """
+    Decorator to register a CLI command into the global registry.
+    """
+    def decorator(func: Callable) -> Callable:
+        cmd_name = name if name else func.__name__
+        COMMAND_REGISTRY[cmd_name] = func
+        return func
+    return decorator
+
+# ----------------------------------------------------------------------------
+# --------------------------------------- FILE UTILS
+# ----------------------------------------------------------------------------
 
 def get_project_root() -> Path:
     """Returns the absolute path to the project root (one level up from app)."""
@@ -46,6 +76,10 @@ def get_unique_filename(directory: Union[str, Path], prefix: str, extension: str
         if not full_path.exists():
             return str(full_path)
         counter += 1
+
+# ----------------------------------------------------------------------------
+# --------------------------------------- VIZDOOM UTILS
+# ----------------------------------------------------------------------------
 
 def get_vizdoom_scenario(scenario_name: str) -> str:
     """
@@ -102,24 +136,9 @@ def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PL
             game.set_labels_buffer_enabled(True)  
     return game
 
-def setup_logging(level_str: str = "INFO"):
-    """Configures the root logger with a standard format."""
-    level = getattr(logging, level_str.upper(), logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        datefmt="%H:%M:%S"
-    )
-
-def register_command(name: str = None) -> Callable:
-    """
-    Decorator to register a CLI command into the global registry.
-    """
-    def decorator(func: Callable) -> Callable:
-        cmd_name = name if name else func.__name__
-        COMMAND_REGISTRY[cmd_name] = func
-        return func
-    return decorator
+# ----------------------------------------------------------------------------
+# --------------------------------------- MODEL UTILS
+# ----------------------------------------------------------------------------
 
 def get_latest_parameters(archives: List[str]) -> Tuple[int, int]:
     """
@@ -146,3 +165,67 @@ def normalize_audio_buffer(raw_audio: np.ndarray) -> np.ndarray:
     mean = np.mean(raw_audio, axis=-1, keepdims=True)
     std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
     return (raw_audio - mean) / std
+
+# ----------------------------------------------------------------------------
+# --------------------------------------- CLASSES
+# ----------------------------------------------------------------------------
+
+class SensoryExtractor:
+    """
+    Centralized utility class for extracting, normalizing, and formatting 
+    ViZDoom phenomenological buffers into numpy arrays and PyTorch tensors.
+    """
+    
+    @staticmethod
+    def get_numpy_state(state, sensors_cfg) -> dict:
+        """Extracts and normalizes raw game state buffers into a dictionary."""
+        data = {}
+        
+        # 1. Visual (RGB)
+        if state.screen_buffer is not None:
+            data['visual'] = cv2.resize(state.screen_buffer.transpose(1, 2, 0), (64, 64)) / 255.0
+            
+        # 2. Depth
+        if getattr(sensors_cfg, 'depth', False) and state.depth_buffer is not None:
+            data['depth'] = cv2.resize(state.depth_buffer, (64, 64)) / 255.0
+            
+        # 3. Audio (Normalized Raw Waveform)
+        if getattr(sensors_cfg, 'audio', False) and state.audio_buffer is not None:
+            raw_audio = state.audio_buffer
+            mean = np.mean(raw_audio, axis=-1, keepdims=True)
+            std = np.std(raw_audio, axis=-1, keepdims=True) + 1e-8
+            data['audio'] = (raw_audio - mean) / std
+            
+        # 4. Thermal
+        if getattr(sensors_cfg, 'thermal', False) and state.labels_buffer is not None:
+            binary_mask = (state.labels_buffer > 0).astype(np.float32)
+            data['thermal'] = cv2.resize(binary_mask, (64, 64), interpolation=cv2.INTER_NEAREST)
+            
+        return data
+
+    @staticmethod
+    def to_tensors(numpy_state: dict, device: torch.device, mel_transform=None, amp_to_db=None) -> dict:
+        """Converts normalized numpy dictionary into PyTorch tensors for model inference."""
+        tensors = {}
+        
+        # Visual & Depth Concatenation
+        if 'visual' in numpy_state:
+            x_vis_np = numpy_state['visual']
+            if 'depth' in numpy_state:
+                depth_expanded = np.expand_dims(numpy_state['depth'], axis=2)
+                x_vis_np = np.concatenate((x_vis_np, depth_expanded), axis=2)
+            tensors['visual'] = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
+            
+        # Audio Spectrogram Transformation
+        if 'audio' in numpy_state:
+            tensor_aud = torch.from_numpy(numpy_state['audio']).float().unsqueeze(0).unsqueeze(0).to(device)
+            if mel_transform and amp_to_db:
+                tensor_aud = mel_transform(tensor_aud)
+                tensor_aud = amp_to_db(tensor_aud)
+            tensors['audio'] = tensor_aud
+            
+        # Thermal Mask
+        if 'thermal' in numpy_state:
+            tensors['thermal'] = torch.from_numpy(numpy_state['thermal']).float().unsqueeze(0).unsqueeze(0).unsqueeze(0).to(device)
+            
+        return tensors

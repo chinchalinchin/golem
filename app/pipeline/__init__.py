@@ -3,5 +3,6 @@ from app.pipeline.intervene import intervene
 from app.pipeline.record import record
 from app.pipeline.run import run
 from app.pipeline.train import train
+from app.pipeline.generate import generate
 
-__all__ = [ 'audit', 'inspect', 'intervene', 'record', 'run', 'train', 'summary']
+__all__ = [ 'audit', 'inspect', 'intervene', 'record', 'run', 'train', 'summary', 'generate']

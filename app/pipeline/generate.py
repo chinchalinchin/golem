@@ -6,11 +6,12 @@ import os
 import random
 import logging
 import subprocess
+import shutil
 from pathlib import Path
 
 from app.models.config import GolemConfig
 from app.utils.conf import resolve_path, register_command
-from app.pipeline.record import record  # We will hand off to the recorder
+from app.pipeline.record import record
 
 logger = logging.getLogger(__name__)
 
@@ -24,39 +25,56 @@ class ObligeGenerator:
             raise FileNotFoundError(f"Oblige executable not found at: {self.executable}")
 
     def randomize_config(self) -> dict:
-        """Returns a randomized dictionary of Oblige Lua parameters."""
+        """Returns a randomized dictionary of strictly valid Oblige 7.70 Lua parameters."""
         return {
             "game": "doom2",
-            "length": "single",
-            "theme": random.choice(["tech", "urban", "hell", "jumbled", "original"]),
-            "size": random.choice(["micro", "tiny", "small"]), # Keep maps small to prevent dead states
-            "outdoors": random.choice(["none", "some", "plenty"]),
-            "caves": random.choice(["none", "some", "plenty"]),
-            "mons": random.choice(["normal", "lots", "nuts"]), # High threat density
-            "health": random.choice(["less", "normal", "more"]),
-            "weapons": random.choice(["soon", "normal"]),
-            "secret_rooms": "none" # Disable secrets so the agent doesn't get stuck searching
+            "engine": "zdoom",  # FIX: ViZDoom is based on ZDoom
+            "length": "single", # 'single', 'episode', or 'game'
+            "theme": random.choice(["original", "tech", "urban", "hell", "jumbled", "mixed"]),
+            "size": "small",    # FIX: 'micro' and 'tiny' are invalid in 7.70. Use 'small' or 'mixed'
+            "outdoors": random.choice(["none", "mixed", "plenty"]),
+            "caves": random.choice(["none", "mixed", "plenty"]),
+            "liquids": "none",  # Prevent agent from getting stuck in damaging acid pits early on
+            "hallways": "mixed",
+            "teleporters": "none", # Teleporters cause severe spatial discontinuity for LNNs, disable them
+            "steepness": "mixed",
+            "mons": random.choice(["normal", "lots", "nuts"]),
+            "strength": "medium",
+            "health": "normal",
+            "ammo": "normal",
+            "weapons": "normal"
         }
 
     def build_map(self, filename: str = "golem_procgen.wad") -> str:
         """Compiles the map using the headless CLI."""
-        target_wad = str(self.output_dir / filename)
+        target_wad_absolute = str(self.output_dir / filename)
+        temp_wad_name = "temp_batch.wad" 
+        
         config = self.randomize_config()
         
-        # Construct the CLI arguments
-        args = [self.executable, "--batch", target_wad]
+        # FIX: Emulate the terminal exactly. Force argv[0] to be "./Oblige" instead of the absolute path.
+        args = ["./Oblige", "--batch", temp_wad_name]
         for key, value in config.items():
             args.append(f"{key}={value}")
             
         logger.info(f"Compiling procedural map with parameters: {config}")
         
         try:
-            # Run headless compilation
-            subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            logger.info(f"Map compiled successfully: {target_wad}")
-            return target_wad
+            oblige_dir = os.path.dirname(self.executable)
+            subprocess.run(args, check=True, capture_output=True, text=True, cwd=oblige_dir)
+            
+            compiled_temp_path = os.path.join(oblige_dir, temp_wad_name)
+            if os.path.exists(compiled_temp_path):
+                shutil.move(compiled_temp_path, target_wad_absolute)
+                logger.info(f"Map compiled and moved successfully: {target_wad_absolute}")
+                return target_wad_absolute
+            else:
+                raise FileNotFoundError("Oblige returned success, but the temporary WAD file is missing.")
+                
         except subprocess.CalledProcessError as e:
-            logger.error(f"Oblige compilation failed: {e}")
+            logger.error(f"Oblige compilation failed with exit code {e.returncode}.")
+            logger.error(f"Oblige STDOUT:\n{e.stdout}") 
+            logger.error(f"Oblige STDERR:\n{e.stderr}")
             raise
 
 @register_command("generate")
@@ -64,26 +82,16 @@ def generate(cfg: GolemConfig, episodes: int = 5):
     """
     Generates a random procedural map and immediately launches a recording session.
     """
-    try:
-        oblige_exe = cfg.randomizer.executable  # Assuming you added this to app.yaml
-        wad_dir = cfg.randomizer.output
-    except AttributeError:
-        logger.error("Oblige configuration missing from app.yaml.")
-        return
 
-    generator = ObligeGenerator(oblige_exe, wad_dir)
+    generator = ObligeGenerator(cfg.randomizer.executable, cfg.randomizer.output)
     generated_wad = generator.build_map("golem_temp.wad")
-
-    # --- Dynamic Handoff to Recording ---
-    # To properly hook this up, we need to inject the generated_wad path into
-    # your ViZDoom initialization logic before calling the recorder.
     
     logger.info("Injecting procedural WAD into recording pipeline...")
     
-    # We temporarily override the 'basic' module config to point to our new procedural map
+    # We dynamically inject the newly compiled WAD into the "basic" module slot
     cfg.modules["basic"].scenario = generated_wad 
     cfg.modules["basic"].map = "map01"
-    cfg.modules["basic"].episodes = int(episodes)
+    cfg.modules["basic"].episodes = episodes
     
-    # Call your existing record function (which now supports truncation via TAB)
+    # Boot the standard recording loop (which includes your new TAB-to-truncate feature)
     record(cfg, module_name="basic")

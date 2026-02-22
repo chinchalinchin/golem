@@ -8,7 +8,8 @@ from app.models.config import GolemConfig
 from app.utils.conf import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
-from app.pipeline import audit, inspect, intervene, train, record, run, summary
+from app.pipeline import audit, inspect, intervene, train, \
+                            record, run, summary, generate
 from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")
@@ -24,6 +25,7 @@ def main():
     parser.add_argument("--mode", choices=["basic", "classic", "fluid"], help="Override the config brain mode at runtime", default=None)
     parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
     parser.add_argument("--recovery", action="store_true", help="Include recovery (DAgger) data in training")
+    parser.add_argument("--episodes", type=int, help="Number of episodes to record/generate", default=5)
 
     args = parser.parse_args()
 
@@ -59,7 +61,9 @@ def main():
         kwargs['full'] = args.full
     if 'include_recovery' in sig.parameters:
         kwargs['include_recovery'] = args.recovery
-
+    if 'episodes' in sig.parameters:
+        kwargs['episodes'] = args.episodes
+        
     # Execute the resolved function
     func(cfg, **kwargs)
 

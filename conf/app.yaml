@@ -40,8 +40,8 @@ training:
     mirror: true
 # ------------------------------------------------------ MODULES
 randomizer:
-  executable: "/path/to/your/Oblige/Oblige"  # Path to the executable
-  output: "data/wads/"                   # Where to store generated maps
+  executable: "/Users/gmoore/Home/lib/oblige/Oblige"
+  output: "data/wads/"                   
 # ------------------------------------------------------ MODULES
 modules:
   # --- Original ViZDoom Defaults ---
@@ -84,7 +84,7 @@ modules:
     episodes: 1
   freedoom:
     scenario: "/Users/gmoore/Home/games/doom/wads/freedoom1.wad"
-    map: "map01"
+    map: "map02"
     episodes: 1
   freedoom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/freedoom2.wad"

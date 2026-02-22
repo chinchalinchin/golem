@@ -1,9 +1,10 @@
 # Issue Board: Open Issues & Enhancements
 
+See [Issue Archive](./closed/phases.md) for the project's closed issues.
+
 ## Issue 1: Pipeline Infrastructure Optimizations (Synchronous Data Loading)
 
-
-**Status:** Closed | **Priority:** Medium
+**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/20
 
 **Description:**
 
@@ -13,26 +14,9 @@ The `DoomStreamingDataset` currently applies dynamic NumPy transposition, mirror
 
 Refactor the `DataLoader` initialization in `train.py` to offload ETL transformations to background processes. Implement `num_workers` (e.g., 4), enable `pin_memory=True` for faster Host-to-Device memory transfers, and establish a `prefetch_factor`.
 
-## Issue 2: Stateful Backpropagation Through Time (BPTT) Amnesia
-
-**Status:** Closed | **Priority:** High
-
-**Description:**
-
-The LNN's Closed-form Continuous (CfC) cells require a continuous flow of time to accurately accumulate evidence and trigger action potentials. Currently, the training loop implicitly initializes the hidden state `hx` as `None` (a zero-tensor) for every 32-frame sequence batch. This forces computational amnesia at the boundary of every sequence, breaking the mathematical continuity of the ODEs representing the agent's memory.
-
-**Proposed Solution:**
-
-Implement Stateful BPTT in `train.py`:
-
-1. Disable `shuffle=True` across sequences of the same trajectory to ensure chronological streaming.
-2. Retain the hidden state output `hx` from the previous batch.
-3. Detach the state from the computational graph (`hx = hx.detach()`) to prevent backpropagating into infinite history.
-4. Pass the detached state as the prior for the subsequent batch.
-
 ## Issue 3: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
 
-**Status:** Closed | **Priority:** Medium
+**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/21
 
 **Description:**
 
@@ -44,7 +28,7 @@ Migrate the storage backend from compressed `.npz` archives to HDF5 (`h5py`) for
 
 ## Issue 4: Phenomenological Saliency Mapping (Grad-CAM)
 
-**Status:** Closed | **Priority:** High
+**Status:** Closed | **Priority:** High | **Opened**: 2026/02/21
 
 **Description:**
 
@@ -56,7 +40,7 @@ Integrate the `captum` library to generate Gradient-weighted Class Activation Ma
 
 ## Issue 5: Audit Validation Leak & Redundancy (Train/Test Split)
 
-**Status:** Closed | **Priority:** Medium
+**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/21
 
 **Description:**
 

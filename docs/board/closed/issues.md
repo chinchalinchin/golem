@@ -2,8 +2,7 @@
 
 ## Issue: DRY Violation in Sensory Extraction (Pipeline Refactoring)
 
-**Status:** Closed | **Priority:** Low | **Closed**: 2026/02/21
-
+**Status:** Closed | **Priority:** Low | | **Opened**: 2026/02/21 | **Closed**: 2026/02/21
 
 **Description:**
 
@@ -15,7 +14,7 @@ Abstract the game-state processing logic into a centralized `SensoryExtractor` u
 
 ## Issue: Stateful "Past Life" Memory Leakage (Death & Respawn)
 
-**Status:** Closed | **Priority:** High | **Closed**: 2026/02/21
+**Status:** Closed | **Priority:** High | **Opened**: 2026/02/21 | **Closed**: 2026/02/21
 
 **Description:**
 
@@ -27,7 +26,7 @@ Implement a physiological state-check inside the inference loop. If `game.is_pla
 
 ## Issue: The "Hold W" Convergence Trap (Class Imbalance)
 
-**Status:** Closed | **Priority:** Medium | **Closed**: 2026/02/22
+**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/19 | **Closed**: 2026/02/22
 
 **Description:**
 
@@ -46,7 +45,7 @@ Focal loss adds a modulating factor $(1 - p_t)^\gamma$ to the standard cross-ent
 
 ## Issue: Stateful Backpropagation Through Time (BPTT) Amnesia
 
-**Status:** Closed | **Priority:** High | **Closed**: 2026/02/22
+**Status:** Closed | **Priority:** High | **Opened**: 2026/02/21 | **Closed**: 2026/02/22
 
 **Description:**
 

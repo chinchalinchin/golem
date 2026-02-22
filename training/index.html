@@ -1168,7 +1168,8 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
+<span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
 <span class="normal"> 34</span>
@@ -1331,8 +1332,17 @@ Default: <code>None</code>.</p>
 <span class="normal">191</span>
 <span class="normal">192</span>
 <span class="normal">193</span>
-<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
 
@@ -1363,7 +1373,7 @@ Default: <code>None</code>.</p>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No GPU detected. Training will be slow on CPU.&quot;</span><span class="p">)</span>
 
     <span class="n">active_profile</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">mode</span>
-    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
+    <span class="n">base_data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
     <span class="n">prefix_clean</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">module_name</span> <span class="ow">and</span> <span class="n">module_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
@@ -1373,8 +1383,18 @@ Default: <code>None</code>.</p>
         <span class="n">file_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_clean</span><span class="si">}</span><span class="s2">_*.npz&quot;</span>        
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Training on ALL available modules (Generalization Mode)&quot;</span><span class="p">)</span>
 
+    <span class="c1"># Aggregate target directories</span>
+    <span class="n">data_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_data_dir</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">include_recovery</span><span class="p">:</span>
+        <span class="n">recovery_dir</span> <span class="o">=</span> <span class="n">base_data_dir</span> <span class="o">/</span> <span class="s2">&quot;recovery&quot;</span>
+        <span class="k">if</span> <span class="n">recovery_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">data_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recovery_dir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Recovery (DAgger) data will be included in this training run.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recovery directory </span><span class="si">{</span><span class="n">recovery_dir</span><span class="si">}</span><span class="s2"> not found. Proceeding without recovery data.&quot;</span><span class="p">)</span>
+
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">DoomStreamingDataset</span><span class="p">(</span>
-        <span class="nb">str</span><span class="p">(</span><span class="n">data_dir</span><span class="p">),</span> 
+        <span class="n">data_dirs</span><span class="p">,</span> 
         <span class="n">seq_len</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">,</span>
         <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">,</span>
         <span class="n">augment</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">augmentation</span><span class="o">.</span><span class="n">mirror</span><span class="p">,</span>
@@ -1383,10 +1403,10 @@ Default: <code>None</code>.</p>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No training data found matching pattern: </span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No training data found matching pattern: </span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data_dirs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
-    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># 1. Base Defaults</span>
     <span class="n">cortical_depth</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span>
@@ -1395,7 +1415,7 @@ Default: <code>None</code>.</p>
 
     <span class="c1"># 2. Discover architecture and dimensions if resuming training</span>
     <span class="n">model_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
-    <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>
+    <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">base_data_dir</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>  <span class="c1"># </span>
     <span class="n">state_dict</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">active_model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -1801,7 +1821,7 @@ Default: <code>None</code>.</p>
                 <span class="n">action</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_probs</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovery_frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
+                    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span> <span class="o">/</span> <span class="s2">&quot;recovery&quot;</span>
                     <span class="n">prefix_clean</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
                     <span class="n">file_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_clean</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">_recovery&quot;</span>
 

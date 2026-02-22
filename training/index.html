@@ -1168,8 +1168,7 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
-<span class="normal"> 31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
 <span class="normal"> 34</span>
@@ -1350,7 +1349,8 @@ Default: <code>None</code>.</p>
 <span class="normal">209</span>
 <span class="normal">210</span>
 <span class="normal">211</span>
-<span class="normal">212</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">212</span>
+<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1434,13 +1434,13 @@ Default: <code>None</code>.</p>
 
         <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
 
-    <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
+    <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
 
     <span class="c1"># 3. Initialize dynamic model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">DoomLiquidNet</span><span class="p">(</span>
         <span class="n">n_actions</span><span class="o">=</span><span class="n">n_actions</span><span class="p">,</span>
-        <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
-        <span class="n">working_memory</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
+        <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span><span class="p">,</span>
+        <span class="n">working_memory</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
         <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span>
         <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -1514,8 +1514,8 @@ Default: <code>None</code>.</p>
     <span class="n">date_str</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">model_prefix</span> <span class="o">=</span> <span class="n">MODEL_ARCHIVE_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">date</span><span class="o">=</span><span class="n">date_str</span><span class="p">,</span>
-        <span class="n">c</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
-        <span class="n">w</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
+        <span class="n">c</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span><span class="p">,</span>
+        <span class="n">w</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
         <span class="n">v</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">visual</span><span class="p">),</span>
         <span class="n">d</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">),</span>
         <span class="n">a</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">),</span>
@@ -2379,7 +2379,7 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 
     <span class="c1"># Intelligently discover actual parameters from the latest archive</span>
     <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
-    <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
+    <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Load state dict first to intelligently resolve n_actions and avoid tensor mismatches </span>
@@ -2392,8 +2392,8 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 
         <span class="n">model</span> <span class="o">=</span> <span class="n">DoomLiquidNet</span><span class="p">(</span>
             <span class="n">n_actions</span><span class="o">=</span><span class="n">n_actions</span><span class="p">,</span>
-            <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
-            <span class="n">working_memory</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
+            <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span><span class="p">,</span>
+            <span class="n">working_memory</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
             <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span>
             <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>  <span class="c1"># &lt;--- New</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>

@@ -25,6 +25,8 @@ class DoomStreamingDataset(Dataset):
     tensors, it builds a lightweight pointer map. During training, it slices 
     continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.
     
+    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active 
+    sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.
     It also supports dynamic horizontal mirror augmentation to double the effective
     dataset size while mitigating left/right turning bias.
 
@@ -34,7 +36,7 @@ class DoomStreamingDataset(Dataset):
             Default: ``32``.
         file_pattern (str, optional): The glob pattern used to locate training files 
             within ``data_dir``. Default: ``"*.npz"``.
-        augment (bool, optional): If ``True``, dynamically mirrors frames horizontally 
+        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally 
             and swaps corresponding left/right action labels. Default: ``False``.
         action_names (list of str, optional): The ordered list of string action names 
             (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate 
@@ -107,13 +109,13 @@ class DoomStreamingDataset(Dataset):
             self.amp_to_db = torchaudio.transforms.AmplitudeToDB()
 
         logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
-    
+
     def _build_swap_map(self):
         r"""
         Constructs a mapping of action indices that must be swapped when applying 
         horizontal mirror augmentation.
 
-        This ensures that when a frame is visually flipped, an action like 
+        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like 
         ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.
         """
         try:
@@ -136,18 +138,21 @@ class DoomStreamingDataset(Dataset):
         r"""
         Retrieves a temporal sequence of frames and corresponding actions by index.
 
-        The retrieved frames are dynamically transposed from the storage shape of 
+        The retrieved visual frames are dynamically transposed from the storage shape of 
         :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.
-        If the index maps to an augmented sequence, the visual tensor is flipped 
+        If the index maps to an augmented sequence, the visual and thermal tensors are flipped 
         horizontally and lateral actions are swapped. For audio, the waveforms 
-        are converted to Mel Spectrograms.
+        are converted to Mel Spectrograms and spatial auditory channels are swapped.
 
         Args:
             idx (int): The index of the sequence pointer in the internal map.
 
         Returns:
             tuple: A tuple containing:
-                - Tensor: A sequence of visual frames of shape :math:`(\text{seq\_len}, C, H, W)`.
+                - dict: A dictionary of active sensory inputs:
+                    - ``'visual'`` (Tensor): Visual frames of shape :math:`(\text{seq\_len}, C, 64, 64)`.
+                    - ``'audio'`` (Tensor, optional): Mel spectrograms of shape :math:`(\text{seq\_len}, 2, H_{mels}, W_{time})`.
+                    - ``'thermal'`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.
                 - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.
         """
         file_idx, start_idx, is_mirrored = self.index_map[idx]
@@ -173,7 +178,7 @@ class DoomStreamingDataset(Dataset):
             if self.mel_transform and self.amp_to_db:
                 x_aud = self.mel_transform(x_aud)
                 x_aud = self.amp_to_db(x_aud)
-
+                
         x_thm = None
         if self.has_thermal:
             window_thermals = self.thermal_arrays[file_idx][start_idx : start_idx + self.seq_len]
@@ -187,6 +192,7 @@ class DoomStreamingDataset(Dataset):
                 x_aud = torch.flip(x_aud, [1])
             if self.has_thermal:
                 x_thm = torch.flip(x_thm, [3])
+                
             y_flip = y.clone()
             for left_idx, right_idx in self.swap_pairs:
                 y_flip[:, left_idx] = y[:, right_idx]
@@ -204,4 +210,5 @@ class DoomStreamingDataset(Dataset):
             inputs['audio'] = x_aud
         if self.has_thermal:
             inputs['thermal'] = x_thm
+            
         return inputs, y

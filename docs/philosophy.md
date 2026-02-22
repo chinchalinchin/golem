@@ -10,11 +10,17 @@ In classical game AI, bots are typically "omniscient." They read the engine's me
 
 Golem is constrained to a strict **Phenomenological Boundary**. The agent only knows what it can "experience" through its sensory inputs. 
 
-* **The Rejection of Latent State:** We explicitly discard the underlying game state variables $s_t \in \mathcal{S}$ provided by the ViZDoom API. The agent's reality is entirely constructed from the raw pixel buffer $o_t \in \Omega$. 
-* **The "Doomguy" Heuristic (Physiological Awareness):** To grant the agent a sense of mortality, we preserve the classic DOOM status bar (HUD) within its visual field. Rather than reading a health integer, the agent must learn to interpret its own physical deterioration by recognizing the pixel distortion of the marine's bloody face. 
-* **Derivatives over Statics:** While static UI elements normally cause standard Convolutional Neural Networks (CNNs) to overfit to spurious correlations, Golem's liquid core relies on differential equations. It naturally ignores static plastic bezels ($\frac{dx}{dt} = 0$) and hyper-fixates on sudden flashes of damage or ammunition changes ($\frac{dx}{dt} > 0$).
+* **The Rejection of Latent State:** We explicitly discard the underlying game state variables $s_t \in \mathcal{S}$ provided by the ViZDoom API. The agent's reality is entirely constructed from the raw pixel buffer $o_t \in \Omega$ and its active sensory extensions. 
 
-By restricting the agent to phenomenological variables, we force the neural network to develop robust, generalized heuristics (e.g., "red screen tint implies danger") rather than memorizing a specific map's coordinate grid.
+* **The "Doomguy" Heuristic (Physiological Awareness):** To grant the agent a sense of mortality, we preserve the classic DOOM status bar (HUD) within its visual field. Rather than reading a health integer, the agent must learn to interpret its own physical deterioration by recognizing the pixel distortion of the marine's bloody face. 
+
+* **Auditory Phenomenology (Acoustic Spatialization):**  We do not feed the agent discrete alerts for nearby enemies. Instead, raw audio waveforms are extracted and mathematically transformed into Mel Spectrograms. The agent processes sound as a 2D spatial map through its Auditory Cortex, learning the "visual shape" of a fireball's hiss or a demon's growl, naturally compressing high-frequency acoustic noise without violating its phenomenological constraints.
+
+* **Thermal Phenomenology (Biomimicry):**  The texture palette of DOOM is highly monochromatic, dominated by heavily dithered browns, greys, and blacks. We hypothesize that a pure RGB visual model clusters too narrowly, forcing the agent to struggle when distinguishing camouflaged threats from static geometric backgrounds. Taking inspiration from the animal kingdom—specifically predators that utilize heat vision—Golem utilizes semantic segmentation buffers to experience a binary "thermal" qualia. This projects dynamic entities as distinct hotspots, effectively decoupling the neural circuitry responsible for background spatial navigation (Visual Cortex) from the circuitry dedicated to active threat detection (Thermal Cortex).
+
+* **Derivatives over Statics:** While static UI elements normally cause standard Convolutional Neural Networks (CNNs) to overfit to spurious correlations, Golem's liquid core relies on differential equations. It naturally ignores static plastic bezels ($\frac{dx}{dt} = 0$) and hyper-fixates on sudden flashes of damage, ammunition changes, or sudden thermal spikes ($\frac{dx}{dt} > 0$).
+
+By restricting the agent to phenomenological variables, we force the neural network to develop robust, generalized multi-modal heuristics (e.g., "red screen tint implies danger," "this audio shape means a plasma rifle is firing") rather than memorizing a specific map's coordinate grid.
 
 ## 2. Time as a Continuous Flow (Ontology)
 
@@ -42,4 +48,4 @@ However, pure imitation relies on a flawed assumption: that the expert is perfec
 
 The architecture of the brain is not hardcoded. Just as biological neural circuits scale based on the complexity of the organism, Golem's `DoomLiquidNet` scales dynamically via configuration (`app.yaml`).
 
-The depth of the visual cortex (`cortical_depth`) and the capacity of the temporal recurrence (`working_memory`) expand to match the dimensionality of the active action superset $\rho$. This ensures computational resources are not wasted on simple navigation tasks, while preserving the capacity required for complex, multi-modal deathmatches.
+The depth of the visual cortex (`cortical_depth`) and the capacity of the temporal recurrence (`working_memory`) expand to match the dimensionality of the active action superset $\rho$. This ensures computational resources are not wasted on simple navigation tasks, while preserving the capacity required for complex, multi-modal deathmatches incorporating stereopsis, audition, and thermal mapping.

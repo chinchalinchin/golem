@@ -1,6 +1,7 @@
 # The Brain: Liquid Neural Networks
 
-The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells. With the introduction of multi-modal sensor fusion, the brain can dynamically scale its perception across visual, spatial (depth), and auditory domains.
+The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous (CfC) cells. With the introduction of multi-modal sensor fusion, the brain can dynamically scale its perception across visual, spatial (depth), auditory, and thermal domains.
+
 
 ## 1. Visual Cortex (CNN)
 
@@ -18,15 +19,26 @@ This transformation allows the network to process audio as a spatial map. The re
 
 This pathway consists of sequential 2D convolutions (e.g., kernel size 3, stride 2, padding 1) and an `AdaptiveAvgPool2d((1, 1))` layer to extract the final auditory features, outputting a latent audio vector $A(t)$. 
 
-If multiple modalities are active, their respective feature vectors are concatenated:
+## 3. Thermal Cortex (Parallel 2D CNN)
+
+If the `thermal` sensor is enabled, Golem utilizes ViZDoom's semantic segmentation `labels_buffer` to decouple spatial navigation from active enemy detection. This isolates dynamic entities (monsters, projectiles, items) from the static background geometry, projecting them as a binary "thermal" mask that severely reduces the visual noise the model must parse during combat.
+
+
+The extracted binary mask is resized to $1 \times 64 \times 64$ and routed through an isolated, parallel 2D Convolutional Neural Network (`nn.Conv2d`). This pathway scales identically to the Visual Cortex based on the `cortical_depth` ($D$), but initiates with a specialized filter width. It utilizes sequential convolutions (kernel size 4, stride 2) and ReLU activations, starting at 16 output channels and doubling at each layer, allowing the network to learn independent dynamic entity-tracking filters. 
+
+This pathway compresses the binary mask into a latent thermal vector $T(t)$.
+
+### Sensor Fusion Concatenation
+
+If multiple modalities are active, their respective flattened feature vectors are dynamically concatenated:
 
 $$
-I(t) = V(t) \oplus A(t)
+I(t) = V(t) \oplus A(t) \oplus T(t)
 $$
 
-Where $I(t) \in \mathbb{R}^{W_f}$ is the final, unified multi-modal representation fed into the liquid core, and $W_f$ is the dynamically calculated flat size.
+Where $I(t) \in \mathbb{R}^{W_f}$ is the final, unified multi-modal representation fed into the liquid core, missing modalities are omitted, and $W_f$ is the dynamically calculated flat size of all active cortices combined.
 
-## 3. Liquid Core (CfC) & State Persistence
+## 4. Liquid Core (CfC) & State Persistence
 
 Standard Recurrent Neural Networks (RNNs) update their hidden state via discrete, uniform steps. In contrast, **Liquid Time-Constant (LTC)** networks model the hidden state $x(t)$ as a system of Ordinary Differential Equations (ODEs) responding to a continuous flow of time:
 
@@ -44,9 +56,9 @@ Where $f$, $g$, and $h$ represent distinct neural network branches parameterizin
 
 ### The "Amnesia" Constraint (Stateful Inference)
 
-Because the underlying differential mathematics assume a continuous temporal flow, the network must accumulate evidence to build action potential. During asynchronous live gameplay (inference), the engine feeds the visual and auditory cortices discrete buffers. The hidden state $hx$ must be explicitly captured and recursively fed back into the network on the subsequent frame. Failing to persist this state across the deployment loop lobotomizes the network 35 times a second, preventing the CfC activation threshold from ever being reached.
+Because the underlying differential mathematics assume a continuous temporal flow, the network must accumulate evidence to build action potential. During asynchronous live gameplay (inference), the engine feeds the active cortices discrete buffers. The hidden state $hx$ must be explicitly captured and recursively fed back into the network on the subsequent frame. Failing to persist this state across the deployment loop lobotomizes the network 35 times a second, preventing the CfC activation threshold from ever being reached.
 
-## 4. Motor Cortex (Linear Head)
+## 5. Motor Cortex (Linear Head)
 
 The liquid hidden state $x(t) \in \mathbb{R}^{W_m}$ (where $W_m$ is the dynamically configured `working_memory`, e.g., 64 or 128) is projected to the dynamic action space via a final linear transformation. To accommodate the variable supersets defined by the active profile $\rho$, the output weight matrix dynamically scales its dimensionality $n_\rho \in \{8, 9, 10\}$:
 

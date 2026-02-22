@@ -8,7 +8,8 @@ pynput
 PyYaml
 torch 
 torchaudio
-torchvision 
+torchvision
+torchinfo 
 vizdoom 
 # Documentation
 mkdocs

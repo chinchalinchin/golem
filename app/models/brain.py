@@ -4,7 +4,7 @@ Brain Module: Neural Circuit Policy architecture for Golem.
 This module defines the primary continuous-time neural network (LNN) used by the agent,
 combining a dynamically scaling Convolutional Neural Network (CNN) visual cortex with
 a Closed-form Continuous-time (CfC) liquid recurrent core. Multi-modal support is integrated
-for spatial depth representations and 2D mel spectrograms.
+for spatial depth representations, 2D mel spectrograms, and binary thermal masks.
 """
 
 import torch
@@ -20,6 +20,9 @@ class DoomLiquidNet(nn.Module):
     then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). 
     The CfC core manages the agent's temporal state using differential equation approximations,
     allowing it to handle variable time-steps without requiring expensive ODE solvers.
+    
+    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory 
+    spectrograms, and thermal semantic segmentation masks into a unified latent representation.
 
     Args:
         n_actions (int): The number of output actions for the Motor Cortex head.
@@ -28,7 +31,8 @@ class DoomLiquidNet(nn.Module):
             Default: ``2``.
         working_memory (int, optional): The number of hidden units in the CfC liquid core,
             representing the capacity of the agent's temporal memory. Default: ``64``.
-        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable.
+        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable 
+            (e.g., visual, depth, audio, thermal).
         dsp_config (DSPConfig, optional): Signal processing parameters for audio initialization.
     """
     def __init__(self, n_actions, cortical_depth=2, working_memory=64, sensors=None, dsp_config=None):
@@ -70,7 +74,7 @@ class DoomLiquidNet(nn.Module):
             self.audio_conv = nn.Sequential(*aud_layers)
             
             flat_size += a_in 
-
+            
         # 3. Build Thermal Cortex (Parallel 2D CNN)
         self.use_thermal = self.sensors and getattr(self.sensors, 'thermal', False)
         if self.use_thermal:
@@ -86,9 +90,9 @@ class DoomLiquidNet(nn.Module):
                 t_out *= 2
             thm_layers.append(nn.Flatten())
             self.thermal_conv = nn.Sequential(*thm_layers)
- 
+            
             flat_size += t_in * (t_img_size ** 2)
-
+            
         # 4. Liquid Core
         self.liquid_rnn = CfC(
             input_size=flat_size, 
@@ -99,17 +103,17 @@ class DoomLiquidNet(nn.Module):
         # 5. Motor Cortex Head
         self.output = nn.Linear(working_memory, n_actions)
 
-    def forward(self, x_vis, x_aud=None, x_thm=None, hx=None):        
+    def forward(self, x_vis, x_aud=None, x_thm=None, hx=None):
         r"""
-        Performs a forward pass through the visual cortex, auditory cortex, and liquid core.
+        Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.
 
         Args:
             x_vis (Tensor): A batched sequence of visual frames of shape 
                 :math:`(\text{Batch}, \text{Time}, C, H, W)`.
             x_aud (Tensor, optional): A batched sequence of mel spectrograms of shape 
                 :math:`(\text{Batch}, \text{Time}, C, H_{mels}, W_{time})`. Default: ``None``.
-            x_thm (Tensor, optional): A batched sequence of thermal masks of shape 
-+                :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.
+            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape 
+                :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.
             hx (Tensor, optional): The previous hidden state of the liquid core of shape 
                 :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.
 
@@ -134,7 +138,7 @@ class DoomLiquidNet(nn.Module):
             t_in = x_thm.view(b * t, tc, th, tw)
             t_feat = self.thermal_conv(t_in)
             features = torch.cat((features, t_feat), dim=1)
-
+            
         r_in = features.view(batch, time, -1)
         r_out, new_hx = self.liquid_rnn(r_in, hx)
         

@@ -128,6 +128,30 @@
 
 ---
 
+## Phase 6: Second-Order Cognitive Dynamics (Latent Inertia)
+
+*Goal:* Transition the Liquid Neural Network's hidden state from a first-order kinematic model to a true second-order dynamical system. By granting the latent state "momentum" via a coupled system of Ordinary Differential Equations (ODEs), the agent can accumulate force to escape localized equilibrium traps (e.g., staring at corners) without requiring explicit exogenous input.
+
+### 1. Configuration & Taxonomy Layer
+
+* [ ] **ODE Configuration:** Expand the `brain` block in `app.yaml` to include an `ode_order` parameter (accepting integer values `1` or `2`).
+* [ ] **State Validation:** Update `config.py` to accurately parse `ode_order` into the initialization pipelines.
+* [ ] **Model Archiving Schema:** Modify `train.py` and `utils.py` to append the ODE order to the saved `.pth` weights (e.g., `<YYYY-MM-DD>.c-<depth>.w-<length>.o-<order>.<increment>.pth`). Ensure `get_latest_parameters` remains backwards-compatible with older, first-order checkpoints.
+
+### 2. The Brain (Architecture Redesign)
+
+* [ ] **Hamiltonian Memory Split:** Update `brain.py` to dynamically adjust the capacity of the `liquid_rnn` based on the configured `ode_order`. For second-order systems, the `working_memory` must effectively track both latent position ($x_1$) and latent momentum ($x_2$). 
+* [ ] **Coupled ODE Forward Pass:** Rewrite the forward pass logic in `DoomLiquidNet` to support second-order integration. When `ode_order == 2`, mathematically decompose the second-order ODE into a system of two coupled first-order ODEs:
+  $$\frac{dx_1(t)}{dt} = x_2(t)$$
+  $$\frac{dx_2(t)}{dt} = f(x_1(t), x_2(t), I(t); \theta)$$
+
+### 3. The Pipeline (State Management)
+
+* [ ] **State Initialization:** Update `run.py` and `intervene.py` to initialize and pass the expanded/tuple-based hidden state $hx$ when the second-order architecture is active.
+* [ ] **Physiological Reset (Death):** Implement a strict state-check inside the inference loops. If `game.is_player_dead()` is true, explicitly detach and zero-out the hidden state. This prevents "past life" momentum leakage where the newly respawned agent inadvertently reacts to the accumulated latent velocity of its previous death.
+
+---
+
 ## Distant Future
 
 ### The Possession (Integration) 👻

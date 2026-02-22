@@ -8,7 +8,7 @@ from app.models.config import GolemConfig
 from app.utils import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
-from app.pipeline import audit, inspect, intervene, train, record, run
+from app.pipeline import audit, inspect, intervene, train, record, run, summary
 from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")
@@ -22,7 +22,8 @@ def main():
     parser.add_argument("--file", help="Specific file to inspect", default=None)
     parser.add_argument("--players", type=int, help="Number of players for the host arena", default=3)
     parser.add_argument("--mode", choices=["basic", "classic", "fluid"], help="Override the config brain mode at runtime", default=None)
-    
+    parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
+
     args = parser.parse_args()
 
     try:
@@ -53,6 +54,8 @@ def main():
         kwargs['target_file'] = args.file
     if 'players' in sig.parameters:
         kwargs['players'] = args.players
+    if 'full' in sig.parameters:
+        kwargs['full'] = args.full
 
     # Execute the resolved function
     func(cfg, **kwargs)

@@ -105,8 +105,9 @@ def inspect(cfg: GolemConfig, target_file: str = None):
     except Exception as e:
         logger.error(f"Failed to inspect data: {e}", exc_info=True)
 
+
 @register_command("audit")
-def audit(cfg: GolemConfig, module_name: str = "all"):
+def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
     r"""
     Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.
 
@@ -122,6 +123,8 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
         module_name (str, optional): The specific module to audit against 
             (e.g., "combat", "navigation"). If "all", it evaluates against all 
             available data for the active profile. Default: ``"all"``.
+        full (bool, optional): If ``True``, evaluates the entire dataset instead 
+            of capping at 50 sequence batches. Default: ``False``
     """
     device = torch.device('mps') if torch.backends.mps.is_available() else torch.device("cpu")
 
@@ -185,7 +188,7 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
     
     all_preds = []
     all_targets = []
-    max_batches = 50 
+    max_batches = float('inf') if full else 50
     
     with torch.no_grad():
         for i, (inputs, actions) in enumerate(dataloader):
@@ -252,3 +255,93 @@ def audit(cfg: GolemConfig, module_name: str = "all"):
         exact_acc=exact_acc,
         metrics=metrics
     ))
+
+@register_command("summary")
+def summary(cfg: GolemConfig, module_name: str = None):
+    r"""
+    Prints a detailed architectural summary of the active brain configuration.
+
+    This function instantiates the LNN based on the current configuration and uses 
+    the `torchinfo` package to perform a dummy forward pass. It displays the exact 
+    tensor dimensions at each layer, the parameter counts, and validates that 
+    the multi-modal sensor fusion layers are properly scaling and concatenating 
+    into the Liquid Core.
+
+    Args:
+        cfg (GolemConfig): The centralized application configuration object.
+        module_name (str, optional): Ignored. Included for CLI compatibility.
+    """
+    try:
+        import torchinfo
+    except ImportError:
+        logger.error("torchinfo is required for the summary command. Run: pip install torchinfo")
+        return
+
+    device = torch.device('mps') if torch.backends.mps.is_available() else torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    
+    # 1. Base defaults
+    active_profile = cfg.brain.mode
+    model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
+    active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
+    
+    cortical_depth = cfg.brain.cortical_depth
+    working_memory = cfg.brain.working_memory
+    n_actions = cfg.training.action_space_size 
+
+    # 2. Discover architecture from archives
+    archives = list(model_dir.glob("*.pth"))
+    params = get_latest_parameters(archives)
+    if params:
+        cortical_depth, working_memory = params
+        
+    # 3. Discover action space and load state dict (if it exists)
+    if active_model_path.exists():
+        try:
+            state_dict = torch.load(str(active_model_path), map_location=device, weights_only=True)
+            if 'output.weight' in state_dict:
+                n_actions = state_dict['output.weight'].shape[0]
+        except Exception as e:
+            logger.warning(f"Could not load state dict from {active_model_path}: {e}")
+
+    model = DoomLiquidNet(
+        n_actions=n_actions,
+        cortical_depth=cortical_depth,
+        working_memory=working_memory,
+        sensors=cfg.brain.sensors,
+        dsp_config=cfg.brain.dsp
+    ).to(device)
+
+    # 4. Construct Multi-Modal Dummy Tensors
+    seq_len = cfg.training.sequence_length
+    batch_size = 1 
+    
+    c_vis = 4 if cfg.brain.sensors.depth else 3
+    x_vis = torch.randn(batch_size, seq_len, c_vis, 64, 64).to(device)
+    
+    x_aud = None
+    if cfg.brain.sensors.audio:
+        w_time = int((cfg.brain.dsp.sample_rate / 35) / cfg.brain.dsp.hop_length) + 1
+        x_aud = torch.randn(batch_size, seq_len, 2, cfg.brain.dsp.n_mels, w_time).to(device)
+        
+    x_thm = None
+    if cfg.brain.sensors.thermal:
+        x_thm = torch.randn(batch_size, seq_len, 1, 64, 64).to(device)
+        
+    # Strip None values to prevent torchinfo memory calculation crashes
+    input_dict = {"x_vis": x_vis}
+    if x_aud is not None:
+        input_dict["x_aud"] = x_aud
+    if x_thm is not None:
+        input_dict["x_thm"] = x_thm
+
+    logger.info("======================================================")
+    logger.info(f"Generating Architectural Summary for Profile: {active_profile.upper()}")
+    logger.info(f"Sensors Enabled -> Visual: True | Depth: {cfg.brain.sensors.depth} | Audio: {cfg.brain.sensors.audio} | Thermal: {cfg.brain.sensors.thermal}")
+    logger.info("======================================================")
+    
+    torchinfo.summary(
+        model, 
+        input_data=input_dict, 
+        col_names=["input_size", "output_size", "num_params", "trainable"],
+        depth=3
+    )

@@ -59,3 +59,51 @@ In the Phase IV implementation, `torchaudio.transforms.MelSpectrogram` and `Ampl
 **Proposed Solution:**
 
 Remove the `torchaudio` transforms from `dataset.py`. Instantiate the transforms directly on the target hardware accelerator (`.to(device)`) inside the training (`train.py`) and inference loops, applying the transformation to the batched `x_aud` tensor *after* it has been loaded into VRAM. Alternatively, embed the `torchaudio` transforms directly into the forward pass of `DoomLiquidNet` in `brain.py` to ensure the DSP logic is natively compiled into the model's computational graph and executed on the GPU.
+
+## Issue 5: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
+
+**Status:** Open | **Priority:** Medium
+
+**Description:**
+
+In `dataset.py`, `DoomStreamingDataset` currently iterates through all `.npz` files and loads the raw numpy arrays directly into standard Python lists (`self.video_arrays.append(frames)`). As the dataset scales to hours of multi-modal gameplay (including dense spatial audio and thermal masks), this will exceed consumer RAM limits and cause catastrophic Out-Of-Memory (OOM) crashes before training even begins.
+
+**Proposed Solution:**
+
+Migrate the storage backend from compressed `.npz` archives to HDF5 (`h5py`) format, or utilize NumPy's `mmap_mode='r'` to memory-map the data on disk. This allows the `Dataset` to lazily stream tensor blocks directly from the NVMe/SSD without pre-loading the entire corpus into volatile memory.
+
+## Issue 6: DRY Violation in Sensory Extraction (Pipeline Refactoring)
+
+**Status:** Open | **Priority:** Low
+
+**Description:**
+
+The ETL logic that extracts, resizes, and normalizes the visual, depth, audio, and thermal buffers is heavily duplicated across `record.py`, `intervene.py`, and `run.py`. This violates the DRY (Don't Repeat Yourself) principle. If a new phenomenological sensor is added in the future, the extraction logic must be manually updated in three separate pipeline modules.
+
+**Proposed Solution:**
+
+Abstract the game-state processing logic into a centralized `SensoryExtractor` utility class or function in `utils.py`. The pipelines should simply call `tensors = SensoryExtractor.process(game.get_state(), cfg.brain.sensors)` to receive a standardized dictionary of normalized inputs.
+
+## Issue 7: Stateful "Past Life" Memory Leakage (Death & Respawn)
+
+**Status:** Open | **Priority:** High
+
+**Description:**
+
+The LNN relies on accumulating evidence in its hidden state `hx`. During `run.py` and `intervene.py`, `hx` is persisted across the entire episode loop. However, in Deathmatch or custom WADs where the agent respawns after death without resetting the episode, the agent retains the `hx` state from its previous life. This causes "phantom" action potentials where the newly spawned agent reacts to stimuli that killed it seconds ago.
+
+**Proposed Solution:**
+
+Implement a physiological state-check inside the inference loop. If `game.is_player_dead()` is true, explicitly detach and zero-out the hidden state (`hx = None`).
+
+## Issue : Phenomenological Saliency Mapping (Grad-CAM)
+
+**Status:** Open | **Priority:** High
+
+**Description:**
+
+We currently lack explainable AI (XAI) tooling to verify that the agent's distinct sensor cortices (Visual, Depth, Thermal) are specializing as intended. We need visual proof that the Visual Cortex focuses on static geometry while the Thermal Cortex tracks dynamic threats.
+
+**Proposed Solution:**
+
+Integrate the `captum` library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an `examine` command that takes a single sequence from the dataset, runs `captum.attr.LayerGradCam` on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side `.png` files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.

@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 
 @register_command("record")
 def record(cfg: GolemConfig, module_name: str = "basic"):
+    try:
+        from pynput import keyboard
+    except ImportError:
+        logger.error("pynput is required for manual termination. Run: pip install pynput")
+        return
+
     if module_name not in cfg.modules:
         logger.error(f"Module '{module_name}' not found. Available: {list(cfg.modules.keys())}")
         return
@@ -37,6 +43,7 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     map_name = module.map
 
     logger.info(f"--- Recording Module: {module_name} ---")
+    logger.info("Press [TAB] at any time to kill the recording, drop the last 2 seconds, and save.")
     
     # Explicitly set SPECTATOR mode to allow manual human input via keyboard
     game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
@@ -54,10 +61,28 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     thermals = []
     actions = []
     
+    # Asynchronous Intervention Flag
+    stop_recording = False
+    
+    def on_press(key):
+        nonlocal stop_recording
+        if key == keyboard.Key.tab:
+            stop_recording = True
+            return False  # Stop the listener
+
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    
     try:
         for _ in range(module.episodes):
+            if stop_recording:
+                break
+                
             game.new_episode()
             while not game.is_episode_finished():
+                if stop_recording:
+                    break
+                    
                 state = game.get_state()
                 action = game.get_last_action()
                 
@@ -71,8 +96,26 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                 
                 actions.append(action)
                 game.advance_action()
+        
+        # Idle Frame Truncation Logic
+        if stop_recording:
+            drop_frames = 70  # 35 fps * 2 seconds
+            if len(frames) > drop_frames:
+                logger.info(f"Recording killed. Truncating the last {drop_frames} frames to remove idle time...")
+                frames = frames[:-drop_frames]
+                actions = actions[:-drop_frames]
+                if depths: depths = depths[:-drop_frames]
+                if audios: audios = audios[:-drop_frames]
+                if thermals: thermals = thermals[:-drop_frames]
+            else:
+                logger.warning("Recording killed too early. Discarding all frames.")
+                frames, actions, depths, audios, thermals = [], [], [], [], []
+
+        if not frames:
+            logger.warning("No frames to save. Exiting without generating an archive.")
+            return
                 
-        logger.info(f"Saving frames to {output_path}...")
+        logger.info(f"Saving {len(frames)} frames to {output_path}...")
         save_dict = {'frames': np.array(frames), 'actions': np.array(actions)}
         
         if cfg.brain.sensors.depth:
@@ -87,4 +130,5 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     except Exception as e:
         logger.error(f"Recording interrupted: {e}", exc_info=True)
     finally:
+        listener.stop()
         game.close()

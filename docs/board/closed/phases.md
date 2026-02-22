@@ -23,29 +23,29 @@
 
 ---
 
-## Phase 2: Distributed Architecture (The VDAIC Arena) 🤖
+## Phase 2: Distributed Architecture
 
 *Goal:* Containerize the LNN agent and connect it to a dedicated multiplayer DOOM server. Benchmark Golem against the historical champions of the Visual Doom AI Competition (VDAIC).
 
-### 1. The Host Server (Arena)
+### 1. The Host Server (Completed) ✅
 
 * [x] **Dedicated Host Script:** Initialize a central ViZDoom instance in `-host N -deathmatch` mode. 
 * [x] **Multiplayer Configuration:** Update configs and select WADs with proper multiplayer spawn points.
 * [x] **Host Container:** Create a lightweight `Dockerfile.host` that only installs the ViZDoom engine and the host script.
 
-### 2. The Golem Client (Containerization)
+### 2. The Golem Client (Completed) ✅
 
 * [x] **Headless Rendering:** Configure the ViZDoom to render the visual buffer headlessly.
 * [x] **Network Synchronization:** ensure the LNN's inference tick-rate stays aligned with the network server.
 * [x] **Modular Dockerfile:** The image should package Python 3.10+, PyTorch, and ViZDoom, but **omit the model weights**. 
 * [x] **Volume Mounting:** Configure the container entrypoint to load the `golem.pth` brain and `app.yaml` configuration from a mounted volume directory (e.g., `-v ./data/fluid:/app/data`).
 
-### 3. The Legacy Champions (The Opposition)
+### 3. The Legacy Champions (Completed) ✅
 
 * [x] **Archive Retrieval:** Clone the legacy Dockerfiles and weights for the 2016/2017 VDAIC winners (e.g., *Arnold* by CMU, *IntelAct* by Intel Labs) from the official GitHub archives.
 * [x] **Legacy Container Builds:** Build the historical images.
 
-### 4. Orchestration (The Swarm)
+### 4. Orchestration (Completed) ✅
 
 * [x] **Docker Compose:** Create a `docker-compose.yml` to network the swarm. 
 * [x] **The Roster:** Define the services in the compose file to simultaneously spin up:
@@ -56,22 +56,22 @@
 
 ---
 
-## Phase 3: Multi-Modal Sensor Fusion (Phenomenology) 👁️👂
+## Phase 3: Multi-Modal Sensor Fusion
 
 *Goal:* Expand the agent's sensory perception beyond the 2D pixel array by integrating ViZDoom's raw depth and audio buffers into the Liquid Neural Network, effectively granting stereopsis and audition without exposing underlying game-state variables.
 
-### 1. The Configuration Layer
+### 1. The Configuration Layer (Completed) ✅
 
 * [x] **Sensor Toggles:** Update `app.yaml` to include a `brain.sensors` block with boolean toggles for `depth` and `audio`.
 * [x] **Dynamic Action Space:** Update `config.py` to parse these toggles and pass them to the ETL and Model initialization layers.
 
-### 2. The ETL Pipeline (Record & Transform)
+### 2. The ETL Pipeline (Record & Transform) (Completed) ✅
 
 * [x] **Depth Extraction:** Modify `record.py` to capture `state.depth_buffer`. Normalize the 1D distance matrix to $[0, 1]$.
 * [x] **Audio Extraction:** Modify `record.py` to capture `state.audio_buffer`. Normalize the raw stereo waveforms.
 * [x] **Tensor Packaging:** Update the `.npz` saving mechanism to store `depth` and `audio` arrays only if they are enabled in the active profile, preventing massive file bloat for purely visual agents.
 
-### 3. The Brain (Architecture Redesign)
+### 3. The Brain (Architecture Redesign) (Completed) ✅
 
 * [x] **Stereopsis Integration:** If `depth` is enabled, modify the Visual Cortex CNN input channels from $C=3$ (RGB) to $C=4$ (RGB + Depth).
 * [x] **Auditory Cortex:** If `audio` is enabled, implement a parallel 1D Convolutional Neural Network (`nn.Conv1d`) to extract features from the high-frequency audio buffer.
@@ -79,43 +79,43 @@
 
 ---
 
-## Phase 4: Auditory Phenomenology Refactoring (Mel Spectrograms) 🎼
+## Phase 4: Auditory Phenomenology Refactoring
 
 *Goal:* Transition from processing raw 1D audio waveforms to 2D Mel Spectrograms. This improves LNN stability by leveraging spatial locality in convolutional networks, allowing the model to recognize the "visual" shape of audio cues (like a fireball or monster growl) while naturally compressing high-frequency acoustic noise.
 
-### 1. The ETL Pipeline (Transformation)
+### 1. The ETL Pipeline (Completed) ✅
 
 * [x] **Audio Normalization:** Enforce strict zero-mean, unit-variance normalization on the raw audio buffer at extraction to prevent gradient explosion.
 * [x] **Spectrogram Generation:** Integrate `torchaudio.transforms.MelSpectrogram` followed by `torchaudio.transforms.AmplitudeToDB` into the data transformation layer (`dataset.py`). This will mathematically convert the raw 1D audio arrays into dense 2D time-frequency tensors (scaled to decibels) on the fly during the `__getitem__` call.
 
-### 2. The Configuration Layer
+### 2. The Configuration Layer (Completed) ✅
 
 * [x] **DSP Hyperparameters:** Expand `app.yaml` to include a `brain.dsp` block containing parameter tunings for the Mel Spectrogram generation. Required parameters include the engine's `sample_rate`, `n_fft` (e.g., 1024), `hop_length` (e.g., 256), and `n_mels` (e.g., 64).
 
-### 3. The Brain (Architecture Redesign)
+### 3. The Brain (Completed) ✅
 
 * [x] **2D Auditory Cortex:** Replace the `nn.Conv1d` auditory cortex in `brain.py` with a standard `nn.Conv2d` architecture, mathematically aligning sound classification with the existing spatial and visual processing hierarchy.
 * [x] **Sensor Fusion Re-Alignment:** Ensure the concatenation logic dynamically calculates the flattened feature size of the newly generated 2D auditory feature map before routing the unified tensor into the CfC liquid core.
 
 ---
 
-## Phase 5: Thermal Phenomenology (Heat Vision) 🐍
+## Phase 5: Thermal Phenomenology
 
 *Goal:* Decouple spatial navigation from enemy detection by utilizing ViZDoom's semantic segmentation `labels_buffer`. This isolates active entities from the background into a clean, binary "thermal" mask, severely reducing the visual noise the model must parse during combat.
 
-### 1. The Configuration Layer
+### 1. The Configuration Layer (Completed) ✅
 
 * [x] **Sensor Toggle:** Expand `app.yaml` to include a `thermal: true` flag in the `brain.sensors` configuration block.
 * [x] **State Validation:** Update `config.py` to accurately parse the boolean into the initialization pipelines.
 
-### 2. The ETL Pipeline (Record & Transform)
+### 2. The ETL Pipeline (Completed) ✅
 
 * [x] **Engine Initialization:** Update `utils.py` to call `game.set_labels_buffer_enabled(True)` when the thermal sensor is flagged.
 * [x] **Thermal Mask Extraction:** In `record.py`, capture `state.labels_buffer`, apply a binary threshold (`pixels > 0 = 1`) to drop environmental geometry, and resize the mask to 64x64.
 * [x] **Tensor Packaging:** Save the resulting thermal arrays to the generated `.npz` archive.
 * [x] **Dataset Streaming:** Update `dataset.py` to load the thermal arrays and feed them into the model alongside the visual input.
 
-### 3. The Brain (Architecture Redesign)
+### 3. The Brain (Completed) ✅
 
 * [x] **Parallel Thermal Cortex:** Update `brain.py` to instantiate an isolated `nn.Conv2d` branch dedicated to processing the thermal mask, allowing the network to learn independent dynamic entity-tracking filters.
 * [x] **Sensor Fusion:** Concatenate the flattened thermal feature map with the visual/depth and auditory representations before routing the unified tensor into the CfC liquid core.

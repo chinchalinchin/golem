@@ -2,11 +2,11 @@
 
 Golem is trained via **Behavioral Cloning (BC)**, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy $\pi^*$, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.
 
-## 1. Sliding Window Temporal Loading
+## 1. Contiguous Temporal Loading
 
-Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state $x(t)$, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., `data/fluid/`).
+Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state $x(t)$, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a contiguous sequence extraction protocol, dynamically loading tensors from isolated profile directories (e.g., `data/fluid/`).
 
-To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples `(file_idx, start_idx, is_mirrored)`. During training, continuous arrays are lazily sliced on-the-fly into overlapping sequences.
+To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples `(file_idx, start_idx, is_mirrored, is_first)`. During training, continuous arrays are lazily sliced on-the-fly into strictly contiguous, non-overlapping sequences with a stride equal to $L$ to maintain causal continuity across batches.
 
 Given an expert trajectory of length $T$, defined as $\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation $o_t$ is a composite of visual, auditory, and thermal inputs. The input tensor sequences $\mathbf{X}^{(vis)}_i$, $\mathbf{X}^{(aud)}_i$, and $\mathbf{X}^{(thm)}_i$, and the target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
 
@@ -54,6 +54,10 @@ $$
 * **The Weighting Factor ($\alpha$):** A static scalar (e.g., $\alpha=0.25$) that balances the intrinsic priority of positive targets versus negative targets, mitigating the sheer volume of `0`s (keys not pressed) in the multi-label distribution.
 
 The network parameters $\theta$ are subsequently updated via Backpropagation Through Time (BPTT).
+
+### Stateful Backpropagation Through Time (BPTT)
+
+Because the LNN's Closed-form Continuous (CfC) cells require a continuous temporal flow to accurately accumulate evidence and trigger action potentials, the training loop utilizes Stateful BPTT. The hidden state output $hx$ from a batch is retained, detached from the computational graph ($hx = hx.detach()$), and passed as the prior state for the subsequent batch. To prevent mathematical amnesia while respecting independent trajectory boundaries, a dynamic boolean mask zeros out the hidden state exclusively for sequences mapped to the start of a new `.npz` file, preventing "past life" momentum leakage.
 
 ---
 
@@ -128,7 +132,7 @@ Where $TP$, $FP$, and $FN$ represent True Positives, False Positives, and False 
 
 ### Addressing Redundancy (Stride)
 
-During normal training, the sliding window overlaps by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the `audit` dataloader enforces a sequence stride equal to $L$, meaning non-overlapping segments are tested to precisely evaluate every frame only once.
+Historically, during normal training, the sliding window overlapped by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the `audit` dataloader enforces a sequence stride equal to $L$, meaning non-overlapping segments are tested to precisely evaluate every frame only once. This non-overlapping stride is now mirrored in the training dataloader to satisfy the strict chronological requirements of Stateful BPTT.
 
 ---
 

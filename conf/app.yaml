@@ -45,6 +45,7 @@ modules:
     scenario: "basic.wad"
     map: "map01"
     episodes: 10
+  
   navigation:
     scenario: "my_way_home.wad" 
     map: "map01"

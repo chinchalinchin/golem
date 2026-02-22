@@ -4,7 +4,7 @@ See [Issue Archive](./closed/phases.md) for the project's closed issues.
 
 ## Issue 1: Pipeline Infrastructure Optimizations (Synchronous Data Loading)
 
-**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/20
+**Status:** Open | **Priority:** Medium | **Opened**: 2026/02/20
 
 **Description:**
 
@@ -16,7 +16,7 @@ Refactor the `DataLoader` initialization in `train.py` to offload ETL transforma
 
 ## Issue 3: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
 
-**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/21
+**Status:** Open | **Priority:** Medium | **Opened**: 2026/02/21
 
 **Description:**
 
@@ -28,7 +28,7 @@ Migrate the storage backend from compressed `.npz` archives to HDF5 (`h5py`) for
 
 ## Issue 4: Phenomenological Saliency Mapping (Grad-CAM)
 
-**Status:** Closed | **Priority:** High | **Opened**: 2026/02/21
+**Status:** Open | **Priority:** High | **Opened**: 2026/02/21
 
 **Description:**
 
@@ -40,7 +40,7 @@ Integrate the `captum` library to generate Gradient-weighted Class Activation Ma
 
 ## Issue 5: Audit Validation Leak & Redundancy (Train/Test Split)
 
-**Status:** Closed | **Priority:** Medium | **Opened**: 2026/02/21
+**Status:** Open | **Priority:** Medium | **Opened**: 2026/02/21
 
 **Description:**
 
@@ -50,4 +50,3 @@ The `audit` command currently evaluates the model against the `data/training/` d
 
 1. Establish a dedicated `data/validation/` directory. Update the ETL pipeline (`record.py`, `intervene.py`) to randomly route 10-15% of recorded episodes into this holdout folder.
 2. Modify the `audit` command to strictly target this validation directory.
-3. Add a `stride` parameter to `DoomStreamingDataset`. During `audit`, set `stride=32` so the dataloader yields non-overlapping sequences, evaluating each frame exactly once.

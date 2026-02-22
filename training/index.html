@@ -1113,7 +1113,7 @@ initializes the dataset with optional mirror augmentation, and optimizes the
 network weights using the Adam optimizer.</p>
 <p>If an active model already exists for the current profile (e.g., <code>fluid</code>), 
 it loads the existing weights to perform continuous fine-tuning. Upon completion, 
-the updated model is saved to both a timestamped archive and the active profile slot.</p>
+it saves the updated model to both a timestamped archive and the active profile slot.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1341,7 +1341,16 @@ Default: <code>None</code>.</p>
 <span class="normal">200</span>
 <span class="normal">201</span>
 <span class="normal">202</span>
-<span class="normal">203</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1353,7 +1362,7 @@ Default: <code>None</code>.</p>
 
 <span class="sd">    If an active model already exists for the current profile (e.g., ``fluid``), </span>
 <span class="sd">    it loads the existing weights to perform continuous fine-tuning. Upon completion, </span>
-<span class="sd">    the updated model is saved to both a timestamped archive and the active profile slot.</span>
+<span class="sd">    it saves the updated model to both a timestamped archive and the active profile slot.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cfg (GolemConfig): The centralized application configuration object.</span>
@@ -1408,15 +1417,13 @@ Default: <code>None</code>.</p>
 
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># 1. Base Defaults</span>
-    <span class="n">cortical_depth</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span>
-    <span class="n">working_memory</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span>
     <span class="n">n_actions</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_space_size</span>
 
-    <span class="c1"># 2. Discover architecture and dimensions if resuming training</span>
+    <span class="c1"># 1. Discover architecture and dimensions if resuming training</span>
     <span class="n">model_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
     <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">base_data_dir</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>  <span class="c1"># </span>
     <span class="n">state_dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">archives</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">active_model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Discovering existing brain architecture from </span><span class="si">{</span><span class="n">active_model_path</span><span class="si">}</span><span class="s2"> for fine-tuning...&quot;</span><span class="p">)</span>
@@ -1426,9 +1433,8 @@ Default: <code>None</code>.</p>
             <span class="n">n_actions</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;output.weight&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">get_latest_parameters</span><span class="p">(</span><span class="n">archives</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-            <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">params</span>
+
+    <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
 
     <span class="c1"># 3. Initialize dynamic model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">DoomLiquidNet</span><span class="p">(</span>
@@ -1506,7 +1512,19 @@ Default: <code>None</code>.</p>
 
     <span class="c1"># Save the archive model</span>
     <span class="n">date_str</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">model_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">date_str</span><span class="si">}</span><span class="s2">.c-</span><span class="si">{</span><span class="n">cortical_depth</span><span class="si">}</span><span class="s2">.w-</span><span class="si">{</span><span class="n">working_memory</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">model_prefix</span> <span class="o">=</span> <span class="n">MODEL_ARCHIVE_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">date</span><span class="o">=</span><span class="n">date_str</span><span class="p">,</span>
+        <span class="n">c</span><span class="o">=</span><span class="n">cortical_depth</span><span class="p">,</span>
+        <span class="n">w</span><span class="o">=</span><span class="n">working_memory</span><span class="p">,</span>
+        <span class="n">v</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">visual</span><span class="p">),</span>
+        <span class="n">d</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">),</span>
+        <span class="n">a</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">),</span>
+        <span class="n">t</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">thermal</span><span class="p">),</span>
+        <span class="n">sr</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+        <span class="n">nf</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">hl</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">hop_length</span><span class="p">,</span>
+        <span class="n">nm</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_mels</span>
+    <span class="p">)</span>
     <span class="n">archive_path</span> <span class="o">=</span> <span class="n">get_unique_filename</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">model_prefix</span><span class="p">,</span> <span class="s2">&quot;pth&quot;</span><span class="p">)</span>
 
     <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">archive_path</span><span class="p">)</span>
@@ -2313,11 +2331,7 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="normal">253</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>
@@ -2363,13 +2377,9 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
     <span class="n">model_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
     <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>
 
-    <span class="c1"># Base defaults</span>
-    <span class="n">cortical_depth</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span>
-    <span class="n">working_memory</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span>
-
     <span class="c1"># Intelligently discover actual parameters from the latest archive</span>
     <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
-    <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">get_latest_parameters</span><span class="p">(</span><span class="n">archives</span><span class="p">)</span>
+    <span class="n">cortical_depth</span><span class="p">,</span> <span class="n">working_memory</span> <span class="o">=</span> <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Load state dict first to intelligently resolve n_actions and avoid tensor mismatches </span>

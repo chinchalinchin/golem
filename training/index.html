@@ -360,10 +360,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-sliding-window-temporal-loading" class="md-nav__link">
+  <a href="#1-contiguous-temporal-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Sliding Window Temporal Loading
+        1. Contiguous Temporal Loading
       
     </span>
   </a>
@@ -378,6 +378,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="2. The Objective Function (BCE &amp; Focal Loss)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful-backpropagation-through-time-bptt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stateful Backpropagation Through Time (BPTT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -777,10 +794,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-sliding-window-temporal-loading" class="md-nav__link">
+  <a href="#1-contiguous-temporal-loading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Sliding Window Temporal Loading
+        1. Contiguous Temporal Loading
       
     </span>
   </a>
@@ -795,6 +812,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="2. The Objective Function (BCE &amp; Focal Loss)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful-backpropagation-through-time-bptt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stateful Backpropagation Through Time (BPTT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -976,9 +1010,9 @@
 
 <h1 id="training-methodology">Training Methodology</h1>
 <p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy <span class="arithmatex">\(\pi^*\)</span>, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.</p>
-<h2 id="1-sliding-window-temporal-loading">1. Sliding Window Temporal Loading</h2>
-<p>Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state <span class="arithmatex">\(x(t)\)</span>, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., <code>data/fluid/</code>).</p>
-<p>To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples <code>(file_idx, start_idx, is_mirrored)</code>. During training, continuous arrays are lazily sliced on-the-fly into overlapping sequences.</p>
+<h2 id="1-contiguous-temporal-loading">1. Contiguous Temporal Loading</h2>
+<p>Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state <span class="arithmatex">\(x(t)\)</span>, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a contiguous sequence extraction protocol, dynamically loading tensors from isolated profile directories (e.g., <code>data/fluid/</code>).</p>
+<p>To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples <code>(file_idx, start_idx, is_mirrored, is_first)</code>. During training, continuous arrays are lazily sliced on-the-fly into strictly contiguous, non-overlapping sequences with a stride equal to <span class="arithmatex">\(L\)</span> to maintain causal continuity across batches.</p>
 <p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation <span class="arithmatex">\(o_t\)</span> is a composite of visual, auditory, and thermal inputs. The input tensor sequences <span class="arithmatex">\(\mathbf{X}^{(vis)}_i\)</span>, <span class="arithmatex">\(\mathbf{X}^{(aud)}_i\)</span>, and <span class="arithmatex">\(\mathbf{X}^{(thm)}_i\)</span>, and the target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
 <div class="arithmatex">\[
 \mathbf{X}^{(vis)}_i=\{o^{(vis)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(vis)}_i\in\mathbb{R}^{L\times C\times64\times64}
@@ -1011,6 +1045,8 @@
 <li><strong>The Weighting Factor (<span class="arithmatex">\(\alpha\)</span>):</strong> A static scalar (e.g., <span class="arithmatex">\(\alpha=0.25\)</span>) that balances the intrinsic priority of positive targets versus negative targets, mitigating the sheer volume of <code>0</code>s (keys not pressed) in the multi-label distribution.</li>
 </ul>
 <p>The network parameters <span class="arithmatex">\(\theta\)</span> are subsequently updated via Backpropagation Through Time (BPTT).</p>
+<h3 id="stateful-backpropagation-through-time-bptt">Stateful Backpropagation Through Time (BPTT)</h3>
+<p>Because the LNN's Closed-form Continuous (CfC) cells require a continuous temporal flow to accurately accumulate evidence and trigger action potentials, the training loop utilizes Stateful BPTT. The hidden state output <span class="arithmatex">\(hx\)</span> from a batch is retained, detached from the computational graph (<span class="arithmatex">\(hx = hx.detach()\)</span>), and passed as the prior state for the subsequent batch. To prevent mathematical amnesia while respecting independent trajectory boundaries, a dynamic boolean mask zeros out the hidden state exclusively for sequences mapped to the start of a new <code>.npz</code> file, preventing "past life" momentum leakage.</p>
 <hr />
 <h2 id="3-class-imbalance-mirror-augmentation">3. Class Imbalance &amp; Mirror Augmentation</h2>
 <p>While Focal Loss successfully mitigates action-frequency bias, human gameplay datasets also exhibit severe topological and spatial biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Unmitigated, this spatial sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right).</p>
@@ -1056,7 +1092,7 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 \]</div>
 <p>Where <span class="arithmatex">\(TP\)</span>, <span class="arithmatex">\(FP\)</span>, and <span class="arithmatex">\(FN\)</span> represent True Positives, False Positives, and False Negatives, respectively.</p>
 <h3 id="addressing-redundancy-stride">Addressing Redundancy (Stride)</h3>
-<p>During normal training, the sliding window overlaps by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the <code>audit</code> dataloader enforces a sequence stride equal to <span class="arithmatex">\(L\)</span>, meaning non-overlapping segments are tested to precisely evaluate every frame only once.</p>
+<p>Historically, during normal training, the sliding window overlapped by shifting exactly one frame per sequence step. However, during auditing, evaluating identical frames repeatedly artificially inflates the diagnostic support counts and yields inaccurate exact-match metrics. To resolve this, the <code>audit</code> dataloader enforces a sequence stride equal to <span class="arithmatex">\(L\)</span>, meaning non-overlapping segments are tested to precisely evaluate every frame only once. This non-overlapping stride is now mirrored in the training dataloader to satisfy the strict chronological requirements of Stateful BPTT.</p>
 <hr />
 <h2 id="api-reference">API Reference</h2>
 <p>The data extraction, LNN optimization, and evaluation mechanics are orchestrated by the handlers below.</p>

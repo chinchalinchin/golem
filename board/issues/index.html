@@ -709,32 +709,31 @@
 <h1 id="issue-board-open-issues-enhancements">Issue Board: Open Issues &amp; Enhancements</h1>
 <p>See <a href="../closed/phases/">Issue Archive</a> for the project's closed issues.</p>
 <h2 id="issue-1-pipeline-infrastructure-optimizations-synchronous-data-loading">Issue 1: Pipeline Infrastructure Optimizations (Synchronous Data Loading)</h2>
-<p><strong>Status:</strong> Closed | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/20</p>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/20</p>
 <p><strong>Description:</strong></p>
 <p>The <code>DoomStreamingDataset</code> currently applies dynamic NumPy transposition, mirroring, and PyTorch tensor casting synchronously inside <code>__getitem__</code>. In <code>train.py</code>, the <code>DataLoader</code> is instantiated without multiprocessing or memory pinning. This creates an I/O bottleneck where the GPU idles while waiting for the CPU to transform the next batch.</p>
 <p><strong>Proposed Solution:</strong></p>
 <p>Refactor the <code>DataLoader</code> initialization in <code>train.py</code> to offload ETL transformations to background processes. Implement <code>num_workers</code> (e.g., 4), enable <code>pin_memory=True</code> for faster Host-to-Device memory transfers, and establish a <code>prefetch_factor</code>.</p>
 <h2 id="issue-3-memory-overflow-risk-in-dataset-loading-ram-bottleneck">Issue 3: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)</h2>
-<p><strong>Status:</strong> Closed | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/21</p>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/21</p>
 <p><strong>Description:</strong></p>
 <p>In <code>dataset.py</code>, <code>DoomStreamingDataset</code> currently iterates through all <code>.npz</code> files and loads the raw numpy arrays directly into standard Python lists (<code>self.video_arrays.append(frames)</code>). As the dataset scales to hours of multi-modal gameplay (including dense spatial audio and thermal masks), this will exceed consumer RAM limits and cause catastrophic Out-Of-Memory (OOM) crashes before training even begins.</p>
 <p><strong>Proposed Solution:</strong></p>
 <p>Migrate the storage backend from compressed <code>.npz</code> archives to HDF5 (<code>h5py</code>) format, or utilize NumPy's <code>mmap_mode='r'</code> to memory-map the data on disk. This allows the <code>Dataset</code> to lazily stream tensor blocks directly from the NVMe/SSD without pre-loading the entire corpus into volatile memory.</p>
 <h2 id="issue-4-phenomenological-saliency-mapping-grad-cam">Issue 4: Phenomenological Saliency Mapping (Grad-CAM)</h2>
-<p><strong>Status:</strong> Closed | <strong>Priority:</strong> High | <strong>Opened</strong>: 2026/02/21</p>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> High | <strong>Opened</strong>: 2026/02/21</p>
 <p><strong>Description:</strong></p>
 <p>We currently lack explainable AI (XAI) tooling to verify that the agent's distinct sensor cortices (Visual, Depth, Thermal) are specializing as intended. We need visual proof that the Visual Cortex focuses on static geometry while the Thermal Cortex tracks dynamic threats.</p>
 <p><strong>Proposed Solution:</strong></p>
 <p>Integrate the <code>captum</code> library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an <code>examine</code> command that takes a single sequence from the dataset, runs <code>captum.attr.LayerGradCam</code> on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side <code>.png</code> files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.</p>
 <h2 id="issue-5-audit-validation-leak-redundancy-traintest-split">Issue 5: Audit Validation Leak &amp; Redundancy (Train/Test Split)</h2>
-<p><strong>Status:</strong> Closed | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/21</p>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/21</p>
 <p><strong>Description:</strong></p>
 <p>The <code>audit</code> command currently evaluates the model against the <code>data/training/</code> directory. This causes a validation leak, resulting in an artificially inflated accuracy score (~97%) because the model is tested on its own training data. Furthermore, evaluating overlapping sliding windows inflates the sample count by a factor of 32.</p>
 <p><strong>Proposed Solution:</strong></p>
 <ol>
 <li>Establish a dedicated <code>data/validation/</code> directory. Update the ETL pipeline (<code>record.py</code>, <code>intervene.py</code>) to randomly route 10-15% of recorded episodes into this holdout folder.</li>
 <li>Modify the <code>audit</code> command to strictly target this validation directory.</li>
-<li>Add a <code>stride</code> parameter to <code>DoomStreamingDataset</code>. During <code>audit</code>, set <code>stride=32</code> so the dataloader yields non-overlapping sequences, evaluating each frame exactly once.</li>
 </ol>
 
 

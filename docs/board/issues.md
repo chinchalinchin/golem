@@ -2,7 +2,8 @@
 
 ## Issue 1: Pipeline Infrastructure Optimizations (Synchronous Data Loading)
 
-**Status:** Open | **Priority:** Medium
+
+**Status:** Closed | **Priority:** Medium
 
 **Description:**
 
@@ -14,7 +15,7 @@ Refactor the `DataLoader` initialization in `train.py` to offload ETL transforma
 
 ## Issue 2: Stateful Backpropagation Through Time (BPTT) Amnesia
 
-**Status:** Open | **Priority:** High
+**Status:** Closed | **Priority:** High
 
 **Description:**
 
@@ -31,7 +32,7 @@ Implement Stateful BPTT in `train.py`:
 
 ## Issue 3: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
 
-**Status:** Open | **Priority:** Medium
+**Status:** Closed | **Priority:** Medium
 
 **Description:**
 
@@ -43,7 +44,7 @@ Migrate the storage backend from compressed `.npz` archives to HDF5 (`h5py`) for
 
 ## Issue 4: Phenomenological Saliency Mapping (Grad-CAM)
 
-**Status:** Open | **Priority:** High
+**Status:** Closed | **Priority:** High
 
 **Description:**
 
@@ -55,7 +56,7 @@ Integrate the `captum` library to generate Gradient-weighted Class Activation Ma
 
 ## Issue 5: Audit Validation Leak & Redundancy (Train/Test Split)
 
-**Status:** Open | **Priority:** Medium
+**Status:** Closed | **Priority:** Medium
 
 **Description:**
 

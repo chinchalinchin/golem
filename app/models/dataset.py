@@ -91,11 +91,23 @@ class DoomStreamingDataset(Dataset):
                 if total_frames < self.seq_len:
                     continue
 
-                for start_idx in range(total_frames - self.seq_len + 1):
-                    self.index_map.append((file_idx, start_idx, False))
+                # Change the step size from 1 to seq_len to prevent overlapping futures
+                for start_idx in range(0, total_frames - self.seq_len + 1, self.seq_len):
+                    is_first = (start_idx == 0)
+                    self.index_map.append({
+                        'file_idx': file_idx, 
+                        'start_idx': start_idx, 
+                        'is_mirrored': False, 
+                        'is_first': is_first
+                    })
                     if self.augment:
-                        self.index_map.append((file_idx, start_idx, True))
-                        
+                        self.index_map.append({
+                            'file_idx': file_idx, 
+                            'start_idx': start_idx, 
+                            'is_mirrored': True, 
+                            'is_first': is_first
+                        })
+
         logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
 
     def _build_swap_map(self):
@@ -143,7 +155,8 @@ class DoomStreamingDataset(Dataset):
                     - ``'thermal'`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.
                 - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.
         """
-        file_idx, start_idx, is_mirrored = self.index_map[idx]
+        meta = self.index_map[idx]
+        file_idx, start_idx, is_mirrored, is_first = meta['file_idx'], meta['start_idx'], meta['is_mirrored'], meta['is_first']
         
         window_frames = self.video_arrays[file_idx][start_idx : start_idx + self.seq_len]
         window_actions = self.action_arrays[file_idx][start_idx : start_idx + self.seq_len]
@@ -194,5 +207,7 @@ class DoomStreamingDataset(Dataset):
             inputs['audio'] = x_aud
         if self.has_thermal:
             inputs['thermal'] = x_thm
-            
+
+        inputs['is_first'] = torch.tensor([is_first], dtype=torch.bool)
         return inputs, y
+        

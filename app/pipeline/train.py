@@ -83,8 +83,8 @@ def train(cfg: GolemConfig, module_name: str = None):
         logger.error(f"No training data found matching pattern: {file_pattern} in {data_dir}")
         return
 
-    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=True)    
-    
+    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=False)
+
     # 1. Base Defaults
     cortical_depth = cfg.brain.cortical_depth
     working_memory = cfg.brain.working_memory
@@ -125,7 +125,8 @@ def train(cfg: GolemConfig, module_name: str = None):
     
     logger.info(f"Starting training for {cfg.training.epochs} epochs...")
     model.train()
-    
+    hx = None # Initialize global hidden state
+
     start_time = time.time()
 
     for epoch in range(cfg.training.epochs):
@@ -139,8 +140,19 @@ def train(cfg: GolemConfig, module_name: str = None):
             actions = actions.to(device)
             
             optimizer.zero_grad()
-            predictions, _ = model(x_vis, x_aud=x_aud, x_thm=x_thm)           
+            predictions, new_hx = model(x_vis, x_aud=x_aud, x_thm=x_thm, hx=hx)            
             
+            # 1. Mask the hidden state for individual sequence resets
+            is_first = inputs['is_first'].to(device).float() # Shape: (batch_size, 1)
+
+            if hx is not None:
+                # Zero out hx for batch indices where is_first == 1
+                mask = 1.0 - is_first 
+                if isinstance(hx, (list, tuple)):
+                    hx = [h * mask for h in hx]
+                else:
+                    hx = hx * mask
+
             # Use dynamic n_actions for the safety check
             if actions.shape[2] != n_actions:
                 logger.error(f"CRITICAL: Data Mismatch! Found {actions.shape[2]} actions in data, but Brain expects {n_actions}.")
@@ -150,6 +162,13 @@ def train(cfg: GolemConfig, module_name: str = None):
             loss.backward()
             optimizer.step()
             
+            # DETACH hx to prevent backpropagating through the entire history of the session
+            # This implements the "Truncated" part of Truncated BPTT
+            if isinstance(new_hx, (list, tuple)):
+                hx = [h.detach() for h in new_hx]
+            else:
+                hx = new_hx.detach()
+
             total_loss += loss.item()
             batches += 1
             

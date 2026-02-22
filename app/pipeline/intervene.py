@@ -6,11 +6,10 @@ Allows the human expert to take over control from the LNN to correct mistakes.
 import logging
 import time
 from pathlib import Path
+from collections import deque
 
 # External Libraries
 import torch
-import torchaudio
-import cv2
 import numpy as np
 
 # Application Libraries
@@ -143,17 +142,6 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
         sensors=cfg.brain.sensors
     ).to(device)
        
-    mel_transform = None
-    amp_to_db = None
-    if cfg.brain.sensors.audio:
-        mel_transform = torchaudio.transforms.MelSpectrogram(
-            sample_rate=cfg.brain.dsp.sample_rate,
-            n_fft=cfg.brain.dsp.n_fft,
-            hop_length=cfg.brain.dsp.hop_length,
-            n_mels=cfg.brain.dsp.n_mels
-        ).to(device)
-        amp_to_db = torchaudio.transforms.AmplitudeToDB().to(device)
-
     try:
         model.load_state_dict(torch.load(str(model_path), map_location=device))
         model.eval()
@@ -168,9 +156,11 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     # Setup Environment using brain.mode
     active_profile = cfg.brain.mode
     cfg_path = cfg.config[active_profile]
-    scenario = cfg.modules[module_name].scenario
+    module = cfg.modules[module_name]
+    scenario = module.scenario
+    map_name = module.map
 
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors)
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)
     game.init()
 
     # Get active bindings for the enabled brain mode
@@ -180,13 +170,17 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     # Pass bindings to dynamically map keys
     controller = InterventionController(action_labels, active_bindings)
     
+    # Rolling Context Buffers
+    auto_frames = deque(maxlen=cfg.training.sequence_length)
+    auto_depths = deque(maxlen=cfg.training.sequence_length)
+    auto_audios = deque(maxlen=cfg.training.sequence_length)
+    auto_thermals = deque(maxlen=cfg.training.sequence_length)
+    auto_actions = deque(maxlen=cfg.training.sequence_length)
+
     # Memory Buffer
-    recovery_frames = []
-    recovery_depths = []
-    recovery_audios = []
-    recovery_actions = []
-    recovery_thermals = []
-    
+    recovery_frames, recovery_depths, recovery_audios, recovery_actions, recovery_thermals \
+            = [], [], [], [], []
+
     logger.info("======================================================")
     logger.info("DAgger Mode Active. Golem is running autonomously.")
     logger.info("HOLD [LEFT SHIFT] to pause the LNN and take manual control.")
@@ -196,6 +190,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     
     # TODO: make this configurable or pass it in through the CLI
     episodes = 5
+    was_intervening = False
     for i in range(episodes):
         game.new_episode()
         hx = None
@@ -206,10 +201,13 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 hx = None
                 
             state = game.get_state()
-            
+            if state is None:
+                game.advance_action()
+                continue
+
             # Centralized Extraction & Tensor formatting
             extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
-            tensors = SensoryExtractor.to_tensors(extracted, device, mel_transform, amp_to_db)
+            tensors = SensoryExtractor.to_tensors(extracted, device)
 
             with torch.no_grad():
                 logits, hx = model(
@@ -221,8 +219,17 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 probs = torch.sigmoid(logits)
             
             if controller.intervening:
+                if not was_intervening:
+                    # Flush the rolling autonomous context into the recovery buffers
+                    recovery_frames.extend(auto_frames)
+                    recovery_actions.extend(auto_actions)
+                    if cfg.brain.sensors.depth: recovery_depths.extend(auto_depths)
+                    if cfg.brain.sensors.audio: recovery_audios.extend(auto_audios)
+                    if cfg.brain.sensors.thermal: recovery_thermals.extend(auto_thermals)
+                    was_intervening = True
+
                 action = controller.get_action_vector()
-                
+
                 # Append arrays using dictionary safeties
                 if 'visual' in extracted: recovery_frames.append(extracted['visual'])
                 if 'depth' in extracted: recovery_depths.append(extracted['depth'])
@@ -234,6 +241,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 if game.get_episode_time() % 35 == 0:
                     logger.warning(f"OVERRIDE ACTIVE | Recording frame {len(recovery_frames)}...")
             else:
+                was_intervening = False
                 action_probs = probs.cpu().numpy()[0, 0]
                 action = (action_probs > 0.5).astype(int).tolist()
                 

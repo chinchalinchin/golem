@@ -2,7 +2,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # External Libraries
 import yaml
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class ModuleConfig(BaseModel):
     scenario: str
     episodes: int = 5
+    map: Optional[str] = "map01" 
 
 class DataConfig(BaseModel):
     prefix: str
@@ -49,6 +50,8 @@ class BrainConfig(BaseModel):
     dsp: DSPConfig = DSPConfig()
 
 class TrainingConfig(BaseModel):
+    alpha: float = 0.25
+    gamma: float = 2.0
     batch_size: int
     learning_rate: float
     epochs: int

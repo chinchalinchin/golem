@@ -101,7 +101,8 @@ def get_vizdoom_scenario(scenario_name: str) -> str:
         
     return scenario_path
 
-def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER) -> vizdoom.DoomGame:
+
+def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER, map_name=None) -> vizdoom.DoomGame:
     """
     Retrieves a ViZDoom DoomGame instances configured for Golem training.
     """
@@ -115,6 +116,11 @@ def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PL
     game = vizdoom.DoomGame()
     game.load_config(cfg_path)    
     game.set_doom_scenario_path(scenario_path)
+    
+    # Inject the runtime map override if provided
+    if map_name:
+        game.set_doom_map(map_name)
+        
     game.set_screen_format(vizdoom.ScreenFormat.CRCGCB)
     game.set_screen_resolution(vizdoom.ScreenResolution.RES_640X480)
     game.set_window_visible(True)
@@ -204,7 +210,7 @@ class SensoryExtractor:
         return data
 
     @staticmethod
-    def to_tensors(numpy_state: dict, device: torch.device, mel_transform=None, amp_to_db=None) -> dict:
+    def to_tensors(numpy_state: dict, device: torch.device) -> dict:
         """Converts normalized numpy dictionary into PyTorch tensors for model inference."""
         tensors = {}
         
@@ -216,16 +222,12 @@ class SensoryExtractor:
                 x_vis_np = np.concatenate((x_vis_np, depth_expanded), axis=2)
             tensors['visual'] = torch.from_numpy(np.transpose(x_vis_np, (2, 0, 1))).float().unsqueeze(0).unsqueeze(0).to(device)
             
-        # Audio Spectrogram Transformation
+        # Audio (Now passes the raw 1D waveform directly to the model)
         if 'audio' in numpy_state:
-            tensor_aud = torch.from_numpy(numpy_state['audio']).float().unsqueeze(0).unsqueeze(0).to(device)
-            if mel_transform and amp_to_db:
-                tensor_aud = mel_transform(tensor_aud)
-                tensor_aud = amp_to_db(tensor_aud)
-            tensors['audio'] = tensor_aud
+            tensors['audio'] = torch.from_numpy(numpy_state['audio']).float().unsqueeze(0).unsqueeze(0).to(device)
             
         # Thermal Mask
         if 'thermal' in numpy_state:
             tensors['thermal'] = torch.from_numpy(numpy_state['thermal']).float().unsqueeze(0).unsqueeze(0).unsqueeze(0).to(device)
-            
+        
         return tensors

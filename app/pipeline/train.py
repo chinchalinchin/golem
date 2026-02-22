@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
+from app.models.loss import FocalLossWithLogits
 from app.utils import resolve_path, get_unique_filename, register_command, get_latest_parameters
 
 logger = logging.getLogger(__name__)
@@ -118,7 +119,8 @@ def train(cfg: GolemConfig, module_name: str = None):
     if state_dict:
         model.load_state_dict(state_dict)
     
-    criterion = nn.BCEWithLogitsLoss()
+    # OLD CRITERION: criterion = nn.BCEWithLogitsLoss()
+    criterion = FocalLossWithLogits(alpha=cfg.training.alpha, gamma=cfg.training.gamma)
     optimizer = optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
     
     logger.info(f"Starting training for {cfg.training.epochs} epochs...")

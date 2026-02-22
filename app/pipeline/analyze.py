@@ -320,8 +320,10 @@ def summary(cfg: GolemConfig, module_name: str = None):
     
     x_aud = None
     if cfg.brain.sensors.audio:
-        w_time = int((cfg.brain.dsp.sample_rate / 35) / cfg.brain.dsp.hop_length) + 1
-        x_aud = torch.randn(batch_size, seq_len, 2, cfg.brain.dsp.n_mels, w_time).to(device)
+        # Calculate raw audio samples per frame (44100 Hz / 35 FPS = 1260)
+        audio_samples_per_frame = int(cfg.brain.dsp.sample_rate / 35)
+        # Dummy tensor now represents raw waveforms, not spectrograms
+        x_aud = torch.randn(batch_size, seq_len, 2, audio_samples_per_frame).to(device)
         
     x_thm = None
     if cfg.brain.sensors.thermal:

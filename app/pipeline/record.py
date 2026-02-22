@@ -34,11 +34,12 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
 
     cfg_path = cfg.config[active_profile]
     scenario = module.scenario
+    map_name = module.map
 
     logger.info(f"--- Recording Module: {module_name} ---")
     
     # Explicitly set SPECTATOR mode to allow manual human input via keyboard
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR)
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
     game.init()
     
     active_bindings = cfg.keybindings.get(active_profile, {})

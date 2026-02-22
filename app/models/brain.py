@@ -9,7 +9,10 @@ for spatial depth representations, 2D mel spectrograms, and binary thermal masks
 
 import torch
 import torch.nn as nn
+import torchaudio
 from ncps.torch import CfC
+
+from app.models.config import SensorsConfig, DSPConfig
 
 class DoomLiquidNet(nn.Module):
     r"""
@@ -35,36 +38,45 @@ class DoomLiquidNet(nn.Module):
             (e.g., visual, depth, audio, thermal).
         dsp_config (DSPConfig, optional): Signal processing parameters for audio initialization.
     """
-    def __init__(self, n_actions, cortical_depth=2, working_memory=64, sensors=None, dsp_config=None):
+    
+    def __init__(self, n_actions, cortical_depth=2, working_memory=64, 
+                 sensors: SensorsConfig=None, dsp_config: DSPConfig=None):
         super().__init__()
         self.sensors = sensors
         self.dsp_config = dsp_config
         
+        self.use_audio = self.sensors and self.sensors.audio
+        self.use_thermal = self.sensors and self.sensors.thermal
+        
         # 1. Build the Visual Cortex (CNN) dynamically
         layers = []
-        in_channels = 4 if self.sensors and getattr(self.sensors, 'depth', False) else 3
+        in_channels = 4 if self.sensors and self.sensors.depth else 3
         out_channels = 32
-        current_img_size = 64
         
-        for i in range(cortical_depth):
+        for _ in range(cortical_depth):
             layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2))
             layers.append(nn.ReLU())
-            current_img_size = (current_img_size - 4) // 2 + 1
             in_channels = out_channels
             out_channels *= 2
             
         layers.append(nn.Flatten())
         self.conv = nn.Sequential(*layers)
-        
-        flat_size = in_channels * (current_img_size ** 2)
-        
+                
         # 2. Build Auditory Cortex (Parallel 2D CNN)
-        self.use_audio = self.sensors and getattr(self.sensors, 'audio', False)
         if self.use_audio:
+            # Embed GPU-Accelerated DSP directly into the network graph
+            self.mel_transform = torchaudio.transforms.MelSpectrogram(
+                sample_rate=self.dsp_config.sample_rate,
+                n_fft=self.dsp_config.n_fft,
+                hop_length=self.dsp_config.hop_length,
+                n_mels=self.dsp_config.n_mels
+            )
+            self.amp_to_db = torchaudio.transforms.AmplitudeToDB()
+
             aud_layers = []
             a_in = 2 # Stereo channels over a 2D Time-Frequency Spectrogram
             a_out = 16
-            for i in range(3):
+            for _ in range(3):
                 aud_layers.append(nn.Conv2d(a_in, a_out, kernel_size=3, stride=2, padding=1))
                 aud_layers.append(nn.ReLU())
                 a_in = a_out
@@ -73,34 +85,41 @@ class DoomLiquidNet(nn.Module):
             aud_layers.append(nn.Flatten())
             self.audio_conv = nn.Sequential(*aud_layers)
             
-            flat_size += a_in 
-            
         # 3. Build Thermal Cortex (Parallel 2D CNN)
-        self.use_thermal = self.sensors and getattr(self.sensors, 'thermal', False)
         if self.use_thermal:
             thm_layers = []
             t_in = 1  # Binary Thermal Mask
             t_out = 16
-            t_img_size = 64
-            for i in range(cortical_depth):
+            for _ in range(cortical_depth):
                 thm_layers.append(nn.Conv2d(t_in, t_out, kernel_size=4, stride=2))
                 thm_layers.append(nn.ReLU())
-                t_img_size = (t_img_size - 4) // 2 + 1
                 t_in = t_out
                 t_out *= 2
             thm_layers.append(nn.Flatten())
             self.thermal_conv = nn.Sequential(*thm_layers)
             
-            flat_size += t_in * (t_img_size ** 2)
+        # 4. Dynamic Dummy Pass to resolve exact flat_size
+        with torch.no_grad():
+            dummy_c_in = torch.zeros(1, (4 if self.sensors and self.sensors.depth else 3), 64, 64)
+            flat_size = self.conv(dummy_c_in).view(1, -1).size(1)
+
+            if self.use_audio:
+                # Time dimension is arbitrarily 100, AdaptiveAvgPool2d flattens it anyway
+                dummy_a_in = torch.zeros(1, 2, self.dsp_config.n_mels, 100) 
+                flat_size += self.audio_conv(dummy_a_in).view(1, -1).size(1)
+
+            if self.use_thermal:
+                dummy_t_in = torch.zeros(1, 1, 64, 64)
+                flat_size += self.thermal_conv(dummy_t_in).view(1, -1).size(1)
             
-        # 4. Liquid Core
+        # 5. Liquid Core
         self.liquid_rnn = CfC(
             input_size=flat_size, 
             units=working_memory, 
             return_sequences=True 
         )
         
-        # 5. Motor Cortex Head
+        # 6. Motor Cortex Head
         self.output = nn.Linear(working_memory, n_actions)
 
     def forward(self, x_vis, x_aud=None, x_thm=None, hx=None):
@@ -110,8 +129,7 @@ class DoomLiquidNet(nn.Module):
         Args:
             x_vis (Tensor): A batched sequence of visual frames of shape 
                 :math:`(\text{Batch}, \text{Time}, C, H, W)`.
-            x_aud (Tensor, optional): A batched sequence of mel spectrograms of shape 
-                :math:`(\text{Batch}, \text{Time}, C, H_{mels}, W_{time})`. Default: ``None``.
+            x_aud (Tensor, optional): raw 1D waveforms: (Batch, Time, Stereo_Channels, Audio_Length). Default: ``None``.
             x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape 
                 :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.
             hx (Tensor, optional): The previous hidden state of the liquid core of shape 
@@ -128,11 +146,17 @@ class DoomLiquidNet(nn.Module):
         features = self.conv(c_in)
         
         if self.use_audio and x_aud is not None:
-            b, t, ac, a_h, a_w = x_aud.size()
-            a_in = x_aud.view(b * t, ac, a_h, a_w)
+            # x_aud arrives as raw 1D waveforms: (Batch, Time, Stereo_Channels, Audio_Length)
+            b, t, ac, a_len = x_aud.size()
+            a_in = x_aud.view(b * t, ac, a_len)
+            
+            # Dynamically generate the Mel Spectrogram on the GPU
+            a_in = self.mel_transform(a_in)
+            a_in = self.amp_to_db(a_in)
+            
             a_feat = self.audio_conv(a_in)
             features = torch.cat((features, a_feat), dim=1)
-            
+
         if self.use_thermal and x_thm is not None:
             b, t, tc, th, tw = x_thm.size()
             t_in = x_thm.view(b * t, tc, th, tw)

@@ -174,7 +174,7 @@ Golem uses GitHub Actions to automate testing, documentation deployment, and con
 
 ### Manual Builds
 
-If you need to manually build and push these images locally (e.g., for testing architecture changes), you can use Docker Buildx:
+If you need to manually build these images locally (e.g., for testing architecture changes), you can use Docker Buildx to build platform agnostic images:
 
 ```bash
 # Build and push the CI image
@@ -183,7 +183,7 @@ docker buildx build \
     --platform linux/amd64 \
     -t chinchalinchin/golem-ci:latest \
     . \
-    --push
+    --load
 
 # Build and push the Agent image
 docker buildx build \
@@ -191,7 +191,7 @@ docker buildx build \
     --platform linux/amd64 \
     -t chinchalinchin/golem-agent:latest \
     . \
-    --push
+    --load
 ```
 
 ---

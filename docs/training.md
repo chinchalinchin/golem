@@ -6,6 +6,8 @@ Golem is trained via **Behavioral Cloning (BC)**, a foundational paradigm of Imi
 
 Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state $x(t)$, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., `data/fluid/`).
 
+To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples `(file_idx, start_idx, is_mirrored)`. During training, continuous arrays are lazily sliced on-the-fly into overlapping sequences.
+
 Given an expert trajectory of length $T$, defined as $\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation $o_t$ is a composite of visual, auditory, and thermal inputs. The input tensor sequences $\mathbf{X}^{(vis)}_i$, $\mathbf{X}^{(aud)}_i$, and $\mathbf{X}^{(thm)}_i$, and the target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
 
 $$
@@ -26,25 +28,40 @@ $$
 
 Where $C \in \{3,4\}$ depends on whether the depth buffer is enabled, and $n_\rho$ is the dimensionality of the action space dictated by the active environment profile $\rho$ (e.g., Basic, Classic, Fluid).
 
-## 2. The Objective Function (BCE Loss)
+---
 
-At each time step $t$, the network outputs a vector of raw logits $\mathbf{z}_t\in\mathbb{R}^{n_\rho}$. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using **Binary Cross-Entropy** with Logits Loss.
+## 2. The Objective Function (BCE & Focal Loss)
 
+At each time step $t$, the network outputs a vector of raw logits $\mathbf{z}_t\in\mathbb{R}^{n_\rho}$. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the foundation of the objective is evaluated using **Binary Cross-Entropy (BCE)** with Logits Loss.
 
-The loss $\mathcal{L}$ for a single sequence of length $L$ over $n_\rho$ independent binary action channels is computed as:
+The baseline BCE loss $\mathcal{L}_{BCE}$ for a single sequence of length $L$ over $n_\rho$ independent binary action channels is computed as:
 
 $$
-\mathcal{L}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
+\mathcal{L}_{BCE}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
 $$
 
-Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the ground truth label, and $z_{t,j}$ is the network's prediction. The network parameters $\theta$ are updated via Backpropagation Through Time (BPTT).
+Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the ground truth label, and $z_{t,j}$ is the network's prediction. 
+
+However, pure BCE treats all errors equally. Because human expert demonstrations consist overwhelmingly of simple navigation frames (the "Hold W Trap"), the cumulative gradient of these easily classified background actions overwhelms the sparse, high-value gradients of rare actions like combat. 
+
+To cure this convergence trap, Golem implements **Focal Loss**, which extends the BCE formulation by introducing a dynamically scaled modulating factor. Let $p_{t,j}=\sigma(z_{t,j})$. The Focal Loss $\mathcal{L}_{focal}$ is computed as:
+
+$$
+\mathcal{L}_{focal}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[\alpha y_{t,j}(1-p_{t,j})^\gamma\log(p_{t,j})+(1-\alpha)(1-y_{t,j})p_{t,j}^\gamma\log(1-p_{t,j})\right]
+$$
+
+* **The Focusing Parameter ($\gamma$):** As the model's confidence in a correct prediction increases ($p_{t,j}\to1$ for positive classes, or $p_{t,j}\to0$ for negative classes), the modulating factor $(1-p_{t,j})^\gamma$ decays to zero. This exponentially suppresses the gradient contribution of easily classified navigation frames, forcing the optimizer to focus strictly on hard, misclassified instances. Standard BCE is recovered when $\gamma=0$.
+* **The Weighting Factor ($\alpha$):** A static scalar (e.g., $\alpha=0.25$) that balances the intrinsic priority of positive targets versus negative targets, mitigating the sheer volume of `0`s (keys not pressed) in the multi-label distribution.
+
+The network parameters $\theta$ are subsequently updated via Backpropagation Through Time (BPTT).
+
+---
 
 ## 3. Class Imbalance & Mirror Augmentation
 
-Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Hold W Trap" (convergence to a permanent state of forward movement due to high dataset idle times).
+While Focal Loss successfully mitigates action-frequency bias, human gameplay datasets also exhibit severe topological and spatial biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Unmitigated, this spatial sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right).
 
 Golem counteracts spatial bias dynamically via **Mirror Augmentation**. During data streaming, the dataset yields reflected visual and thermal observation tensors $o'^{(vis)}_t$ and $o'^{(thm)}_t$ across the vertical axis (width):
-
 
 $$
 o'^{(vis)}_{t,c,h,w}=o^{(vis)}_{t,c,h,W-w-1}
@@ -73,15 +90,21 @@ $$
 
 This geometric inversion enforces perfect spatial symmetry in the agent's spatial reasoning, effectively doubling the dataset's topological variance without requiring additional recording sessions.
 
+---
+
 ## 4. Covariate Shift & DAgger Intervention
 
 A fundamental flaw of pure Behavioral Cloning is **Covariate Shift** (the "Perfect Play" trap). If the network is trained exclusively on flawless expert demonstrations, it never learns how to recover from mistakes. During live inference, a microscopic mathematical error will push the agent slightly off the optimal trajectory. Because this sub-optimal state $s_{err}$ exists outside the training distribution, the agent's predictions become chaotic, and the errors rapidly compound until the agent is completely stuck.
 
-To cure this, Golem employs **DAgger (Dataset Aggregation)**. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. This intervention steers the agent back to the optimal path, automatically appending a `_recovery` dataset trace to the active profile's training directory. This explicitly teaches the network how to correct trajectory deviations.
+To cure this, Golem employs **DAgger (Dataset Aggregation)**. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. 
+
+To ensure the network understands the causal sequence that led to the error, the intervention pipeline utilizes a rolling `collections.deque` buffer. This temporarily stores the $L$ autonomous frames immediately preceding the override. When the human operator takes control, this historical context is flushed into a `_recovery` trace alongside the corrective actions. This explicitly teaches the network not only the correction, but the specific sub-optimal visual precursors that demand it, actively teaching the network how to correct trajectory deviations.
+
+---
 
 ## 5. Diagnostic Auditing & Validation
 
-Because the aggregate BCE loss scalar $\mathcal{L}(\theta)$ fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static `audit` module.
+Because the aggregate loss scalar $\mathcal{L}(\theta)$ fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static `audit` module.
 
 The audit evaluates the trained weights over a validation slice by generating a strictly thresholded ($\sigma(\mathbf{z})>0.5$) Confusion Matrix for every individual channel $j$ in the $n_\rho$ action space. It evaluates the network based on:
 

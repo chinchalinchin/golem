@@ -1,23 +1,21 @@
+# ------------------------------------------------------ CONFIGURATION
 app:
   name: "Golem"
   version: "0.2.3"
   log_level: "INFO"
-
 config:
+  simple: 'conf/simple.cfg'
   basic: 'conf/basic.cfg'
   classic: 'conf/classic.cfg'
   fluid: 'conf/fluid.cfg'
-
-training:
-  batch_size: 16
-  learning_rate: 0.0001
-  epochs: 10
-  sequence_length: 32
-  augmentation:
-    mirror: true
-
+data:
+  prefix: "golem_"
+  dirs:
+    training: "data/training/"
+    model: "data/model/"
+# ------------------------------------------------------ BRAIN
 brain:
-  mode: "basic"       # Modes: basic, classic, fluid
+  mode: "simple"       # Modes: basic, classic, fluid
   cortical_depth: 4
   working_memory: 128
   sensors:
@@ -30,63 +28,95 @@ brain:
     n_fft: 1024
     hop_length: 256
     n_mels: 64
-
-data:
-  prefix: "golem_"
-  dirs:
-    training: "data/training/"
-    model: "data/model/"
-
+# ------------------------------------------------------ TRAINING 
+training:
+  alpha: 0.25
+  gamma: 2.0
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 10
+  sequence_length: 32
+  augmentation:
+    mirror: true
+# ------------------------------------------------------ MODULES
 modules:
   # --- Original ViZDoom Defaults ---
   basic:
     scenario: "basic.wad"
+    map: "map01"
     episodes: 10
   navigation:
     scenario: "my_way_home.wad" 
+    map: "map01"
     episodes: 10
   combat:
     scenario: "deadly_corridor.wad"
+    map: "map01"
     episodes: 10
   center:
     scenario: "defend_the_center.wad"
+    map: "map01"
     episodes: 1
   defend:
     scenario: "defend_the_line.wad"
+    map: "map01"
     episodes: 1
   prediction:
     scenario: "predict_position.wad"
+    map: "map01"
     episodes: 1
   deathmatch:
     scenario: "deathmatch.wad"
+    map: "map01"
     episodes: 1
   cover:
     scenario: "take_cover.wad"
+    map: "map01"
     episodes: 5
-
   # --- External / Community RL WADs ---
   cig_arena:
     scenario: "cig2017.wad" 
+    map: "map01"
     episodes: 1
   freedoom:
     scenario: "freedoom2.wad"
+    map: "map01"
     episodes: 1
-
+  demonfear:
+    scenario: "DEMONFEAR.WAD"
+    map: "map01"
+    episodes: 1
   # --- Retail IWADs ---
-  doom:
-    scenario: "/Users/gmoore/Home/games/doom/wads/DOOM.WAD"
+  doomE1M1:
+    scenario: "DOOM.WAD"
+    map: "E1M1"
+    episodes: 1
+  doomE1M2:
+    scenario: "DOOM.WAD"
+    map: "E1M2"
     episodes: 1
   doom2:
-    scenario: "/Users/gmoore/Home/games/doom/wads/DOOM2.WAD"
+    scenario: "DOOM2.WAD"
+    map: "map01"
     episodes: 1
   plutonia:
-    scenario: "/Users/gmoore/Home/games/doom/wads/PLUTONIA.WAD"
+    scenario: "PLUTONIA.WAD"
+    map: "map01"
     episodes: 1
   tnt:
-    scenario: "/Users/gmoore/Home/games/doom/wads/TNT.WAD"
+    scenario: "TNT.WAD"
+    map: "map01"
     episodes: 1
-
+# ------------------------------------------------------ KEYBINDINGS 
 keybindings:
+  simple:
+    w: "+forward"
+    s: "+back"
+    a: "+moveleft"
+    d: "+moveright"
+    leftarrow: "+left"
+    rightarrow: "+right"
+    space: "+attack"
   basic:
     w: "+forward"
     s: "+back"

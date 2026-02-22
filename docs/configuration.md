@@ -2,7 +2,6 @@
 
 The `app.yaml` file acts as the central nervous system for Golem. It defines the active brain architecture, training hyperparameters, dataset routing, and environment multi-modality. This single source of truth ensures that the ETL pipelines and the PyTorch models remain perfectly synchronized without requiring hardcoded magic numbers.
 
-
 ## Configuration Blocks
 
 ### 1. `app`
@@ -30,6 +29,8 @@ Defines the Behavioral Cloning optimization loop dynamics.
 | **`epochs`** | Total number of complete passes through the training dataset. |
 | **`sequence_length`** | The temporal window size ($L$) for Backpropagation Through Time (e.g., 32 frames). |
 | **`augmentation.mirror`** | Boolean toggle to enable dynamic horizontal mirror augmentation, doubling topological variance and curing turning bias. |
+| **`alpha`** | The weighting factor used in the Focal Loss function to balance positive and negative classes (e.g., 0.25). |
+| **`gamma`** | The focusing parameter used in the Focal Loss function to dynamically scale down the gradient of easily classified examples (e.g., 2.0). |
 
 #### Hyperparameter Dynamics: `learning_rate` and `batch_size`
 
@@ -40,11 +41,20 @@ The **`learning_rate`** (e.g., 0.0001) controls the step size the Adam optimizer
 
 The **`batch_size`** (e.g., 16) determines how many temporal sequences are processed concurrently before a weight update occurs. 
 
-
 * **Small Batch Size:** Results in "noisy" gradient estimates. This noise acts as a natural regularizer, often helping the network escape sharp, suboptimal local minima and generalize better to unseen environments. However, it trains slower sequentially.
 * **Large Batch Size:** Provides a highly accurate gradient estimate and allows for massive hardware parallelization (faster wall-clock time per epoch). However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.
 
 **The Interplay:** These two parameters are mathematically coupled. A common deep learning heuristic is the *Linear Scaling Rule*: if you double your `batch_size` (smoothing the gradient), you should generally double your `learning_rate` to maintain the same training dynamics and convergence speed.
+
+#### Focal Loss Dynamics: `alpha` and `gamma`
+
+
+
+To counteract severe class imbalance in human demonstrations (the "Hold W" convergence trap), Golem utilizes a Focal Loss function instead of standard Binary Cross-Entropy.
+
+The **`gamma`** parameter acts as a dynamic focusing mechanism. In standard classification, frequent and "easy" actions (like walking forward) accumulate massive loss gradients simply by volume, effectively drowning out the gradients of rare, critical actions (like firing a weapon). By setting `gamma > 0`, the loss function exponentially scales down the contribution of predictions the model is already confident about. If the network successfully predicts a navigation frame, its gradient contribution approaches zero, forcing the optimizer to focus computational effort on the sparse, difficult combat sequences it is currently failing. 
+
+The **`alpha`** parameter acts as a static weighting factor. It directly balances the importance of positive targets versus negative targets across the multi-label distribution, ensuring that the sheer volume of `0`s (keys not pressed) does not overwhelm the rare `1`s (keys pressed).
 
 ### 4. `brain`
 

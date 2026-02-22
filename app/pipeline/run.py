@@ -5,7 +5,6 @@ from pathlib import Path
 
 # External Libraries
 import torch
-import torchaudio
 
 # Application Libraries
 from app.models.config import GolemConfig
@@ -68,9 +67,11 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
         return
     
     cfg_path = cfg.config[active_profile]
-    scenario = cfg.modules[module_name].scenario
+    module = cfg.modules[module_name]
+    scenario = module.scenario
+    map_name = module.map
 
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors)    
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)    
     game.init()
 
     logger.info("Golem is waking up...")
@@ -80,17 +81,6 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     if len(action_labels) < n_actions:
         action_labels += [f"ACTION_{i}" for i in range(len(action_labels), n_actions)]
 
-    mel_transform = None
-    amp_to_db = None
-    if cfg.brain.sensors.audio:
-        mel_transform = torchaudio.transforms.MelSpectrogram(
-            sample_rate=cfg.brain.dsp.sample_rate,
-            n_fft=cfg.brain.dsp.n_fft,
-            hop_length=cfg.brain.dsp.hop_length,
-            n_mels=cfg.brain.dsp.n_mels
-        ).to(device)
-        amp_to_db = torchaudio.transforms.AmplitudeToDB().to(device)
-        
     # TODO: make this configurable, or pass it in through CLI.
     episodes = 10
     for i in range(episodes):
@@ -103,10 +93,13 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
                 hx = None
                 
             state = game.get_state()
+            if state is None:
+                game.advance_action()
+                continue
             
             # Centralized Extraction & Tensor formatting
             extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
-            tensors = SensoryExtractor.to_tensors(extracted, device, mel_transform, amp_to_db)
+            tensors = SensoryExtractor.to_tensors(extracted, device)
 
             with torch.no_grad():
                 logits, hx = model(

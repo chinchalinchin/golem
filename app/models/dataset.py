@@ -91,23 +91,11 @@ class DoomStreamingDataset(Dataset):
                 if total_frames < self.seq_len:
                     continue
 
-                for start_idx in range(total_frames - self.seq_len):
+                for start_idx in range(total_frames - self.seq_len + 1):
                     self.index_map.append((file_idx, start_idx, False))
                     if self.augment:
                         self.index_map.append((file_idx, start_idx, True))
                         
-        # Setup DSP transforms if audio is present
-        self.mel_transform = None
-        self.amp_to_db = None
-        if self.has_audio and self.dsp_config:
-            self.mel_transform = torchaudio.transforms.MelSpectrogram(
-                sample_rate=self.dsp_config.sample_rate,
-                n_fft=self.dsp_config.n_fft,
-                hop_length=self.dsp_config.hop_length,
-                n_mels=self.dsp_config.n_mels
-            )
-            self.amp_to_db = torchaudio.transforms.AmplitudeToDB()
-
         logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
 
     def _build_swap_map(self):
@@ -174,10 +162,6 @@ class DoomStreamingDataset(Dataset):
         if self.has_audio:
             window_audios = self.audio_arrays[file_idx][start_idx : start_idx + self.seq_len]
             x_aud = torch.from_numpy(window_audios).float()
-            
-            if self.mel_transform and self.amp_to_db:
-                x_aud = self.mel_transform(x_aud)
-                x_aud = self.amp_to_db(x_aud)
                 
         x_thm = None
         if self.has_thermal:

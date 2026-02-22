@@ -3,6 +3,7 @@ import logging
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
+from enum import Enum
 
 # External Libraries
 import yaml
@@ -13,6 +14,9 @@ from app.utils.conf import resolve_path
 
 logger = logging.getLogger(__name__)
 
+class LossType(str, Enum):
+    FOCAL = "focal"
+    BCE = "bce"
 
 class RandomizerConfig(BaseModel):
     executable: str
@@ -63,6 +67,7 @@ class TrainingConfig(BaseModel):
     sequence_length: int = 32
     action_space_size: int = 8 
     action_names: List[str] = [] 
+    loss: LossType = LossType.FOCAL    
     augmentation: AugmentationConfig = AugmentationConfig()
 
 class GolemConfig(BaseModel):

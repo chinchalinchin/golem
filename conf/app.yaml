@@ -36,6 +36,7 @@ training:
   learning_rate: 0.0001
   epochs: 150
   sequence_length: 32
+  loss: "focal"
   augmentation:
     mirror: true
 # ------------------------------------------------------ MODULES
@@ -97,7 +98,7 @@ modules:
   # --- Retail IWADs ---
   doom:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom.wad"
-    map: "E1M2"
+    map: "E1M1"
     episodes: 1
   doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom2.wad"

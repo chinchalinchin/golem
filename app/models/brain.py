@@ -1,10 +1,8 @@
 """
 Brain Module: Neural Circuit Policy architecture for Golem.
 
-This module defines the primary continuous-time neural network (LNN) used by the agent,
-combining a dynamically scaling Convolutional Neural Network (CNN) visual cortex with
-a Closed-form Continuous-time (CfC) liquid recurrent core. Multi-modal support is integrated
-for spatial depth representations, 2D mel spectrograms, and binary thermal masks.
+This module defines the primary continuous-time neural network (LNN) used by the agent, combining a dynamically scaling Convolutional Neural Network (CNN) visual cortex with
+a Closed-form Continuous-time (CfC) liquid recurrent core. Multi-modal support is integrated for spatial depth representations, 2D mel spectrograms, and binary thermal masks.
 """
 
 import torch
@@ -18,27 +16,18 @@ class DoomLiquidNet(nn.Module):
     r"""
     A continuous-time neural network for visual processing and temporal sequential decision-making.
 
-    This network acts as the agent's brain. It processes raw pixel buffers through a 
-    Convolutional Neural Network (Visual Cortex) to extract spatial features, which are 
-    then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). 
-    The CfC core manages the agent's temporal state using differential equation approximations,
-    allowing it to handle variable time-steps without requiring expensive ODE solvers.
+    This network acts as the agent's brain. It processes raw pixel buffers through a Convolutional Neural Network (Visual Cortex) to extract spatial features, which are then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). The CfC core manages the agent's temporal state using differential equation approximations, allowing it to handle variable time-steps without requiring expensive ODE solvers.
     
-    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory 
-    spectrograms, and thermal semantic segmentation masks into a unified latent representation.
+    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory spectrograms, and thermal semantic segmentation masks into a unified latent representation.
 
     Args:
         n_actions (int): The number of output actions for the Motor Cortex head.
-        cortical_depth (int, optional): The number of convolutional layers to generate. 
-            Each layer halves the spatial dimensions and doubles the feature channels. 
-            Default: ``2``.
-        working_memory (int, optional): The number of hidden units in the CfC liquid core,
-            representing the capacity of the agent's temporal memory. Default: ``64``.
-        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable 
-            (e.g., visual, depth, audio, thermal).
+        cortical_depth (int, optional): The number of convolutional layers to generate. Each layer halves the spatial dimensions and doubles the feature channels. Default: ``2``.
+        working_memory (int, optional): The number of hidden units in the CfC liquid core, representing the capacity of the agent's temporal memory. Default: ``64``.
+        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable (e.g., visual, depth, audio, thermal).
         dsp_config (DSPConfig, optional): Signal processing parameters for audio initialization.
     """
-    
+
     def __init__(self, n_actions, cortical_depth=2, working_memory=64, 
                  sensors: SensorsConfig=None, dsp_config: DSPConfig=None):
         super().__init__()
@@ -127,13 +116,10 @@ class DoomLiquidNet(nn.Module):
         Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.
 
         Args:
-            x_vis (Tensor): A batched sequence of visual frames of shape 
-                :math:`(\text{Batch}, \text{Time}, C, H, W)`.
+            x_vis (Tensor): A batched sequence of visual frames of shape :math:`(\text{Batch}, \text{Time}, C, H, W)`.
             x_aud (Tensor, optional): raw 1D waveforms: (Batch, Time, Stereo_Channels, Audio_Length). Default: ``None``.
-            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape 
-                :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.
-            hx (Tensor, optional): The previous hidden state of the liquid core of shape 
-                :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.
+            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.
+            hx (Tensor, optional): The previous hidden state of the liquid core of shape :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.
 
         Returns:
             tuple: A tuple containing:

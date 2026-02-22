@@ -1,10 +1,7 @@
 """
 Analysis Module: Diagnostics and Validation.
 
-This module provides tools for inspecting the integrity of the ETL pipeline's 
-output data and auditing the performance of trained models. It ensures datasets 
-are balanced and normal, and generates precision/recall matrices to evaluate 
-model convergence.
+This module provides tools for inspecting the integrity of the ETL pipeline's output data and auditing the performance of trained models. It ensures datasets are balanced and normal, and generates precision/recall matrices to evaluate model convergence.
 """
 # Standard Libraries
 import logging
@@ -24,18 +21,16 @@ from app.models.brain import DoomLiquidNet
 from app.utils.conf import resolve_path, register_command
 from app.utils.model import apply_latest_parameters
 
+
 logger = logging.getLogger(__name__)
+
 
 @register_command("inspect")
 def inspect(cfg: GolemConfig, target_file: str = None):
     r"""
     Analyzes a training dataset file for shape integrity and class balance.
 
-    This function loads a specific ``.npz`` recording and validates that the 
-    visual frames are properly normalized. It also aggregates the action vectors 
-    to report the distribution of actions taken, specifically flagging high 
-    "idle time" which can cause the network to converge to inaction due to 
-    class imbalance.
+    This function loads a specific ``.npz`` recording and validates that the visual frames are properly normalized. It also aggregates the action vectors to report the distribution of actions taken, specifically flagging high "idle time" which can cause the network to converge to inaction due to class imbalance.
 
     Args:
         cfg (GolemConfig): The centralized application configuration object.
@@ -114,12 +109,7 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
     r"""
     Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.
 
-    This function performs a forward pass on a subset of the dataset (up to 50 batches) 
-    without updating the model weights. It compares the model's action probabilities 
-    against the ground-truth human actions and calculates the Precision, Recall, 
-    and Support for each action class. This is critical for identifying whether the 
-    agent is successfully learning rare actions (like shooting) or if it has fallen 
-    into a convergence trap.
+    This function performs a forward pass on a subset of the dataset (up to 50 batches) without updating the model weights. It compares the model's action probabilities against the ground-truth human actions and calculates the Precision, Recall, and Support for each action class. This is critical for identifying whether the agent is successfully learning rare actions (like shooting) or if it has fallen into a convergence trap.
 
     Args:
         cfg (GolemConfig): The centralized application configuration object.
@@ -255,16 +245,13 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
         metrics=metrics
     ))
 
+
 @register_command("summary")
 def summary(cfg: GolemConfig, module_name: str = None):
     r"""
     Prints a detailed architectural summary of the active brain configuration.
 
-    This function instantiates the LNN based on the current configuration and uses 
-    the `torchinfo` package to perform a dummy forward pass. It displays the exact 
-    tensor dimensions at each layer, the parameter counts, and validates that 
-    the multi-modal sensor fusion layers are properly scaling and concatenating 
-    into the Liquid Core.
+    This function instantiates the LNN based on the current configuration and uses the `torchinfo` package to perform a dummy forward pass. It displays the exact tensor dimensions at each layer, the parameter counts, and validates that the multi-modal sensor fusion layers are properly scaling and concatenating into the Liquid Core.
 
     Args:
         cfg (GolemConfig): The centralized application configuration object.

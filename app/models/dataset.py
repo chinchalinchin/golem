@@ -20,27 +20,16 @@ class DoomStreamingDataset(Dataset):
     r"""
     A PyTorch Dataset for loading and streaming DOOM gameplay sequences.
 
-    This class loads raw frame and action arrays from compressed ``.npz`` files 
-    into memory. Rather than copying the data to create individual sequence 
-    tensors, it builds a lightweight pointer map. During training, it slices 
-    continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.
+    This class loads raw frame and action arrays from compressed ``.npz`` files into memory. Rather than copying the data to create individual sequence tensors, it builds a lightweight pointer map. During training, it slices continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.
     
-    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active 
-    sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.
-    It also supports dynamic horizontal mirror augmentation to double the effective
-    dataset size while mitigating left/right turning bias.
+    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors. It also supports dynamic horizontal mirror augmentation to double the effective dataset size while mitigating left/right turning bias.
 
     Args:
         data_dir (str or Path): The directory containing the ``.npz`` training files.
-        seq_len (int, optional): The temporal length of the sequence window to slice. 
-            Default: ``32``.
-        file_pattern (str, optional): The glob pattern used to locate training files 
-            within ``data_dir``. Default: ``"*.npz"``.
-        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally 
-            and swaps corresponding left/right action labels. Default: ``False``.
-        action_names (list of str, optional): The ordered list of string action names 
-            (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate 
-            which indices to swap during mirror augmentation. Default: ``None``.
+        seq_len (int, optional): The temporal length of the sequence window to slice. Default: ``32``.
+        file_pattern (str, optional): The glob pattern used to locate training files within ``data_dir``. Default: ``"*.npz"``.
+        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally and swaps corresponding left/right action labels. Default: ``False``.
+        action_names (list of str, optional): The ordered list of string action names (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate which indices to swap during mirror augmentation. Default: ``None``.
         dsp_config (DSPConfig, optional): DSP tuning parameters for the Mel Spectrogram.
     """
     
@@ -122,11 +111,9 @@ class DoomStreamingDataset(Dataset):
 
     def _build_swap_map(self):
         r"""
-        Constructs a mapping of action indices that must be swapped when applying 
-        horizontal mirror augmentation.
+        Constructs a mapping of action indices that must be swapped when applying horizontal mirror augmentation.
 
-        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like 
-        ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.
+        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.
         """
         try:
             self.swap_pairs.append((self.action_names.index("MOVE_LEFT"), self.action_names.index("MOVE_RIGHT")))
@@ -148,11 +135,9 @@ class DoomStreamingDataset(Dataset):
         r"""
         Retrieves a temporal sequence of frames and corresponding actions by index.
 
-        The retrieved visual frames are dynamically transposed from the storage shape of 
-        :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.
-        If the index maps to an augmented sequence, the visual and thermal tensors are flipped 
-        horizontally and lateral actions are swapped. For audio, the waveforms 
-        are converted to Mel Spectrograms and spatial auditory channels are swapped.
+        The retrieved visual frames are dynamically transposed from the storage shape of :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.
+        
+        If the index maps to an augmented sequence, the visual and thermal tensors are flipped horizontally and lateral actions are swapped. For audio, the waveforms are converted to Mel Spectrograms and spatial auditory channels are swapped.
 
         Args:
             idx (int): The index of the sequence pointer in the internal map.

@@ -6,9 +6,7 @@ class FocalLossWithLogits(nn.Module):
     r"""
     Focal Loss for multi-label classification.
     
-    Dynamically scales the loss based on prediction confidence, heavily penalizing
-    the model for missing rare classes (like shooting) while suppressing the gradient
-    of easily classified, high-frequency classes (like walking forward).
+    Dynamically scales the loss based on prediction confidence, heavily penalizing the model for missing rare classes (like shooting) while suppressing the gradient of easily classified, high-frequency classes (like walking forward).
     """
     def __init__(self, alpha=0.25, gamma=2.0, reduction='mean'):
         super().__init__()

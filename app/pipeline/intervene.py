@@ -246,7 +246,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 action = (action_probs > 0.5).astype(int).tolist()
                 
                 if len(recovery_frames) > 0:
-                    output_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
+                    output_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "recovery"
                     prefix_clean = cfg.data.prefix.rstrip('_')
                     file_prefix = f"{prefix_clean}_{module_name}_recovery"
                     

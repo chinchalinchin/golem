@@ -23,6 +23,7 @@ def main():
     parser.add_argument("--players", type=int, help="Number of players for the host arena", default=3)
     parser.add_argument("--mode", choices=["basic", "classic", "fluid"], help="Override the config brain mode at runtime", default=None)
     parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
+    parser.add_argument("--recovery", action="store_true", help="Include recovery (DAgger) data in training")
 
     args = parser.parse_args()
 
@@ -56,6 +57,8 @@ def main():
         kwargs['players'] = args.players
     if 'full' in sig.parameters:
         kwargs['full'] = args.full
+    if 'include_recovery' in sig.parameters:
+        kwargs['include_recovery'] = args.recovery
 
     # Execute the resolved function
     func(cfg, **kwargs)

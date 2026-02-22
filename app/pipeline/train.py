@@ -15,7 +15,6 @@ from pathlib import Path
 
 # External Libraries
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
@@ -29,7 +28,7 @@ from app.utils import resolve_path, get_unique_filename, register_command, get_l
 logger = logging.getLogger(__name__)
 
 @register_command("train")
-def train(cfg: GolemConfig, module_name: str = None):
+def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = False):
     r"""
     Trains the Liquid Neural Network using captured expert demonstrations.
 
@@ -60,7 +59,7 @@ def train(cfg: GolemConfig, module_name: str = None):
         logger.warning("No GPU detected. Training will be slow on CPU.")
     
     active_profile = cfg.brain.mode
-    data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
+    base_data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
     prefix_clean = cfg.data.prefix.rstrip('_')
     
     if module_name and module_name.lower() != "all":
@@ -70,8 +69,18 @@ def train(cfg: GolemConfig, module_name: str = None):
         file_pattern = f"{prefix_clean}_*.npz"        
         logger.info("Training on ALL available modules (Generalization Mode)")
 
+    # Aggregate target directories
+    data_dirs = [base_data_dir]
+    if include_recovery:
+        recovery_dir = base_data_dir / "recovery"
+        if recovery_dir.exists():
+            data_dirs.append(recovery_dir)
+            logger.info("Recovery (DAgger) data will be included in this training run.")
+        else:
+            logger.warning(f"Recovery directory {recovery_dir} not found. Proceeding without recovery data.")
+
     dataset = DoomStreamingDataset(
-        str(data_dir), 
+        data_dirs, 
         seq_len=cfg.training.sequence_length,
         file_pattern=file_pattern,
         augment=cfg.training.augmentation.mirror,
@@ -80,11 +89,11 @@ def train(cfg: GolemConfig, module_name: str = None):
     )
     
     if len(dataset) == 0:
-        logger.error(f"No training data found matching pattern: {file_pattern} in {data_dir}")
+        logger.error(f"No training data found matching pattern: {file_pattern} in {data_dirs}")
         return
 
-    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=False)
-
+    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=False, drop_last=True)
+    
     # 1. Base Defaults
     cortical_depth = cfg.brain.cortical_depth
     working_memory = cfg.brain.working_memory
@@ -92,7 +101,7 @@ def train(cfg: GolemConfig, module_name: str = None):
 
     # 2. Discover architecture and dimensions if resuming training
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
-    active_model_path = data_dir / "golem.pth"
+    active_model_path = base_data_dir / "golem.pth"  # 
     state_dict = None
 
     if active_model_path.exists():

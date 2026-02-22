@@ -34,7 +34,7 @@ training:
   gamma: 2.0
   batch_size: 16
   learning_rate: 0.0001
-  epochs: 10
+  epochs: 150
   sequence_length: 32
   augmentation:
     mirror: true
@@ -45,7 +45,6 @@ modules:
     scenario: "basic.wad"
     map: "map01"
     episodes: 10
-  
   navigation:
     scenario: "my_way_home.wad" 
     map: "map01"
@@ -75,7 +74,7 @@ modules:
     map: "map01"
     episodes: 5
   # --- External / Community RL WADs ---
-  cig_arena:
+  arena:
     scenario: "cig2017.wad" 
     map: "map01"
     episodes: 1
@@ -84,28 +83,24 @@ modules:
     map: "map01"
     episodes: 1
   demonfear:
-    scenario: "DEMONFEAR.WAD"
+    scenario: "demonfear.wad"
     map: "map01"
     episodes: 1
   # --- Retail IWADs ---
-  doomE1M1:
-    scenario: "DOOM.WAD"
+  doom:
+    scenario: "doom.wad"
     map: "E1M1"
     episodes: 1
-  doomE1M2:
-    scenario: "DOOM.WAD"
-    map: "E1M2"
-    episodes: 1
   doom2:
-    scenario: "DOOM2.WAD"
+    scenario: "doom2.wad"
     map: "map01"
     episodes: 1
   plutonia:
-    scenario: "PLUTONIA.WAD"
+    scenario: "plutonia.wad"
     map: "map01"
     episodes: 1
   tnt:
-    scenario: "TNT.WAD"
+    scenario: "tnt.wad"
     map: "map01"
     episodes: 1
 # ------------------------------------------------------ KEYBINDINGS 

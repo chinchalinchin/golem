@@ -67,7 +67,17 @@ class DoomStreamingDataset(Dataset):
         if self.augment and self.action_names:
             self._build_swap_map()
 
-        files = sorted(list(Path(data_dir).glob(file_pattern)))
+        # Handle data_dir as a single string, Path, or a list of them
+        if isinstance(data_dir, (str, Path)):
+            search_dirs = [Path(data_dir)]
+        else:
+            search_dirs = [Path(d) for d in data_dir]
+
+        files = []
+        for d in search_dirs:
+            if d.exists():
+                files.extend(list(d.glob(file_pattern)))
+        files = sorted(files)
         
         for file_idx, file_path in enumerate(files):
             with np.load(file_path) as data:
@@ -200,6 +210,8 @@ class DoomStreamingDataset(Dataset):
                 inputs['audio'] = x_aud
             if self.has_thermal:
                 inputs['thermal'] = x_thm
+                
+            inputs['is_first'] = torch.tensor([is_first], dtype=torch.bool)
             return inputs, y_flip
             
         inputs = {'visual': x_vis}

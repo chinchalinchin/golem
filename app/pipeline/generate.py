@@ -84,7 +84,7 @@ def generate(cfg: GolemConfig, episodes: int = 5):
     """
 
     generator = ObligeGenerator(cfg.randomizer.executable, cfg.randomizer.output)
-    generated_wad = generator.build_map("golem_temp.wad")
+    generated_wad = generator.build_map("temp.wad")
     
     logger.info("Injecting procedural WAD into recording pipeline...")
     

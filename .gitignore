@@ -2,4 +2,5 @@
 **/**.pyc
 _vizdoom.ini
 data/**/**.npz
+data/**/**.wad
 site/**

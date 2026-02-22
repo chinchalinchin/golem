@@ -477,8 +477,67 @@
   
   
   
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Board
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Board
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../board/roadmap/" class="md-nav__link">
         
   
   
@@ -497,15 +556,16 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../issues/" class="md-nav__link">
+      <a href="../board/issues/" class="md-nav__link">
         
   
   
@@ -521,6 +581,70 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/phased.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Phased
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1027,7 +1151,21 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="normal">195</span>
 <span class="normal">196</span>
 <span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</span>
 
@@ -1102,10 +1240,22 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
                 <span class="k">if</span> <span class="n">total_frames</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">:</span>
                     <span class="k">continue</span>
 
-                <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+                <span class="c1"># Change the step size from 1 to seq_len to prevent overlapping futures</span>
+                <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_frames</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">):</span>
+                    <span class="n">is_first</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s1">&#39;file_idx&#39;</span><span class="p">:</span> <span class="n">file_idx</span><span class="p">,</span> 
+                        <span class="s1">&#39;start_idx&#39;</span><span class="p">:</span> <span class="n">start_idx</span><span class="p">,</span> 
+                        <span class="s1">&#39;is_mirrored&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> 
+                        <span class="s1">&#39;is_first&#39;</span><span class="p">:</span> <span class="n">is_first</span>
+                    <span class="p">})</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                            <span class="s1">&#39;file_idx&#39;</span><span class="p">:</span> <span class="n">file_idx</span><span class="p">,</span> 
+                            <span class="s1">&#39;start_idx&#39;</span><span class="p">:</span> <span class="n">start_idx</span><span class="p">,</span> 
+                            <span class="s1">&#39;is_mirrored&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> 
+                            <span class="s1">&#39;is_first&#39;</span><span class="p">:</span> <span class="n">is_first</span>
+                        <span class="p">})</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset mapped to RAM using pointers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">)</span><span class="si">}</span><span class="s2"> sequences available. Modalities: [Visual: True, Depth: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_depth</span><span class="si">}</span><span class="s2">, Audio: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_audio</span><span class="si">}</span><span class="s2">, Thermal: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
 
@@ -1154,7 +1304,8 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="sd">                    - ``&#39;thermal&#39;`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.</span>
 <span class="sd">                - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span><span class="p">,</span> <span class="n">is_first</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;file_idx&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_idx&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;is_mirrored&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;is_first&#39;</span><span class="p">]</span>
 
         <span class="n">window_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
         <span class="n">window_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
@@ -1206,6 +1357,7 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
             <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
 
+        <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;is_first&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">is_first</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -1302,19 +1454,7 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">137</span>
 <span class="normal">138</span>
 <span class="normal">139</span>
 <span class="normal">140</span>
@@ -1375,7 +1515,21 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 <span class="normal">195</span>
 <span class="normal">196</span>
 <span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves a temporal sequence of frames and corresponding actions by index.</span>
 
@@ -1396,7 +1550,8 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 <span class="sd">                - ``&#39;thermal&#39;`` (Tensor, optional): Binary thermal masks of shape :math:`(\text{seq\_len}, 1, 64, 64)`.</span>
 <span class="sd">            - Tensor: A sequence of action vectors of shape :math:`(\text{seq\_len}, \text{n\_actions})`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">file_idx</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">is_mirrored</span><span class="p">,</span> <span class="n">is_first</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;file_idx&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_idx&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;is_mirrored&#39;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;is_first&#39;</span><span class="p">]</span>
 
     <span class="n">window_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
     <span class="n">window_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">[</span><span class="n">file_idx</span><span class="p">][</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">]</span>
@@ -1448,6 +1603,7 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_thermal</span><span class="p">:</span>
         <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_thm</span>
 
+    <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;is_first&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">is_first</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">y</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1493,14 +1649,14 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the total number of sliding window sequences available.</span>
 

@@ -14,7 +14,7 @@
         <link rel="prev" href="../brain/">
       
       
-        <link rel="next" href="../roadmap/">
+        <link rel="next" href="../board/roadmap/">
       
       
         
@@ -578,8 +578,67 @@
   
   
   
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Board
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Board
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../board/roadmap/" class="md-nav__link">
         
   
   
@@ -598,15 +657,16 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../issues/" class="md-nav__link">
+      <a href="../board/issues/" class="md-nav__link">
         
   
   
@@ -622,6 +682,70 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/phased.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Phased
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1152,7 +1276,26 @@ Default: <code>None</code>.</p>
 <span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
-<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1207,7 +1350,7 @@ Default: <code>None</code>.</p>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No training data found matching pattern: </span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
-    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># 1. Base Defaults</span>
     <span class="n">cortical_depth</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span>
@@ -1249,6 +1392,7 @@ Default: <code>None</code>.</p>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting training for </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> epochs...&quot;</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Initialize global hidden state</span>
 
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
@@ -1263,7 +1407,18 @@ Default: <code>None</code>.</p>
             <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
             <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">predictions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="n">x_thm</span><span class="p">)</span>           
+            <span class="n">predictions</span><span class="p">,</span> <span class="n">new_hx</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="n">x_aud</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="n">x_thm</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="n">hx</span><span class="p">)</span>            
+
+            <span class="c1"># 1. Mask the hidden state for individual sequence resets</span>
+            <span class="n">is_first</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;is_first&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="c1"># Shape: (batch_size, 1)</span>
+
+            <span class="k">if</span> <span class="n">hx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Zero out hx for batch indices where is_first == 1</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">is_first</span> 
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hx</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                    <span class="n">hx</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="o">*</span> <span class="n">mask</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hx</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hx</span> <span class="o">=</span> <span class="n">hx</span> <span class="o">*</span> <span class="n">mask</span>
 
             <span class="c1"># Use dynamic n_actions for the safety check</span>
             <span class="k">if</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n_actions</span><span class="p">:</span>
@@ -1273,6 +1428,13 @@ Default: <code>None</code>.</p>
             <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
             <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="c1"># DETACH hx to prevent backpropagating through the entire history of the session</span>
+            <span class="c1"># This implements the &quot;Truncated&quot; part of Truncated BPTT</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_hx</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="n">hx</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">new_hx</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hx</span> <span class="o">=</span> <span class="n">new_hx</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
             <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
             <span class="n">batches</span> <span class="o">+=</span> <span class="mi">1</span>

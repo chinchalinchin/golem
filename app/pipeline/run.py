@@ -10,7 +10,7 @@ import torch
 from app.models.config import GolemConfig
 from app.models.brain import DoomLiquidNet
 from app.utils import resolve_path, get_vizdoom_game, \
-                        register_command, get_latest_parameters, \
+                        register_command, apply_latest_parameters, \
                         SensoryExtractor
 
 logger = logging.getLogger(__name__)
@@ -30,16 +30,11 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
     active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     
-    # 1. Base defaults
-    cortical_depth = cfg.brain.cortical_depth
-    working_memory = cfg.brain.working_memory
     n_actions = cfg.training.action_space_size 
 
-    # 2. Discover architecture from archives
+    # 1. Discover architecture from archives
     archives = list(model_dir.glob("*.pth"))
-    params = get_latest_parameters(archives)
-    if params:
-        cortical_depth, working_memory = params
+    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
         
     # 3. Discover action space and load state dict
     try:
@@ -71,7 +66,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     scenario = module.scenario
     map_name = module.map
 
-    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)    
+    game = get_vizdoom_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)   
     game.init()
 
     logger.info("Golem is waking up...")

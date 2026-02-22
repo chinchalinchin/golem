@@ -23,7 +23,7 @@ from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
 from app.models.loss import FocalLossWithLogits
-from app.utils import resolve_path, get_unique_filename, register_command, get_latest_parameters
+from app.utils import resolve_path, get_unique_filename, register_command, apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
 
     If an active model already exists for the current profile (e.g., ``fluid``), 
     it loads the existing weights to perform continuous fine-tuning. Upon completion, 
-    the updated model is saved to both a timestamped archive and the active profile slot.
+    it saves the updated model to both a timestamped archive and the active profile slot.
 
     Args:
         cfg (GolemConfig): The centralized application configuration object.
@@ -94,15 +94,13 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
 
     dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=False, drop_last=True)
     
-    # 1. Base Defaults
-    cortical_depth = cfg.brain.cortical_depth
-    working_memory = cfg.brain.working_memory
     n_actions = cfg.training.action_space_size
 
-    # 2. Discover architecture and dimensions if resuming training
+    # 1. Discover architecture and dimensions if resuming training
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
     active_model_path = base_data_dir / "golem.pth"  # 
     state_dict = None
+    archives = []
 
     if active_model_path.exists():
         logger.info(f"Discovering existing brain architecture from {active_model_path} for fine-tuning...")
@@ -112,9 +110,8 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
             n_actions = state_dict['output.weight'].shape[0]
 
         archives = list(model_dir.glob("*.pth"))
-        params = get_latest_parameters(archives)
-        if params:
-            cortical_depth, working_memory = params
+
+    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
 
     # 3. Initialize dynamic model
     model = DoomLiquidNet(
@@ -192,7 +189,19 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
     
     # Save the archive model
     date_str = datetime.now().strftime("%Y-%m-%d")
-    model_prefix = f"{date_str}.c-{cortical_depth}.w-{working_memory}"
+    model_prefix = MODEL_ARCHIVE_TEMPLATE.format(
+        date=date_str,
+        c=cortical_depth,
+        w=working_memory,
+        v=int(cfg.brain.sensors.visual),
+        d=int(cfg.brain.sensors.depth),
+        a=int(cfg.brain.sensors.audio),
+        t=int(cfg.brain.sensors.thermal),
+        sr=cfg.brain.dsp.sample_rate,
+        nf=cfg.brain.dsp.n_fft,
+        hl=cfg.brain.dsp.hop_length,
+        nm=cfg.brain.dsp.n_mels
+    )
     archive_path = get_unique_filename(model_dir, model_prefix, "pth")
     
     torch.save(model.state_dict(), archive_path)

@@ -1,7 +1,7 @@
 # ------------------------------------------------------ CONFIGURATION
 app:
   name: "Golem"
-  version: "0.2.3"
+  version: "0.13.0"
   log_level: "INFO"
 config:
   simple: 'conf/simple.cfg'
@@ -15,14 +15,14 @@ data:
     model: "data/model/"
 # ------------------------------------------------------ BRAIN
 brain:
-  mode: "simple"       # Modes: basic, classic, fluid
+  mode: "simple"
   cortical_depth: 4
   working_memory: 128
   sensors:
-    visual: true      # Base RGB Screen Buffer
-    depth: true       # Stereopsis (Distance matrix)
-    audio: false      # Audition (Mel Spectrograms)
-    thermal: true    # Thermal (Binary Label Mask)
+    visual: true
+    depth: true
+    audio: false
+    thermal: true
   dsp:
     sample_rate: 44100
     n_fft: 1024
@@ -31,11 +31,11 @@ brain:
 # ------------------------------------------------------ TRAINING 
 training:
   alpha: 0.25
-  gamma: 2.0
+  gamma: 1.5
   batch_size: 16
   learning_rate: 0.0001
   epochs: 150
-  sequence_length: 32
+  sequence_length: 64
   augmentation:
     mirror: true
 # ------------------------------------------------------ MODULES
@@ -75,32 +75,36 @@ modules:
     episodes: 5
   # --- External / Community RL WADs ---
   arena:
-    scenario: "cig2017.wad" 
+    scenario: "/Users/gmoore/Home/games/doom/wads/cig2017.wad" 
     map: "map01"
     episodes: 1
   freedoom:
-    scenario: "freedoom2.wad"
+    scenario: "/Users/gmoore/Home/games/doom/wads/freedoom1.wad"
+    map: "map01"
+    episodes: 1
+  freedoom2:
+    scenario: "/Users/gmoore/Home/games/doom/wads/freedoom2.wad"
     map: "map01"
     episodes: 1
   demonfear:
-    scenario: "demonfear.wad"
+    scenario: "/Users/gmoore/Home/games/doom/wads/demonfear.wad"
     map: "map01"
     episodes: 1
   # --- Retail IWADs ---
   doom:
-    scenario: "doom.wad"
-    map: "E1M1"
+    scenario: "/Users/gmoore/Home/games/doom/wads/doom.wad"
+    map: "E1M2"
     episodes: 1
   doom2:
-    scenario: "doom2.wad"
-    map: "map01"
+    scenario: "/Users/gmoore/Home/games/doom/wads/doom2.wad"
+    map: "map02"
     episodes: 1
   plutonia:
-    scenario: "plutonia.wad"
+    scenario: "/Users/gmoore/Home/games/doom/wads/plutonia.wad"
     map: "map01"
     episodes: 1
   tnt:
-    scenario: "tnt.wad"
+    scenario: "/Users/gmoore/Home/games/doom/wads/tnt.wad"
     map: "map01"
     episodes: 1
 # ------------------------------------------------------ KEYBINDINGS 

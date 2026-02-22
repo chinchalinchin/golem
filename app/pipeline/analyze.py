@@ -19,7 +19,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.utils import resolve_path, register_command, get_latest_parameters
+from app.utils import resolve_path, register_command, apply_latest_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -152,13 +152,9 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
     active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     
-    # Base defaults
-    cortical_depth = cfg.brain.cortical_depth
-    working_memory = cfg.brain.working_memory
-    
     # Intelligently discover actual parameters from the latest archive
     archives = list(model_dir.glob("*.pth"))
-    cortical_depth, working_memory = get_latest_parameters(archives)
+    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
     
     try:
         # Load state dict first to intelligently resolve n_actions and avoid tensor mismatches 
@@ -283,16 +279,11 @@ def summary(cfg: GolemConfig, module_name: str = None):
     active_profile = cfg.brain.mode
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
     active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
-    
-    cortical_depth = cfg.brain.cortical_depth
-    working_memory = cfg.brain.working_memory
     n_actions = cfg.training.action_space_size 
 
     # 2. Discover architecture from archives
     archives = list(model_dir.glob("*.pth"))
-    params = get_latest_parameters(archives)
-    if params:
-        cortical_depth, working_memory = params
+    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
         
     # 3. Discover action space and load state dict (if it exists)
     if active_model_path.exists():

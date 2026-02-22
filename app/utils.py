@@ -11,12 +11,13 @@ from typing import Callable, Union, List, Tuple
 import vizdoom
 import cv2
 import torch
-import vizdoom
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 COMMAND_REGISTRY = {}
+
+MODEL_ARCHIVE_TEMPLATE = "{date}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}"
 
 # ----------------------------------------------------------------------------
 # --------------------------------------- APPLICATION UTILS
@@ -146,25 +147,47 @@ def get_vizdoom_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PL
 # --------------------------------------- MODEL UTILS
 # ----------------------------------------------------------------------------
 
-def get_latest_parameters(archives: List[str]) -> Tuple[int, int]:
+def get_latest_parameters(archives: List[Path]) -> dict:
     """
-    Find the latest parameters of the trained model.
+    Find the latest parameters of the trained model from the filename.
     """
-    cortical_depth, working_memory = None, None
+    params = {}
     if archives:
         latest_archive = sorted(archives, key=lambda f: f.stat().st_mtime, reverse=True)[0]
         try:
             parts = latest_archive.name.split('.')
             for part in parts:
-                if part.startswith('c-'):
-                    cortical_depth = int(part[2:])
-                elif part.startswith('w-'):
-                    working_memory = int(part[2:])
-            logger.info(f"Discovered brain architecture from {latest_archive.name}: depth={cortical_depth}, memory={working_memory}")
+                if part.startswith('c-'): params['c'] = int(part[2:])
+                elif part.startswith('w-'): params['w'] = int(part[2:])
+                elif part.startswith('v-'): params['v'] = bool(int(part[2:]))
+                elif part.startswith('d-'): params['d'] = bool(int(part[2:]))
+                elif part.startswith('a-'): params['a'] = bool(int(part[2:]))
+                elif part.startswith('t-'): params['t'] = bool(int(part[2:]))
+                elif part.startswith('sr-'): params['sr'] = int(part[3:])
+                elif part.startswith('nf-'): params['nf'] = int(part[3:])
+                elif part.startswith('hl-'): params['hl'] = int(part[3:])
+                elif part.startswith('nm-'): params['nm'] = int(part[3:])
+            logger.info(f"Discovered brain architecture from {latest_archive.name}: {params}")
         except Exception as e:
             logger.warning(f"Failed to parse architecture from {latest_archive.name}: {e}")
-    return cortical_depth, working_memory
+    return params
 
+def apply_latest_parameters(cfg, archives: List[Path]) -> Tuple[int, int]:
+    """Helper to parse and apply filename parameters to the active config."""
+    c, w = cfg.brain.cortical_depth, cfg.brain.working_memory
+    params = get_latest_parameters(archives)
+    if params:
+        c = params.get('c', c)
+        w = params.get('w', w)
+        cfg.brain.sensors.visual = params.get('v', cfg.brain.sensors.visual)
+        cfg.brain.sensors.depth = params.get('d', cfg.brain.sensors.depth)
+        cfg.brain.sensors.audio = params.get('a', cfg.brain.sensors.audio)
+        cfg.brain.sensors.thermal = params.get('t', cfg.brain.sensors.thermal)
+        cfg.brain.dsp.sample_rate = params.get('sr', cfg.brain.dsp.sample_rate)
+        cfg.brain.dsp.n_fft = params.get('nf', cfg.brain.dsp.n_fft)
+        cfg.brain.dsp.hop_length = params.get('hl', cfg.brain.dsp.hop_length)
+        cfg.brain.dsp.n_mels = params.get('nm', cfg.brain.dsp.n_mels)
+    return c, w
 
 def normalize_audio_buffer(raw_audio: np.ndarray) -> np.ndarray:
     """Applies zero-mean, unit-variance normalization to a raw engine audio buffer."""

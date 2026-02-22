@@ -15,7 +15,7 @@ data:
     model: "data/model/"
 # ------------------------------------------------------ BRAIN
 brain:
-  mode: "simple"
+  mode: "basic"
   cortical_depth: 3
   working_memory: 128
   sensors:

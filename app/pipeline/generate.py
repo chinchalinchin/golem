@@ -38,7 +38,7 @@ class ObligeGenerator:
             "hallways": "mixed",
             "teleporters": "none", # Teleporters cause severe spatial discontinuity for LNNs, disable them
             "steepness": "mixed",
-            "mons": random.choice(["normal", "lots", "nuts"]),
+            "mons": "normal", # "random.choice(["normal", "lots", "nuts"])",
             "strength": "medium",
             "health": "normal",
             "ammo": "normal",

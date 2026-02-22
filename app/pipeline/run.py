@@ -34,7 +34,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
 
     # 1. Discover architecture from archives
     archives = list(model_dir.glob("*.pth"))
-    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
+    apply_latest_parameters(cfg, archives)
         
     # 3. Discover action space and load state dict
     try:
@@ -44,8 +44,8 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
             
         model = DoomLiquidNet(
             n_actions=n_actions,
-            cortical_depth=cortical_depth,
-            working_memory=working_memory,
+            cortical_depth=cfg.brain.cortical_depth,
+            working_memory=cfg.brain.working_memory,
             sensors=cfg.brain.sensors,
             dsp_config=cfg.brain.dsp
         ).to(device)

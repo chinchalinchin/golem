@@ -23,7 +23,8 @@ from app.models.config import GolemConfig
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
 from app.models.loss import FocalLossWithLogits
-from app.utils import resolve_path, get_unique_filename, register_command, apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
+from app.utils import resolve_path, get_unique_filename, register_command, \
+                        apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -111,13 +112,13 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
 
         archives = list(model_dir.glob("*.pth"))
 
-    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
+    apply_latest_parameters(cfg, archives)
 
     # 3. Initialize dynamic model
     model = DoomLiquidNet(
         n_actions=n_actions,
-        cortical_depth=cortical_depth,
-        working_memory=working_memory,
+        cortical_depth=cfg.brain.cortical_depth,
+        working_memory=cfg.brain.working_memory,
         sensors=cfg.brain.sensors,
         dsp_config=cfg.brain.dsp
     ).to(device)
@@ -191,8 +192,8 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
     date_str = datetime.now().strftime("%Y-%m-%d")
     model_prefix = MODEL_ARCHIVE_TEMPLATE.format(
         date=date_str,
-        c=cortical_depth,
-        w=working_memory,
+        c=cfg.brain.cortical_depth,
+        w=cfg.brain.working_memory,
         v=int(cfg.brain.sensors.visual),
         d=int(cfg.brain.sensors.depth),
         a=int(cfg.brain.sensors.audio),

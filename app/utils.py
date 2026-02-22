@@ -172,13 +172,12 @@ def get_latest_parameters(archives: List[Path]) -> dict:
             logger.warning(f"Failed to parse architecture from {latest_archive.name}: {e}")
     return params
 
-def apply_latest_parameters(cfg, archives: List[Path]) -> Tuple[int, int]:
+def apply_latest_parameters(cfg, archives: List[Path]) -> None:
     """Helper to parse and apply filename parameters to the active config."""
-    c, w = cfg.brain.cortical_depth, cfg.brain.working_memory
     params = get_latest_parameters(archives)
     if params:
-        c = params.get('c', c)
-        w = params.get('w', w)
+        cfg.brain.cortical_depth = params.get('c', cfg.brain.cortical_depth)
+        cfg.brain.working_memory = params.get('w', cfg.brain.working_memory)
         cfg.brain.sensors.visual = params.get('v', cfg.brain.sensors.visual)
         cfg.brain.sensors.depth = params.get('d', cfg.brain.sensors.depth)
         cfg.brain.sensors.audio = params.get('a', cfg.brain.sensors.audio)
@@ -187,7 +186,6 @@ def apply_latest_parameters(cfg, archives: List[Path]) -> Tuple[int, int]:
         cfg.brain.dsp.n_fft = params.get('nf', cfg.brain.dsp.n_fft)
         cfg.brain.dsp.hop_length = params.get('hl', cfg.brain.dsp.hop_length)
         cfg.brain.dsp.n_mels = params.get('nm', cfg.brain.dsp.n_mels)
-    return c, w
 
 def normalize_audio_buffer(raw_audio: np.ndarray) -> np.ndarray:
     """Applies zero-mean, unit-variance normalization to a raw engine audio buffer."""

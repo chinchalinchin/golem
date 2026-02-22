@@ -154,7 +154,7 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
     
     # Intelligently discover actual parameters from the latest archive
     archives = list(model_dir.glob("*.pth"))
-    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
+    apply_latest_parameters(cfg, archives)
     
     try:
         # Load state dict first to intelligently resolve n_actions and avoid tensor mismatches 
@@ -167,8 +167,8 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
             
         model = DoomLiquidNet(
             n_actions=n_actions,
-            cortical_depth=cortical_depth,
-            working_memory=working_memory,
+            cortical_depth=cfg.brain.cortical_depth,
+            working_memory=cfg.brain.working_memory,
             sensors=cfg.brain.sensors,
             dsp_config=cfg.brain.dsp  # <--- New
         ).to(device)
@@ -283,7 +283,7 @@ def summary(cfg: GolemConfig, module_name: str = None):
 
     # 2. Discover architecture from archives
     archives = list(model_dir.glob("*.pth"))
-    cortical_depth, working_memory = apply_latest_parameters(cfg, archives)
+    apply_latest_parameters(cfg, archives)
         
     # 3. Discover action space and load state dict (if it exists)
     if active_model_path.exists():
@@ -296,8 +296,8 @@ def summary(cfg: GolemConfig, module_name: str = None):
 
     model = DoomLiquidNet(
         n_actions=n_actions,
-        cortical_depth=cortical_depth,
-        working_memory=working_memory,
+        cortical_depth=cfg.brain.cortical_depth,
+        working_memory=cfg.brain.working_memory,
         sensors=cfg.brain.sensors,
         dsp_config=cfg.brain.dsp
     ).to(device)

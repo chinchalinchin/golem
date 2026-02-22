@@ -1550,11 +1550,7 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/intervene.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">120</span>
 <span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span>
@@ -1706,7 +1702,11 @@ Default: <code>None</code>.</p>
 <span class="normal">269</span>
 <span class="normal">270</span>
 <span class="normal">271</span>
-<span class="normal">272</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1753,7 +1753,7 @@ Default: <code>None</code>.</p>
     <span class="n">scenario</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">scenario</span>
     <span class="n">map_name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">map</span>
 
-    <span class="n">game</span> <span class="o">=</span> <span class="n">get_vizdoom_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="n">get_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="n">game</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
     <span class="c1"># Get active bindings for the enabled brain mode</span>
@@ -1936,10 +1936,7 @@ currently active profile. Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/analyze.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 26</span>
-<span class="normal"> 27</span>
-<span class="normal"> 28</span>
-<span class="normal"> 29</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 29</span>
 <span class="normal"> 30</span>
 <span class="normal"> 31</span>
 <span class="normal"> 32</span>
@@ -2016,7 +2013,10 @@ currently active profile. Default: <code>None</code>.</p>
 <span class="normal">103</span>
 <span class="normal">104</span>
 <span class="normal">105</span>
-<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;inspect&quot;</span><span class="p">)</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;inspect&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">inspect</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">target_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Analyzes a training dataset file for shape integrity and class balance.</span>
@@ -2187,10 +2187,7 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/analyze.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
@@ -2331,7 +2328,10 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
-<span class="normal">253</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>

@@ -335,6 +335,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#focal-loss-dynamics-alpha-and-gamma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Focal Loss Dynamics: alpha and gamma
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -659,6 +670,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#focal-loss-dynamics-alpha-and-gamma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Focal Loss Dynamics: alpha and gamma
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -789,6 +811,14 @@
 <td style="text-align: left;"><strong><code>augmentation.mirror</code></strong></td>
 <td style="text-align: left;">Boolean toggle to enable dynamic horizontal mirror augmentation, doubling topological variance and curing turning bias.</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong><code>alpha</code></strong></td>
+<td style="text-align: left;">The weighting factor used in the Focal Loss function to balance positive and negative classes (e.g., 0.25).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>gamma</code></strong></td>
+<td style="text-align: left;">The focusing parameter used in the Focal Loss function to dynamically scale down the gradient of easily classified examples (e.g., 2.0).</td>
+</tr>
 </tbody>
 </table>
 <h4 id="hyperparameter-dynamics-learning_rate-and-batch_size">Hyperparameter Dynamics: <code>learning_rate</code> and <code>batch_size</code></h4>
@@ -803,6 +833,10 @@
 <li><strong>Large Batch Size:</strong> Provides a highly accurate gradient estimate and allows for massive hardware parallelization (faster wall-clock time per epoch). However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.</li>
 </ul>
 <p><strong>The Interplay:</strong> These two parameters are mathematically coupled. A common deep learning heuristic is the <em>Linear Scaling Rule</em>: if you double your <code>batch_size</code> (smoothing the gradient), you should generally double your <code>learning_rate</code> to maintain the same training dynamics and convergence speed.</p>
+<h4 id="focal-loss-dynamics-alpha-and-gamma">Focal Loss Dynamics: <code>alpha</code> and <code>gamma</code></h4>
+<p>To counteract severe class imbalance in human demonstrations (the "Hold W" convergence trap), Golem utilizes a Focal Loss function instead of standard Binary Cross-Entropy.</p>
+<p>The <strong><code>gamma</code></strong> parameter acts as a dynamic focusing mechanism. In standard classification, frequent and "easy" actions (like walking forward) accumulate massive loss gradients simply by volume, effectively drowning out the gradients of rare, critical actions (like firing a weapon). By setting <code>gamma &gt; 0</code>, the loss function exponentially scales down the contribution of predictions the model is already confident about. If the network successfully predicts a navigation frame, its gradient contribution approaches zero, forcing the optimizer to focus computational effort on the sparse, difficult combat sequences it is currently failing. </p>
+<p>The <strong><code>alpha</code></strong> parameter acts as a static weighting factor. It directly balances the importance of positive targets versus negative targets across the multi-label distribution, ensuring that the sheer volume of <code>0</code>s (keys not pressed) does not overwhelm the rare <code>1</code>s (keys pressed).</p>
 <h3 id="4-brain">4. <code>brain</code></h3>
 <p>Defines the active architecture of the Neural Circuit Policy (NCP).</p>
 <table>

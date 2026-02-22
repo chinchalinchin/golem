@@ -371,10 +371,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-the-objective-function-bce-loss" class="md-nav__link">
+  <a href="#2-the-objective-function-bce-focal-loss" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The Objective Function (BCE Loss)
+        2. The Objective Function (BCE &amp; Focal Loss)
       
     </span>
   </a>
@@ -664,10 +664,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-the-objective-function-bce-loss" class="md-nav__link">
+  <a href="#2-the-objective-function-bce-focal-loss" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The Objective Function (BCE Loss)
+        2. The Objective Function (BCE &amp; Focal Loss)
       
     </span>
   </a>
@@ -854,6 +854,7 @@
 <p>Golem is trained via <strong>Behavioral Cloning (BC)</strong>, a foundational paradigm of Imitation Learning (IL). By treating the expert's gameplay traces as the optimal policy <span class="arithmatex">\(\pi^*\)</span>, the training regime is formulated as a supervised, multi-label sequence classification task over continuous time-series data.</p>
 <h2 id="1-sliding-window-temporal-loading">1. Sliding Window Temporal Loading</h2>
 <p>Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) approximations model a continuous hidden state <span class="arithmatex">\(x(t)\)</span>, individual frames cannot be uniformly shuffled during training. The dataset pipeline enforces temporal causality via a sliding window extraction protocol, dynamically loading tensors from isolated profile directories (e.g., <code>data/fluid/</code>).</p>
+<p>To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples <code>(file_idx, start_idx, is_mirrored)</code>. During training, continuous arrays are lazily sliced on-the-fly into overlapping sequences.</p>
 <p>Given an expert trajectory of length <span class="arithmatex">\(T\)</span>, defined as <span class="arithmatex">\(\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}\)</span>, and a fixed temporal sequence length <span class="arithmatex">\(L\)</span> (e.g., <span class="arithmatex">\(L=32\)</span>), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation <span class="arithmatex">\(o_t\)</span> is a composite of visual, auditory, and thermal inputs. The input tensor sequences <span class="arithmatex">\(\mathbf{X}^{(vis)}_i\)</span>, <span class="arithmatex">\(\mathbf{X}^{(aud)}_i\)</span>, and <span class="arithmatex">\(\mathbf{X}^{(thm)}_i\)</span>, and the target action sequence <span class="arithmatex">\(\mathbf{Y}_i\)</span> starting at index <span class="arithmatex">\(i\)</span> are:</p>
 <div class="arithmatex">\[
 \mathbf{X}^{(vis)}_i=\{o^{(vis)}_t\}_{t=i}^{i+L-1},\quad\mathbf{X}^{(vis)}_i\in\mathbb{R}^{L\times C\times64\times64}
@@ -868,15 +869,27 @@
 \mathbf{Y}_i=\{y_t\}_{t=i}^{i+L-1},\quad\mathbf{Y}_i\in\{0,1\}^{L\times n_\rho}
 \]</div>
 <p>Where <span class="arithmatex">\(C \in \{3,4\}\)</span> depends on whether the depth buffer is enabled, and <span class="arithmatex">\(n_\rho\)</span> is the dimensionality of the action space dictated by the active environment profile <span class="arithmatex">\(\rho\)</span> (e.g., Basic, Classic, Fluid).</p>
-<h2 id="2-the-objective-function-bce-loss">2. The Objective Function (BCE Loss)</h2>
-<p>At each time step <span class="arithmatex">\(t\)</span>, the network outputs a vector of raw logits <span class="arithmatex">\(\mathbf{z}_t\in\mathbb{R}^{n_\rho}\)</span>. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the objective is evaluated using <strong>Binary Cross-Entropy</strong> with Logits Loss.</p>
-<p>The loss <span class="arithmatex">\(\mathcal{L}\)</span> for a single sequence of length <span class="arithmatex">\(L\)</span> over <span class="arithmatex">\(n_\rho\)</span> independent binary action channels is computed as:</p>
+<hr />
+<h2 id="2-the-objective-function-bce-focal-loss">2. The Objective Function (BCE &amp; Focal Loss)</h2>
+<p>At each time step <span class="arithmatex">\(t\)</span>, the network outputs a vector of raw logits <span class="arithmatex">\(\mathbf{z}_t\in\mathbb{R}^{n_\rho}\)</span>. Because the action space allows for simultaneous key presses (e.g., strafing right while firing), the foundation of the objective is evaluated using <strong>Binary Cross-Entropy (BCE)</strong> with Logits Loss.</p>
+<p>The baseline BCE loss <span class="arithmatex">\(\mathcal{L}_{BCE}\)</span> for a single sequence of length <span class="arithmatex">\(L\)</span> over <span class="arithmatex">\(n_\rho\)</span> independent binary action channels is computed as:</p>
 <div class="arithmatex">\[
-\mathcal{L}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
+\mathcal{L}_{BCE}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[y_{t,j}\log(\sigma(z_{t,j}))+(1-y_{t,j})\log(1-\sigma(z_{t,j}))\right]
 \]</div>
-<p>Where <span class="arithmatex">\(\sigma(\cdot)\)</span> is the Sigmoid activation function, <span class="arithmatex">\(y_{t,j}\)</span> is the ground truth label, and <span class="arithmatex">\(z_{t,j}\)</span> is the network's prediction. The network parameters <span class="arithmatex">\(\theta\)</span> are updated via Backpropagation Through Time (BPTT).</p>
+<p>Where <span class="arithmatex">\(\sigma(\cdot)\)</span> is the Sigmoid activation function, <span class="arithmatex">\(y_{t,j}\)</span> is the ground truth label, and <span class="arithmatex">\(z_{t,j}\)</span> is the network's prediction. </p>
+<p>However, pure BCE treats all errors equally. Because human expert demonstrations consist overwhelmingly of simple navigation frames (the "Hold W Trap"), the cumulative gradient of these easily classified background actions overwhelms the sparse, high-value gradients of rare actions like combat. </p>
+<p>To cure this convergence trap, Golem implements <strong>Focal Loss</strong>, which extends the BCE formulation by introducing a dynamically scaled modulating factor. Let <span class="arithmatex">\(p_{t,j}=\sigma(z_{t,j})\)</span>. The Focal Loss <span class="arithmatex">\(\mathcal{L}_{focal}\)</span> is computed as:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{focal}(\theta)=-\frac{1}{L\cdot n_\rho}\sum_{t=1}^{L}\sum_{j=1}^{n_\rho}\left[\alpha y_{t,j}(1-p_{t,j})^\gamma\log(p_{t,j})+(1-\alpha)(1-y_{t,j})p_{t,j}^\gamma\log(1-p_{t,j})\right]
+\]</div>
+<ul>
+<li><strong>The Focusing Parameter (<span class="arithmatex">\(\gamma\)</span>):</strong> As the model's confidence in a correct prediction increases (<span class="arithmatex">\(p_{t,j}\to1\)</span> for positive classes, or <span class="arithmatex">\(p_{t,j}\to0\)</span> for negative classes), the modulating factor <span class="arithmatex">\((1-p_{t,j})^\gamma\)</span> decays to zero. This exponentially suppresses the gradient contribution of easily classified navigation frames, forcing the optimizer to focus strictly on hard, misclassified instances. Standard BCE is recovered when <span class="arithmatex">\(\gamma=0\)</span>.</li>
+<li><strong>The Weighting Factor (<span class="arithmatex">\(\alpha\)</span>):</strong> A static scalar (e.g., <span class="arithmatex">\(\alpha=0.25\)</span>) that balances the intrinsic priority of positive targets versus negative targets, mitigating the sheer volume of <code>0</code>s (keys not pressed) in the multi-label distribution.</li>
+</ul>
+<p>The network parameters <span class="arithmatex">\(\theta\)</span> are subsequently updated via Backpropagation Through Time (BPTT).</p>
+<hr />
 <h2 id="3-class-imbalance-mirror-augmentation">3. Class Imbalance &amp; Mirror Augmentation</h2>
-<p>Human gameplay datasets exhibit severe topological and behavioral biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Furthermore, the expert spends a vast majority of frames moving rather than firing weapons. Unmitigated, this sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right) or the "Hold W Trap" (convergence to a permanent state of forward movement due to high dataset idle times).</p>
+<p>While Focal Loss successfully mitigates action-frequency bias, human gameplay datasets also exhibit severe topological and spatial biases. For example, a dataset derived from a specific maze may contain an 80/20 ratio of left turns to right turns. Unmitigated, this spatial sparsity causes the network to collapse into localized minima, such as the "Zoolander Problem" (inability to turn right).</p>
 <p>Golem counteracts spatial bias dynamically via <strong>Mirror Augmentation</strong>. During data streaming, the dataset yields reflected visual and thermal observation tensors <span class="arithmatex">\(o'^{(vis)}_t\)</span> and <span class="arithmatex">\(o'^{(thm)}_t\)</span> across the vertical axis (width):</p>
 <div class="arithmatex">\[
 o'^{(vis)}_{t,c,h,w}=o^{(vis)}_{t,c,h,W-w-1}
@@ -898,11 +911,14 @@ o'^{(aud)}_{t,c_{flip},h_{mel},w_{time}}=o^{(aud)}_{t,1-c_{flip},h_{mel},w_{time
 y'_t=P_\rho y_t
 \]</div>
 <p>This geometric inversion enforces perfect spatial symmetry in the agent's spatial reasoning, effectively doubling the dataset's topological variance without requiring additional recording sessions.</p>
+<hr />
 <h2 id="4-covariate-shift-dagger-intervention">4. Covariate Shift &amp; DAgger Intervention</h2>
 <p>A fundamental flaw of pure Behavioral Cloning is <strong>Covariate Shift</strong> (the "Perfect Play" trap). If the network is trained exclusively on flawless expert demonstrations, it never learns how to recover from mistakes. During live inference, a microscopic mathematical error will push the agent slightly off the optimal trajectory. Because this sub-optimal state <span class="arithmatex">\(s_{err}\)</span> exists outside the training distribution, the agent's predictions become chaotic, and the errors rapidly compound until the agent is completely stuck.</p>
-<p>To cure this, Golem employs <strong>DAgger (Dataset Aggregation)</strong>. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. This intervention steers the agent back to the optimal path, automatically appending a <code>_recovery</code> dataset trace to the active profile's training directory. This explicitly teaches the network how to correct trajectory deviations.</p>
+<p>To cure this, Golem employs <strong>DAgger (Dataset Aggregation)</strong>. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. </p>
+<p>To ensure the network understands the causal sequence that led to the error, the intervention pipeline utilizes a rolling <code>collections.deque</code> buffer. This temporarily stores the <span class="arithmatex">\(L\)</span> autonomous frames immediately preceding the override. When the human operator takes control, this historical context is flushed into a <code>_recovery</code> trace alongside the corrective actions. This explicitly teaches the network not only the correction, but the specific sub-optimal visual precursors that demand it, actively teaching the network how to correct trajectory deviations.</p>
+<hr />
 <h2 id="5-diagnostic-auditing-validation">5. Diagnostic Auditing &amp; Validation</h2>
-<p>Because the aggregate BCE loss scalar <span class="arithmatex">\(\mathcal{L}(\theta)\)</span> fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static <code>audit</code> module.</p>
+<p>Because the aggregate loss scalar <span class="arithmatex">\(\mathcal{L}(\theta)\)</span> fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static <code>audit</code> module.</p>
 <p>The audit evaluates the trained weights over a validation slice by generating a strictly thresholded (<span class="arithmatex">\(\sigma(\mathbf{z})&gt;0.5\)</span>) Confusion Matrix for every individual channel <span class="arithmatex">\(j\)</span> in the <span class="arithmatex">\(n_\rho\)</span> action space. It evaluates the network based on:</p>
 <p><strong>Precision (<span class="arithmatex">\(P_j\)</span>)</strong></p>
 <p>The probability that the agent's decision to act was correct.</p>
@@ -992,8 +1008,7 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
-<span class="normal"> 31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
 <span class="normal"> 34</span>
@@ -1135,7 +1150,9 @@ Default: <code>None</code>.</p>
 <span class="normal">170</span>
 <span class="normal">171</span>
 <span class="normal">172</span>
-<span class="normal">173</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1226,7 +1243,8 @@ Default: <code>None</code>.</p>
     <span class="k">if</span> <span class="n">state_dict</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
-    <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
+    <span class="c1"># OLD CRITERION: criterion = nn.BCEWithLogitsLoss()</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting training for </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> epochs...&quot;</span><span class="p">)</span>
@@ -1296,7 +1314,8 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/intervene.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">117</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">116</span>
+<span class="normal">117</span>
 <span class="normal">118</span>
 <span class="normal">119</span>
 <span class="normal">120</span>
@@ -1443,7 +1462,15 @@ Default: <code>None</code>.</p>
 <span class="normal">261</span>
 <span class="normal">262</span>
 <span class="normal">263</span>
-<span class="normal">264</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1472,17 +1499,6 @@ Default: <code>None</code>.</p>
         <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
-    <span class="n">mel_transform</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">amp_to_db</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">:</span>
-        <span class="n">mel_transform</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">MelSpectrogram</span><span class="p">(</span>
-            <span class="n">sample_rate</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
-            <span class="n">n_fft</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
-            <span class="n">hop_length</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">hop_length</span><span class="p">,</span>
-            <span class="n">n_mels</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_mels</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">amp_to_db</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">AmplitudeToDB</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-
     <span class="k">try</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">))</span>
         <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
@@ -1497,9 +1513,11 @@ Default: <code>None</code>.</p>
     <span class="c1"># Setup Environment using brain.mode</span>
     <span class="n">active_profile</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">mode</span>
     <span class="n">cfg_path</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="n">active_profile</span><span class="p">]</span>
-    <span class="n">scenario</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">scenario</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span>
+    <span class="n">scenario</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">scenario</span>
+    <span class="n">map_name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">map</span>
 
-    <span class="n">game</span> <span class="o">=</span> <span class="n">get_vizdoom_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">)</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="n">get_vizdoom_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="n">game</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
     <span class="c1"># Get active bindings for the enabled brain mode</span>
@@ -1509,12 +1527,16 @@ Default: <code>None</code>.</p>
     <span class="c1"># Pass bindings to dynamically map keys</span>
     <span class="n">controller</span> <span class="o">=</span> <span class="n">InterventionController</span><span class="p">(</span><span class="n">action_labels</span><span class="p">,</span> <span class="n">active_bindings</span><span class="p">)</span>
 
+    <span class="c1"># Rolling Context Buffers</span>
+    <span class="n">auto_frames</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+    <span class="n">auto_depths</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+    <span class="n">auto_audios</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+    <span class="n">auto_thermals</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+    <span class="n">auto_actions</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+
     <span class="c1"># Memory Buffer</span>
-    <span class="n">recovery_frames</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">recovery_depths</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">recovery_audios</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">recovery_actions</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">recovery_thermals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">recovery_frames</span><span class="p">,</span> <span class="n">recovery_depths</span><span class="p">,</span> <span class="n">recovery_audios</span><span class="p">,</span> <span class="n">recovery_actions</span><span class="p">,</span> <span class="n">recovery_thermals</span> \
+            <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;======================================================&quot;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;DAgger Mode Active. Golem is running autonomously.&quot;</span><span class="p">)</span>
@@ -1525,6 +1547,7 @@ Default: <code>None</code>.</p>
 
     <span class="c1"># TODO: make this configurable or pass it in through the CLI</span>
     <span class="n">episodes</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episodes</span><span class="p">):</span>
         <span class="n">game</span><span class="o">.</span><span class="n">new_episode</span><span class="p">()</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1535,10 +1558,13 @@ Default: <code>None</code>.</p>
                 <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="n">state</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">game</span><span class="o">.</span><span class="n">advance_action</span><span class="p">()</span>
+                <span class="k">continue</span>
 
             <span class="c1"># Centralized Extraction &amp; Tensor formatting</span>
             <span class="n">extracted</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">get_numpy_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">)</span>
-            <span class="n">tensors</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">to_tensors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">mel_transform</span><span class="p">,</span> <span class="n">amp_to_db</span><span class="p">)</span>
+            <span class="n">tensors</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">to_tensors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">logits</span><span class="p">,</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span>
@@ -1550,6 +1576,15 @@ Default: <code>None</code>.</p>
                 <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">controller</span><span class="o">.</span><span class="n">intervening</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">was_intervening</span><span class="p">:</span>
+                    <span class="c1"># Flush the rolling autonomous context into the recovery buffers</span>
+                    <span class="n">recovery_frames</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_frames</span><span class="p">)</span>
+                    <span class="n">recovery_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_actions</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_depths</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_audios</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">thermal</span><span class="p">:</span> <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_thermals</span><span class="p">)</span>
+                    <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">True</span>
+
                 <span class="n">action</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">get_action_vector</span><span class="p">()</span>
 
                 <span class="c1"># Append arrays using dictionary safeties</span>
@@ -1563,6 +1598,7 @@ Default: <code>None</code>.</p>
                 <span class="k">if</span> <span class="n">game</span><span class="o">.</span><span class="n">get_episode_time</span><span class="p">()</span> <span class="o">%</span> <span class="mi">35</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OVERRIDE ACTIVE | Recording frame </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">recovery_frames</span><span class="p">)</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="n">action_probs</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                 <span class="n">action</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_probs</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 

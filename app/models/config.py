@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class LossType(str, Enum):
     FOCAL = "focal"
     BCE = "bce"
+    ASL = "asymmetric"
 
 class RandomizerConfig(BaseModel):
     executable: str
@@ -58,9 +59,20 @@ class BrainConfig(BaseModel):
     sensors: SensorsConfig = SensorsConfig()
     dsp: DSPConfig = DSPConfig()
 
-class TrainingConfig(BaseModel):
+class FocalConfig(BaseModel):
     alpha: float = 0.25
     gamma: float = 2.0
+
+class AsymmetricConfig(BaseModel):
+    gamma_pos: float = 1.0
+    gamma_neg: float = 4.0
+    clip: float = 0.05
+
+class LossConfig(BaseModel): 
+    focal: FocalConfig
+    asymmetric: AsymmetricConfig
+
+class TrainingConfig(BaseModel):
     batch_size: int
     learning_rate: float
     epochs: int
@@ -77,6 +89,7 @@ class GolemConfig(BaseModel):
     data: DataConfig
     training: TrainingConfig
     brain: BrainConfig
+    loss: LossConfig
     randomizer: RandomizerConfig
     modules: Dict[str, ModuleConfig]
 

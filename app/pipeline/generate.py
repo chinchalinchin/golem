@@ -78,7 +78,7 @@ class ObligeGenerator:
             raise
 
 @register_command("generate")
-def generate(cfg: GolemConfig, episodes: int = 5):
+def generate(cfg: GolemConfig, episodes: int = 1):
     """
     Generates a random procedural map and immediately launches a recording session.
     """

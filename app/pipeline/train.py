@@ -15,12 +15,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import numpy as np
 
 # Application Libraries
 from app.models.config import GolemConfig, LossType
 from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
-from app.models.loss import FocalLossWithLogits
+from app.models.loss import FocalLossWithLogits, AsymmetricLoss
 from app.utils.conf import resolve_path, get_unique_filename, register_command
 from app.utils.model import apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
 
@@ -117,9 +118,38 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
         model.load_state_dict(state_dict)
     
     if cfg.training.loss == LossType.FOCAL:
-        criterion = FocalLossWithLogits(alpha=cfg.training.alpha, gamma=cfg.training.gamma)
+        logger.info("Calculating empirical class frequencies for Focal Loss alpha vector...")
+        
+        # 1. Tally raw action counts across all loaded files
+        action_counts = np.zeros(n_actions)
+        total_samples = 0
+        for action_array in dataset.action_arrays:
+            action_counts += np.sum(action_array, axis=0)
+            total_samples += action_array.shape[0]
+            
+        # 2. Acknowledge Augmentation Prior: Enforce left/right symmetry
+        if dataset.augment:
+            for left_idx, right_idx in dataset.swap_pairs:
+                avg_count = (action_counts[left_idx] + action_counts[right_idx]) / 2.0
+                action_counts[left_idx] = avg_count
+                action_counts[right_idx] = avg_count
+                
+        # 3. Calculate true probability-based alpha
+        # alpha is the weight for the POSITIVE class. We set it to the frequency of the NEGATIVE class.
+        # This guarantees alpha is strictly bounded between 0 and 1.
+        alpha_vector = (total_samples - action_counts) / total_samples
+        
+        alpha_tensor = torch.tensor(alpha_vector, dtype=torch.float32).to(device)
+        
+        criterion = FocalLossWithLogits(alpha=alpha_tensor, gamma=cfg.loss.focal.gamma)
     elif cfg.training.loss == LossType.BCE:
         criterion = nn.BCEWithLogitsLoss()
+    elif cfg.training.loss == LossType.ASL:
+        criterion = AsymmetricLoss(
+            gamma_neg=cfg.loss.asymmetric.gamma_neg,
+            gamma_pos=cfg.loss.asymmetric.gamma_pos,
+            clip=cfg.loss.asymmetric.clip
+        )
     else:
         criterion = nn.BCEWithLogitsLoss()
 

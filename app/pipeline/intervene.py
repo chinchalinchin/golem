@@ -143,7 +143,8 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
         n_actions=n_actions,
         cortical_depth=cfg.brain.cortical_depth,
         working_memory=cfg.brain.working_memory,
-        sensors=cfg.brain.sensors
+        sensors=cfg.brain.sensors,
+        dsp_config=cfg.brain.dsp
     ).to(device)
        
     try:

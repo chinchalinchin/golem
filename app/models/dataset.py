@@ -7,12 +7,13 @@ window architecture to generate overlapping temporal sequences efficiently witho
 duplicating flat arrays in memory.
 """
 
-import torch
-import torchaudio
-import numpy as np
-from pathlib import Path
-from torch.utils.data import Dataset
+import random
 import logging
+from pathlib import Path
+
+import numpy as np
+import torch
+from torch.utils.data import Dataset, Sampler
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class DoomStreamingDataset(Dataset):
         self.has_thermal = False
         
         self.index_map = [] 
+        self.base_episodes = []      # <-- NEW: Stores lists of contiguous base indices
+        self.recovery_episodes = []  # <-- NEW: Stores lists of contiguous recovery indices
         
         self.swap_pairs = []
         if self.augment and self.action_names:
@@ -69,6 +72,8 @@ class DoomStreamingDataset(Dataset):
         files = sorted(files)
         
         for file_idx, file_path in enumerate(files):
+            is_recovery = "recovery" in str(file_path).lower() # <-- Identify origin
+            
             with np.load(file_path) as data:
                 frames = data['frames']
                 actions = data['actions']
@@ -90,24 +95,42 @@ class DoomStreamingDataset(Dataset):
                 if total_frames < self.seq_len:
                     continue
 
-                # Change the step size from 1 to seq_len to prevent overlapping futures
+                episode_indices_normal = []
+                episode_indices_mirrored = []
+
+                # Build pointers and group them into contiguous episodes
                 for start_idx in range(0, total_frames - self.seq_len + 1, self.seq_len):
                     is_first = (start_idx == 0)
+                    global_idx = len(self.index_map)
+                    
                     self.index_map.append({
                         'file_idx': file_idx, 
                         'start_idx': start_idx, 
                         'is_mirrored': False, 
                         'is_first': is_first
                     })
+                    episode_indices_normal.append(global_idx)
+                    
                     if self.augment:
+                        global_idx_aug = len(self.index_map)
                         self.index_map.append({
                             'file_idx': file_idx, 
                             'start_idx': start_idx, 
                             'is_mirrored': True, 
                             'is_first': is_first
                         })
+                        episode_indices_mirrored.append(global_idx_aug)
+                        
+                # Register completed episodes to their respective pools
+                if episode_indices_normal:
+                    if is_recovery: self.recovery_episodes.append(episode_indices_normal)
+                    else: self.base_episodes.append(episode_indices_normal)
+                    
+                if self.augment and episode_indices_mirrored:
+                    if is_recovery: self.recovery_episodes.append(episode_indices_mirrored)
+                    else: self.base_episodes.append(episode_indices_mirrored)
 
-        logger.info(f"Dataset mapped to RAM using pointers: {len(self.index_map)} sequences available. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
+        logger.info(f"Dataset mapped to RAM: {len(self.base_episodes)} base episodes, {len(self.recovery_episodes)} recovery episodes. Modalities: [Visual: True, Depth: {self.has_depth}, Audio: {self.has_audio}, Thermal: {self.has_thermal}]")
 
     def _build_swap_map(self):
         r"""
@@ -208,3 +231,89 @@ class DoomStreamingDataset(Dataset):
         inputs['is_first'] = torch.tensor([is_first], dtype=torch.bool)
         return inputs, y
         
+class StatefulStratifiedBatchSampler(Sampler):
+    """
+    Custom Sampler designed to maintain continuous temporal streams across 
+    batch dimensions for Stateful Backpropagation Through Time (BPTT).
+    
+    Dynamically mixes base expert trajectories with recovery (DAgger) trajectories 
+    to prevent catastrophic forgetting.
+    """
+    def __init__(self, base_episodes, recovery_episodes, batch_size, recovery_ratio=0.25):
+        self.base_episodes = base_episodes
+        self.recovery_episodes = recovery_episodes
+        self.batch_size = batch_size
+        
+        # Calculate stream allocations
+        self.n_recovery = int(batch_size * recovery_ratio) if recovery_episodes else 0
+        self.n_base = batch_size - self.n_recovery
+        
+        if self.n_base <= 0:
+            raise ValueError("Batch size is too small or recovery ratio is too high to maintain base streams.")
+
+    def __iter__(self):
+        # 1. Initialize shuffled pools for the epoch
+        base_pool = list(self.base_episodes)
+        rec_pool = list(self.recovery_episodes)
+        random.shuffle(base_pool)
+        random.shuffle(rec_pool)
+        
+        active_streams = []
+        
+        # 2. Allocate initial temporal streams
+        for i in range(self.batch_size):
+            is_rec = (i < self.n_recovery)
+            pool = rec_pool if is_rec else base_pool
+            original = self.recovery_episodes if is_rec else self.base_episodes
+            
+            if not pool and original:  # Refill immediately if pool is unexpectedly small
+                pool.extend(original)
+                random.shuffle(pool)
+                
+            if pool:
+                active_streams.append(iter(pool.pop()))
+            else:
+                active_streams.append(None)
+                
+        # 3. Yield continuous batches
+        while True:
+            batch = []
+            for i in range(self.batch_size):
+                is_rec = (i < self.n_recovery)
+                pool = rec_pool if is_rec else base_pool
+                original = self.recovery_episodes if is_rec else self.base_episodes
+                
+                stream = active_streams[i]
+                if stream is None:
+                    continue
+                    
+                try:
+                    idx = next(stream)
+                    batch.append(idx)
+                except StopIteration:
+                    # Stream exhausted. Fetch a new episode.
+                    if not pool and original:
+                        # Endlessly recycle recovery data. 
+                        # Exhausting the base pool signals the end of the epoch.
+                        if is_rec:
+                            pool.extend(original)
+                            random.shuffle(pool)
+                            
+                    if pool:
+                        new_stream = iter(pool.pop())
+                        active_streams[i] = new_stream
+                        batch.append(next(new_stream))
+                    else:
+                        active_streams[i] = None
+                        
+            # Drop the last batch if it cannot fully populate the parallel streams
+            if len(batch) == self.batch_size:
+                yield batch
+            else:
+                break
+
+    def __len__(self):
+        if self.n_base == 0:
+            return 0
+        total_base_seqs = sum(len(ep) for ep in self.base_episodes)
+        return total_base_seqs // self.n_base

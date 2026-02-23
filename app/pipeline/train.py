@@ -19,9 +19,9 @@ import numpy as np
 
 # Application Libraries
 from app.models.config import GolemConfig, LossType
-from app.models.dataset import DoomStreamingDataset
+from app.models.dataset import DoomStreamingDataset, StatefulStratifiedBatchSampler
 from app.models.brain import DoomLiquidNet
-from app.models.loss import FocalLossWithLogits, AsymmetricLoss
+from app.models.loss import FocalLossWithLogits, AsymmetricLoss, LabelSmoothingBCEWithLogits
 from app.utils.conf import resolve_path, get_unique_filename, register_command
 from app.utils.model import apply_latest_parameters, generate_model_prefix
 
@@ -84,7 +84,16 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
         logger.error(f"No training data found matching pattern: {file_pattern} in {data_dirs}")
         return
 
-    dataloader = DataLoader(dataset, batch_size=cfg.training.batch_size, shuffle=False, drop_last=True)
+    # ---> NEW: Mount the Stratified Sampler 
+    sampler = StatefulStratifiedBatchSampler(
+        base_episodes=dataset.base_episodes,
+        recovery_episodes=dataset.recovery_episodes,
+        batch_size=cfg.training.batch_size,
+        recovery_ratio=0.25 if include_recovery else 0.0
+    )
+    
+    # Remove shuffle=False and drop_last=True, as the Sampler handles sequence logic internally
+    dataloader = DataLoader(dataset, batch_sampler=sampler)
     
     n_actions = cfg.training.action_space_size
 
@@ -120,37 +129,28 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
     if cfg.training.loss == LossType.FOCAL:
         logger.info("Initializing Focal Loss with static alpha vector from configuration...")
         
-        # 1. Tally raw action counts across all loaded files for logging purposes
-        action_counts = np.zeros(n_actions)
-        total_samples = 0
-        for action_array in dataset.action_arrays:
-            action_counts += np.sum(action_array, axis=0)
-            total_samples += action_array.shape[0]
-            
-        # 2. Acknowledge Augmentation Prior: Enforce left/right symmetry
-        if dataset.augment:
-            for left_idx, right_idx in dataset.swap_pairs:
-                avg_count = (action_counts[left_idx] + action_counts[right_idx]) / 2.0
-                action_counts[left_idx] = avg_count
-                action_counts[right_idx] = avg_count
-                
-        # 3. Construct bounded alpha tensor
-        # We rely on the configured static alpha (e.g., 0.25) to prevent button-mashing
-        # while letting gamma exponentially scale the loss for hard examples.
         alpha_vector = np.full(n_actions, cfg.loss.focal.alpha)
         
         alpha_tensor = torch.tensor(alpha_vector, dtype=torch.float32).to(device)
-        criterion = FocalLossWithLogits(alpha=alpha_tensor, gamma=cfg.loss.focal.gamma)
+        criterion = FocalLossWithLogits(
+            alpha=alpha_tensor, 
+            gamma=cfg.loss.focal.gamma
+        )
 
     elif cfg.training.loss == LossType.BCE:
         criterion = nn.BCEWithLogitsLoss()
     
     elif cfg.training.loss == LossType.ASL:
+        logger.info(f"Initializing Asymmetric Loss (gamma_neg={cfg.loss.asymmetric.gamma_neg}, gamma_pos={cfg.loss.asymmetric.gamma_pos})...")
         criterion = AsymmetricLoss(
             gamma_neg=cfg.loss.asymmetric.gamma_neg,
             gamma_pos=cfg.loss.asymmetric.gamma_pos,
             clip=cfg.loss.asymmetric.clip
         )
+    elif cfg.training.loss == LossType.SMOOTH:
+        # Initialize the new Label Smoothed BCE
+        logger.info(f"Initializing Label Smoothing BCE (epsilon={cfg.loss.smooth.epsilon})...")
+        criterion = LabelSmoothingBCEWithLogits(epsilon=cfg.loss.smooth.epsilon)
     else:
         criterion = nn.BCEWithLogitsLoss()
 

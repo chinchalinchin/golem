@@ -1,7 +1,7 @@
 # ------------------------------------------------------ CONFIGURATION
 app:
   name: "Golem"
-  version: "0.13.0"
+  version: "0.16.0"
   log_level: "INFO"
 config:
   simple: 'conf/simple.cfg'
@@ -15,14 +15,14 @@ data:
     model: "data/model/"
 # ------------------------------------------------------ BRAIN
 brain:
-  mode: "basic"
-  cortical_depth: 3
-  working_memory: 128
+  mode: "simple"
   sensors:
     visual: true
     depth: true
     audio: false
     thermal: true
+  cortical_depth: 3
+  working_memory: 128
   dsp:
     sample_rate: 44100
     n_fft: 1024
@@ -37,16 +37,18 @@ loss:
     gamma_pos: 1.0
     gamma_neg: 4.0
     clip: 0.05
+  smooth: 
+    epsilon: 0.1
 # ------------------------------------------------------ TRAINING 
 training:
   batch_size: 16
   learning_rate: 0.0001
   epochs: 150
   sequence_length: 32
-  loss: "bce"
+  loss: "focal"
   augmentation:
     mirror: true
-# ------------------------------------------------------ MODULES
+# ------------------------------------------------------ RANDOMIZER
 randomizer:
   executable: "/Users/gmoore/Home/lib/oblige/Oblige"
   output: "data/wads/"                   

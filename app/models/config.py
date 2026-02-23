@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class LossType(str, Enum):
     FOCAL = "focal"
     BCE = "bce"
+    SMOOTH = "smooth"
     ASL = "asymmetric"
 
 class RandomizerConfig(BaseModel):
@@ -68,9 +69,13 @@ class AsymmetricConfig(BaseModel):
     gamma_neg: float = 4.0
     clip: float = 0.05
 
+class LabelSmoothingConfig(BaseModel):
+    epsilon: float = 0.1
+
 class LossConfig(BaseModel): 
     focal: FocalConfig
     asymmetric: AsymmetricConfig
+    smooth: LabelSmoothingConfig
 
 class TrainingConfig(BaseModel):
     batch_size: int

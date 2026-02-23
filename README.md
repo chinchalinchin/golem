@@ -257,5 +257,10 @@ docker buildx build \
 * [ViZDoom Official Documentation](https://vizdoom.farama.org/)
 * [Oblige Level Maker](https://oblige.sourceforge.net/)
 * [Pynput Documentation](https://pynput.readthedocs.io/en/latest/)
+
+### Papers
+
+* [Asymmetric Loss (Ben-Baruch et al.)](https://arxiv.org/abs/2009.14119)
 * [Liquid Neural Networks (Hasani et al.)](https://arxiv.org/abs/2006.04439)
+
 

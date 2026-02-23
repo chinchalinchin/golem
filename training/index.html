@@ -1358,18 +1358,7 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">225</span>
 <span class="normal">226</span>
 <span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">228</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1548,29 +1537,18 @@ R_j=\frac{TP_j}{TP_j+FN_j}
             <span class="n">batches</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="k">if</span> <span class="n">batch_idx</span> <span class="o">%</span> <span class="mi">50</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> | Batch </span><span class="si">{</span><span class="n">batch_idx</span><span class="si">}</span><span class="s2"> | Loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> | Batch </span><span class="si">{</span><span class="n">batch_idx</span><span class="si">}</span><span class="s2"> | Loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">avg_loss</span> <span class="o">=</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="n">batches</span> <span class="k">if</span> <span class="n">batches</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> complete. Average Loss: </span><span class="si">{</span><span class="n">avg_loss</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> complete. Average Loss: </span><span class="si">{</span><span class="n">avg_loss</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training finished in </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s.&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Save the archive model</span>
+    <span class="c1"># Save the archive model using the dynamic prefix generator</span>
     <span class="n">date_str</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">model_prefix</span> <span class="o">=</span> <span class="n">MODEL_ARCHIVE_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">date</span><span class="o">=</span><span class="n">date_str</span><span class="p">,</span>
-        <span class="n">c</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span><span class="p">,</span>
-        <span class="n">w</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
-        <span class="n">v</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">visual</span><span class="p">),</span>
-        <span class="n">d</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">),</span>
-        <span class="n">a</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">),</span>
-        <span class="n">t</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">thermal</span><span class="p">),</span>
-        <span class="n">sr</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
-        <span class="n">nf</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
-        <span class="n">hl</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">hop_length</span><span class="p">,</span>
-        <span class="n">nm</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="o">.</span><span class="n">n_mels</span>
-    <span class="p">)</span>
+    <span class="n">model_prefix</span> <span class="o">=</span> <span class="n">generate_model_prefix</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">date_str</span><span class="p">)</span>
+
     <span class="n">archive_path</span> <span class="o">=</span> <span class="n">get_unique_filename</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">model_prefix</span><span class="p">,</span> <span class="s2">&quot;pth&quot;</span><span class="p">)</span>
 
     <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">archive_path</span><span class="p">)</span>
@@ -1752,7 +1730,21 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">273</span>
 <span class="normal">274</span>
 <span class="normal">275</span>
-<span class="normal">276</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1858,18 +1850,22 @@ R_j=\frac{TP_j}{TP_j+FN_j}
                 <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">controller</span><span class="o">.</span><span class="n">intervening</span><span class="p">:</span>
+                <span class="c1"># 1. Fetch the human&#39;s corrective action FIRST</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">get_action_vector</span><span class="p">()</span>
+
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">was_intervening</span><span class="p">:</span>
-                    <span class="c1"># Flush the rolling autonomous context into the recovery buffers</span>
+                    <span class="c1"># 2. Flush the autonomous rolling context into the recovery buffers</span>
                     <span class="n">recovery_frames</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_frames</span><span class="p">)</span>
-                    <span class="n">recovery_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_actions</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_depths</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_audios</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">thermal</span><span class="p">:</span> <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_thermals</span><span class="p">)</span>
+
+                    <span class="c1"># 3. RETROACTIVE CORRECTION: Apply the human action to the historical frames</span>
+                    <span class="n">recovery_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">action</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">auto_frames</span><span class="p">))</span>
+
                     <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">True</span>
 
-                <span class="n">action</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">get_action_vector</span><span class="p">()</span>
-
-                <span class="c1"># Append arrays using dictionary safeties</span>
+                <span class="c1"># Append current active intervention arrays </span>
                 <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
@@ -1884,6 +1880,14 @@ R_j=\frac{TP_j}{TP_j+FN_j}
                 <span class="n">action_probs</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                 <span class="n">action</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_probs</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
+                <span class="c1"># POPULATE THE AUTONOMOUS ROLLING BUFFERS</span>
+                <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
+                <span class="n">auto_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+
+                <span class="c1"># Save block (Triggers when the user releases the intervention key)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovery_frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span> <span class="o">/</span> <span class="s2">&quot;recovery&quot;</span>
                     <span class="n">prefix_clean</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
@@ -1902,7 +1906,9 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 
                     <span class="n">np</span><span class="o">.</span><span class="n">savez_compressed</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="o">**</span><span class="n">save_dict</span><span class="p">)</span>
 
+                    <span class="c1"># Clear memory buffers</span>
                     <span class="n">recovery_frames</span><span class="p">,</span> <span class="n">recovery_depths</span><span class="p">,</span> <span class="n">recovery_audios</span><span class="p">,</span> <span class="n">recovery_thermals</span><span class="p">,</span> <span class="n">recovery_actions</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
             <span class="n">game</span><span class="o">.</span><span class="n">make_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.028</span><span class="p">)</span>
 

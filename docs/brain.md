@@ -3,10 +3,80 @@
 The core of Golem is a Neural Circuit Policy (NCP) utilizing Closed-form Continuous-time (CfC) cells. With the introduction of multi-modal sensor fusion, the brain can dynamically scale its perception across visual, spatial (depth), auditory, and thermal domains.
 
 
+```mermaid
+flowchart TD
+    subgraph Engine [ViZDoom Extraction Buffers]
+        O_vis["RGB Visual (3x64x64)"]
+        O_dep["Depth Buffer (1x64x64)"]
+        O_thm["Thermal Labels (1x64x64)"]
+        O_aud["Raw Stereo Audio (2xN)"]
+    end
+
+    subgraph VisCortex [Visual Cortex]
+        Concat_Vis{"Concat Channels"}
+        VisIn["Input (4x64x64)"]
+        VisCNN["D Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        VisFlat["Flatten"]
+        V_t["Latent Vector V(t)"]
+    end
+
+    subgraph ThmCortex [Thermal Cortex]
+        ThmIn["Input (1x64x64)"]
+        ThmCNN["D Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        ThmFlat["Flatten"]
+        T_t["Latent Vector T(t)"]
+    end
+
+    subgraph AudCortex [Auditory Cortex]
+        DSP["DSP: MelSpectrogram\n& AmplitudeToDB"]
+        Mel["2D Spectrogram\n(2 x H_mels x W_time)"]
+        AudCNN["3 Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        AudPool["AdaptiveAvgPool2d(1, 1)"]
+        AudFlat["Flatten"]
+        A_t["Latent Vector A(t)"]
+    end
+
+    subgraph Core [Liquid Core & Motor Head]
+        Fusion{"Concatenate ⊕"}
+        I_t["Multi-Modal Input I(t)"]
+        CfC["Closed-form Continuous (CfC) Cell\nunits = working_memory"]
+        hx_in[/"Previous State x(t-1)"/]
+        hx_out[/"Next State x(t)"/]
+        Linear["Linear Layer (n_actions)"]
+        Sigmoid["Sigmoid Activation"]
+        Y_t[/"Action Probabilities y(t)"/]
+    end
+
+    %% Visual Flow
+    O_vis --> Concat_Vis
+    O_dep --> Concat_Vis
+    Concat_Vis --> VisIn
+    VisIn --> VisCNN --> VisFlat --> V_t
+
+    %% Thermal Flow
+    O_thm --> ThmIn
+    ThmIn --> ThmCNN --> ThmFlat --> T_t
+
+    %% Auditory Flow
+    O_aud --> DSP --> Mel --> AudCNN --> AudPool --> AudFlat --> A_t
+
+    %% Fusion
+    V_t --> Fusion
+    T_t --> Fusion
+    A_t --> Fusion
+
+    %% State and Output
+    Fusion --> I_t
+    I_t --> CfC
+    hx_in -.-> CfC
+    CfC -.-> hx_out
+    CfC --> Linear
+    Linear --> Sigmoid --> Y_t
+```
+
 ## 1. Visual Cortex (CNN)
 
 The input observation $o_t$ is first processed by a Convolutional Neural Network (CNN) to extract spatial features. This hierarchy reduces the high-dimensional pixel space into a flattened, latent feature vector $V(t)$. 
-
 
 The architecture scales dynamically based on the configured `cortical_depth` ($D$) and active `sensors`. Given an input tensor of $C\times64\times64$ (where $C=3$ for standard RGB, or $C=4$ if the stereoscopic depth buffer is enabled), the sequential convolutions (using a kernel size of 4, a stride of 2, and zero padding) coupled with ReLU activations compress the spatial manifold. Each convolutional layer effectively halves the spatial dimensions ($H$ and $W$) while doubling the feature channels ($C$). For example, a depth of $D=4$ aggressively pools the feature maps to a highly dense representation, outputting a flattened latent feature vector $V(t)\in\mathbb{R}^{1024}$.
 

@@ -41,8 +41,6 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 └── main.py             # CLI Entrypoint
 ```
 
-
-
 The `./data/model/<mode>/` directory archives models using the naming schema,
 
 `{YYYY-MM-DD}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}.{increment}`
@@ -53,7 +51,7 @@ Where,
 * `c`: The cortical depth (`brain.cortical_depth`) of the model.
 * `w`: The working memory (`brain.working_memory`) of the model.
 * `v`: The visual field (`brain.sensors.visual`) of the model.
-* `d`: The visual depth field (`brain.sensors.depth`) of the model.
+* `d`: The depth field (`brain.sensors.depth`) of the model.
 * `a`: The audio field (`brain.sensors.audio`) of the model.
 * `t`: The thermal field (`brain.sensors.thermal`) of the model.
 * `sr`: The sample rate of the DSP (`brain.dsp.sample_rate`) of the model.

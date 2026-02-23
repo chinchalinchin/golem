@@ -23,7 +23,7 @@ from app.models.dataset import DoomStreamingDataset
 from app.models.brain import DoomLiquidNet
 from app.models.loss import FocalLossWithLogits, AsymmetricLoss
 from app.utils.conf import resolve_path, get_unique_filename, register_command
-from app.utils.model import apply_latest_parameters, MODEL_ARCHIVE_TEMPLATE
+from app.utils.model import apply_latest_parameters, generate_model_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -206,29 +206,18 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
             batches += 1
             
             if batch_idx % 50 == 0:
-                logger.info(f"Epoch {epoch+1} | Batch {batch_idx} | Loss: {loss.item():.4f}")
+                logger.info(f"Epoch {epoch+1} | Batch {batch_idx} | Loss: {loss.item():.5f}")
         
         avg_loss = total_loss / batches if batches > 0 else 0
-        logger.info(f"Epoch {epoch+1}/{cfg.training.epochs} complete. Average Loss: {avg_loss:.4f}")
+        logger.info(f"Epoch {epoch+1}/{cfg.training.epochs} complete. Average Loss: {avg_loss:.5f}")
 
     duration = time.time() - start_time
     logger.info(f"Training finished in {duration:.2f}s.")
     
-    # Save the archive model
+    # Save the archive model using the dynamic prefix generator
     date_str = datetime.now().strftime("%Y-%m-%d")
-    model_prefix = MODEL_ARCHIVE_TEMPLATE.format(
-        date=date_str,
-        c=cfg.brain.cortical_depth,
-        w=cfg.brain.working_memory,
-        v=int(cfg.brain.sensors.visual),
-        d=int(cfg.brain.sensors.depth),
-        a=int(cfg.brain.sensors.audio),
-        t=int(cfg.brain.sensors.thermal),
-        sr=cfg.brain.dsp.sample_rate,
-        nf=cfg.brain.dsp.n_fft,
-        hl=cfg.brain.dsp.hop_length,
-        nm=cfg.brain.dsp.n_mels
-    )
+    model_prefix = generate_model_prefix(cfg, date_str)
+    
     archive_path = get_unique_filename(model_dir, model_prefix, "pth")
     
     torch.save(model.state_dict(), archive_path)

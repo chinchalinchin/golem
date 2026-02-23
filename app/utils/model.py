@@ -14,6 +14,32 @@ logger = logging.getLogger(__name__)
 MODEL_ARCHIVE_TEMPLATE = "{date}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}"
 
 
+def generate_model_prefix(cfg, date_str: str) -> str:
+    """
+    Generates a dynamic filename prefix based on the active brain configuration.
+    Only includes DSP parameters if the audio sensor is enabled.
+    """
+    base_parts = [
+        f"{date_str}",
+        f"c-{cfg.brain.cortical_depth}",
+        f"w-{cfg.brain.working_memory}",
+        f"v-{int(cfg.brain.sensors.visual)}",
+        f"d-{int(cfg.brain.sensors.depth)}",
+        f"a-{int(cfg.brain.sensors.audio)}",
+        f"t-{int(cfg.brain.sensors.thermal)}"
+    ]
+    
+    if cfg.brain.sensors.audio:
+        base_parts.extend([
+            f"sr-{cfg.brain.dsp.sample_rate}",
+            f"nf-{cfg.brain.dsp.n_fft}",
+            f"hl-{cfg.brain.dsp.hop_length}",
+            f"nm-{cfg.brain.dsp.n_mels}"
+        ])
+        
+    return ".".join(base_parts)
+
+
 def get_latest_parameters(archives: List[Path]) -> dict:
     """
     Find the latest parameters of the trained model from the filename.

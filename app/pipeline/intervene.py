@@ -223,18 +223,22 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 probs = torch.sigmoid(logits)
             
             if controller.intervening:
+                # 1. Fetch the human's corrective action FIRST
+                action = controller.get_action_vector()
+
                 if not was_intervening:
-                    # Flush the rolling autonomous context into the recovery buffers
+                    # 2. Flush the autonomous rolling context into the recovery buffers
                     recovery_frames.extend(auto_frames)
-                    recovery_actions.extend(auto_actions)
                     if cfg.brain.sensors.depth: recovery_depths.extend(auto_depths)
                     if cfg.brain.sensors.audio: recovery_audios.extend(auto_audios)
                     if cfg.brain.sensors.thermal: recovery_thermals.extend(auto_thermals)
+                    
+                    # 3. RETROACTIVE CORRECTION: Apply the human action to the historical frames
+                    recovery_actions.extend([action] * len(auto_frames))
+                    
                     was_intervening = True
-
-                action = controller.get_action_vector()
-
-                # Append arrays using dictionary safeties
+                    
+                # Append current active intervention arrays 
                 if 'visual' in extracted: recovery_frames.append(extracted['visual'])
                 if 'depth' in extracted: recovery_depths.append(extracted['depth'])
                 if 'audio' in extracted: recovery_audios.append(extracted['audio'])
@@ -249,6 +253,14 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 action_probs = probs.cpu().numpy()[0, 0]
                 action = (action_probs > 0.5).astype(int).tolist()
                 
+                # POPULATE THE AUTONOMOUS ROLLING BUFFERS
+                if 'visual' in extracted: auto_frames.append(extracted['visual'])
+                if 'depth' in extracted: auto_depths.append(extracted['depth'])
+                if 'audio' in extracted: auto_audios.append(extracted['audio'])
+                if 'thermal' in extracted: auto_thermals.append(extracted['thermal'])
+                auto_actions.append(action)
+                
+                # Save block (Triggers when the user releases the intervention key)
                 if len(recovery_frames) > 0:
                     output_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "recovery"
                     prefix_clean = cfg.data.prefix.rstrip('_')
@@ -267,7 +279,9 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
 
                     np.savez_compressed(output_path, **save_dict)
                     
+                    # Clear memory buffers
                     recovery_frames, recovery_depths, recovery_audios, recovery_thermals, recovery_actions = [], [], [], [], []
+            
             game.make_action(action)
             time.sleep(0.028)
             

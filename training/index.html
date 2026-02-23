@@ -1160,8 +1160,7 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 29</span>
-<span class="normal"> 30</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
 <span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
@@ -1339,7 +1338,37 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">205</span>
 <span class="normal">206</span>
 <span class="normal">207</span>
-<span class="normal">208</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1430,9 +1459,38 @@ R_j=\frac{TP_j}{TP_j+FN_j}
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">FOCAL</span><span class="p">:</span>
-        <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating empirical class frequencies for Focal Loss alpha vector...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 1. Tally raw action counts across all loaded files</span>
+        <span class="n">action_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_actions</span><span class="p">)</span>
+        <span class="n">total_samples</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">action_array</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">:</span>
+            <span class="n">action_counts</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">action_array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">action_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># 2. Acknowledge Augmentation Prior: Enforce left/right symmetry</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">augment</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
+                <span class="n">avg_count</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_counts</span><span class="p">[</span><span class="n">left_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">action_counts</span><span class="p">[</span><span class="n">right_idx</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+                <span class="n">action_counts</span><span class="p">[</span><span class="n">left_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_count</span>
+                <span class="n">action_counts</span><span class="p">[</span><span class="n">right_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_count</span>
+
+        <span class="c1"># 3. Calculate true probability-based alpha</span>
+        <span class="c1"># alpha is the weight for the POSITIVE class. We set it to the frequency of the NEGATIVE class.</span>
+        <span class="c1"># This guarantees alpha is strictly bounded between 0 and 1.</span>
+        <span class="n">alpha_vector</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_samples</span> <span class="o">-</span> <span class="n">action_counts</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_samples</span>
+
+        <span class="n">alpha_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">alpha_vector</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">alpha_tensor</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">focal</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">BCE</span><span class="p">:</span>
         <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">ASL</span><span class="p">:</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">AsymmetricLoss</span><span class="p">(</span>
+            <span class="n">gamma_neg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_neg</span><span class="p">,</span>
+            <span class="n">gamma_pos</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_pos</span><span class="p">,</span>
+            <span class="n">clip</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">clip</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
 

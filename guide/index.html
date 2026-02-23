@@ -449,6 +449,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#5-loss-function-hyperparameter-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Loss Function Hyperparameter Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Loss Function Hyperparameter Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamic-scaling-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic Scaling Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -926,6 +954,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#5-loss-function-hyperparameter-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Loss Function Hyperparameter Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Loss Function Hyperparameter Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamic-scaling-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic Scaling Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -964,15 +1020,19 @@
 <p>Scaling the sensory cortices provides the model with higher-resolution spatial reasoning but drastically alters the optimization landscape.</p>
 <ul>
 <li><strong><code>brain.cortical_depth</code></strong>:  (<span class="arithmatex">\(D\)</span>): Determines the number of convolutional layers. Higher values aggressively pool the tensor into a denser latent representation <span class="arithmatex">\(V(t)\)</span>.</li>
-<li>**<code>training.batch_size</code> and <code>training.learning_rate**</code>: Govern how the Adam optimizer navigates the gradient manifold.</li>
+<li><strong><code>training.batch_size</code></strong> and <strong><code>training.learning_rate</code>&amp;</strong>: Govern how the Adam optimizer navigates the gradient manifold.</li>
 </ul>
 <h3 id="tuning-heuristics_1">Tuning Heuristics</h3>
 <ul>
-<li><strong>Scaling the Visual Cortex:</strong> A shallow network (<span class="arithmatex">\(D=2\)</span>) is sufficient for basic navigation but fails to resolve distant enemies in complex WADs. Increasing to <span class="arithmatex">\(D=4\)</span> allows the network to comprehend complex geometry. However, adding layers increases the parameter count, which generally requires more <code>epochs</code> to converge.</li>
-<li><strong>The Linear Scaling Rule:</strong> Hardware VRAM is your primary constraint. If increasing  or  causes an Out-Of-Memory (OOM) error, you must reduce the <code>batch_size</code>. If you halve your <code>batch_size</code> (e.g., from 32 to 16), the gradient estimates become noisier. To prevent the optimizer from over-correcting on this noise, you should generally halve your <code>learning_rate</code> (e.g., from <span class="arithmatex">\(0.0002\)</span> to <span class="arithmatex">\(0.0001\)</span>).</li>
+<li><strong>Scaling the Visual Cortex (The Resolution Trade-off):</strong> Adjusting <span class="arithmatex">\(D\)</span> forces a trade-off between <strong>spatial resolution</strong> and <strong>semantic abstraction (receptive field)</strong>. <ul>
+<li>A shallow network (<span class="arithmatex">\(D=2\)</span>) preserves a relatively high-resolution <span class="arithmatex">\(16 \times 16\)</span> spatial grid before flattening. This is excellent for tactical combat, as it allows the agent to resolve and aim at distant, low-pixel enemies. However, its small receptive field means it struggles to comprehend macro-geometry, like navigating complex maze layouts.</li>
+<li>Increasing to <span class="arithmatex">\(D=4\)</span> drastically expands the receptive field, allowing the network to abstract and understand complex room geometry. However, it aggressively pools the spatial grid down to <span class="arithmatex">\(4 \times 4\)</span>. Distant enemies will be mathematically obliterated by the convolutions, rendering the agent near-sighted. Furthermore, deeper networks increase the convolutional parameter count, requiring more <code>epochs</code> to converge.</li>
+</ul>
+</li>
+<li><strong>The Linear Scaling Rule:</strong> Hardware VRAM is your primary constraint. If increasing <span class="arithmatex">\(D\)</span> or <span class="arithmatex">\(L\)</span> causes an Out-Of-Memory (OOM) error, you must reduce the <code>batch_size</code>. If you halve your <code>batch_size</code> (e.g., from 32 to 16), the gradient estimates become noisier. To prevent the optimizer from over-correcting on this noise, you should generally halve your <code>learning_rate</code> (e.g., from <span class="arithmatex">\(0.0002\)</span> to <span class="arithmatex">\(0.0001\)</span>).</li>
 </ul>
 <h2 id="3-multi-modal-hardware-constraints">3. Multi-Modal Hardware Constraints</h2>
-<p>Enabling sensor fusion geometrically expands the network's flat size (), drastically altering memory requirements.</p>
+<p>Enabling sensor fusion geometrically expands the network's flat size  (<span class="arithmatex">\(W_f\)</span>), drastically altering memory requirements.</p>
 <ul>
 <li><strong>Audio Impact (<code>brain.dsp</code>)</strong>: Enabling <code>brain.sensors.audio</code> converts 1D waveforms to 2D Mel Spectrograms. This is the most computationally expensive modality. A small <code>dsp.hop_length</code> creates a very wide temporal tensor. If VRAM is exhausted, double the <code>hop_length</code> (e.g., 256 to 512) before compromising on <code>batch_size</code> or <code>sequence_length</code>.</li>
 <li><strong>Thermal Impact (<code>brain.sensors.thermal</code>)</strong>: The thermal mask adds an isolated, parallel CNN. Because it is a binary mask  (<span class="arithmatex">\(1\times64\times64\)</span>),, it is computationally lightweight compared to visual or auditory tensors. You can generally enable this without drastically reducing your batch size.</li>
@@ -1000,6 +1060,67 @@
 <p><strong>Symptom:</strong> The agent navigates well but explicitly favors turning in one direction and gets stuck in corners requiring the opposite turn.
 <strong>Diagnosis:</strong> Spatial bias in the human demonstration data (e.g., clearing a map by hugging the left wall).
 <strong>Cure:</strong> Ensure <code>training.augmentation.mirror</code> is set to <code>true</code>. This mathematically doubles the topological variance by flipping the visual/thermal tensors and swapping the corresponding left/right action indices, guaranteeing perfect spatial symmetry in the gradient updates.</p>
+<p>Here is the markdown table summarizing the optimal training settings and hyperparameters for each loss function, based on the architectural constraints and behavioral heuristics we've established for Golem.</p>
+<h2 id="5-loss-function-hyperparameter-guide">5. Loss Function Hyperparameter Guide</h2>
+<table>
+<thead>
+<tr>
+<th>Loss Function</th>
+<th>Primary Use Case</th>
+<th>Epochs</th>
+<th>Batch Size</th>
+<th>Learning Rate</th>
+<th>Sequence Length</th>
+<th>Specific Hyperparameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Focal</strong> (<code>focal</code>)</td>
+<td>General baseline. Mitigates the "Hold W" convergence trap during standard navigation/combat datasets.</td>
+<td>150</td>
+<td>16</td>
+<td>0.0001</td>
+<td>32+</td>
+<td><code>alpha</code>: 0.25, <code>gamma</code>: 2.0</td>
+</tr>
+<tr>
+<td><strong>Asymmetric</strong> (<code>asymmetric</code>)</td>
+<td>Curing the "Pacifist Agent." Highly imbalanced datasets where critical actions (shooting) are exceptionally rare.</td>
+<td>150+</td>
+<td>16</td>
+<td>0.0001</td>
+<td>32+</td>
+<td><code>gamma_pos</code>: 0.0 - 1.0, <code>gamma_neg</code>: 4.0<br>, <code>clip</code>: 0.05</td>
+</tr>
+<tr>
+<td><strong>Smooth</strong> (<code>smooth</code>)</td>
+<td>Curing the "Twitchy Agent." Datasets with high demonstrator noise, reaction lag, or over-correction.</td>
+<td>100 - 150</td>
+<td>16</td>
+<td>0.0001</td>
+<td>32+</td>
+<td><code>epsilon</code>: 0.1 - 0.15</td>
+</tr>
+<tr>
+<td><strong>BCE</strong> (<code>bce</code>)</td>
+<td>Benchmarking and debugging. Requires a perfectly balanced dataset to prevent convergence failure.</td>
+<td>100</td>
+<td>16</td>
+<td>0.0001</td>
+<td>32+</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dynamic-scaling-rules">Dynamic Scaling Rules</h3>
+<p>When adjusting the baseline values in the table, keep these mathematical constraints in mind:</p>
+<ul>
+<li><strong>The Linear Scaling Rule:</strong> The <code>batch_size</code> and <code>learning_rate</code> are coupled. If you run out of VRAM and need to halve the batch size (e.g., from 16 to 8), you should halve the learning rate (e.g., to 0.00005) to prevent the optimizer from wildly over-correcting on the noisier gradient estimates. Conversely, if you have the VRAM to bump the batch size to 32, increase the learning rate to 0.0002.</li>
+<li><strong>The Temporal Constant:</strong> Sequence length (<code>sequence_length</code>) should rarely drop below 32 for combat modules, regardless of the loss function. The LNN's Closed-form Continuous (CfC) cells need a sufficiently long temporal runway to establish the causal link between an action (firing a weapon) and its delayed effect (a projectile hitting a target).</li>
+<li><strong>Epoch Scaling:</strong> Deeper cortical depths (<code>cortical_depth</code> 3 or 4) increase the convolutional parameter count significantly. You will likely need to push your epochs beyond 150 to achieve convergence on deep networks, particularly when using Asymmetric Loss which aggressively throttles gradient flow for background frames.</li>
+</ul>
+<p>Would you like me to append this table to the new <code>docs/field_guide.md</code>, and then proceed with updating the <code>README.md</code> architecture section to reflect the new dynamic model naming schema we built?</p>
 
 
 

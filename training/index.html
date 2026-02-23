@@ -1415,7 +1415,16 @@ R_j=\frac{TP_j}{TP_j+FN_j}
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No training data found matching pattern: </span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data_dirs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
-    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># ---&gt; NEW: Mount the Stratified Sampler </span>
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">StatefulStratifiedBatchSampler</span><span class="p">(</span>
+        <span class="n">base_episodes</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">base_episodes</span><span class="p">,</span>
+        <span class="n">recovery_episodes</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">recovery_episodes</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">recovery_ratio</span><span class="o">=</span><span class="mf">0.25</span> <span class="k">if</span> <span class="n">include_recovery</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Remove shuffle=False and drop_last=True, as the Sampler handles sequence logic internally</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">)</span>
 
     <span class="n">n_actions</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_space_size</span>
 
@@ -1451,37 +1460,28 @@ R_j=\frac{TP_j}{TP_j+FN_j}
     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">FOCAL</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing Focal Loss with static alpha vector from configuration...&quot;</span><span class="p">)</span>
 
-        <span class="c1"># 1. Tally raw action counts across all loaded files for logging purposes</span>
-        <span class="n">action_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_actions</span><span class="p">)</span>
-        <span class="n">total_samples</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">action_array</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">action_arrays</span><span class="p">:</span>
-            <span class="n">action_counts</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">action_array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">action_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="c1"># 2. Acknowledge Augmentation Prior: Enforce left/right symmetry</span>
-        <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">augment</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">left_idx</span><span class="p">,</span> <span class="n">right_idx</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">swap_pairs</span><span class="p">:</span>
-                <span class="n">avg_count</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_counts</span><span class="p">[</span><span class="n">left_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">action_counts</span><span class="p">[</span><span class="n">right_idx</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
-                <span class="n">action_counts</span><span class="p">[</span><span class="n">left_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_count</span>
-                <span class="n">action_counts</span><span class="p">[</span><span class="n">right_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_count</span>
-
-        <span class="c1"># 3. Construct bounded alpha tensor</span>
-        <span class="c1"># We rely on the configured static alpha (e.g., 0.25) to prevent button-mashing</span>
-        <span class="c1"># while letting gamma exponentially scale the loss for hard examples.</span>
         <span class="n">alpha_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_actions</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">focal</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
 
         <span class="n">alpha_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">alpha_vector</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">alpha_tensor</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">focal</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="n">alpha_tensor</span><span class="p">,</span> 
+            <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">focal</span><span class="o">.</span><span class="n">gamma</span>
+        <span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">BCE</span><span class="p">:</span>
         <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
 
     <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">ASL</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing Asymmetric Loss (gamma_neg=</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_neg</span><span class="si">}</span><span class="s2">, gamma_pos=</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_pos</span><span class="si">}</span><span class="s2">)...&quot;</span><span class="p">)</span>
         <span class="n">criterion</span> <span class="o">=</span> <span class="n">AsymmetricLoss</span><span class="p">(</span>
             <span class="n">gamma_neg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_neg</span><span class="p">,</span>
             <span class="n">gamma_pos</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">gamma_pos</span><span class="p">,</span>
             <span class="n">clip</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">asymmetric</span><span class="o">.</span><span class="n">clip</span>
         <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">SMOOTH</span><span class="p">:</span>
+        <span class="c1"># Initialize the new Label Smoothed BCE</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing Label Smoothing BCE (epsilon=</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">smooth</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s2">)...&quot;</span><span class="p">)</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">LabelSmoothingBCEWithLogits</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">loss</span><span class="o">.</span><span class="n">smooth</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
 
@@ -1744,7 +1744,8 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">287</span>
 <span class="normal">288</span>
 <span class="normal">289</span>
-<span class="normal">290</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">290</span>
+<span class="normal">291</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1770,7 +1771,8 @@ R_j=\frac{TP_j}{TP_j+FN_j}
         <span class="n">n_actions</span><span class="o">=</span><span class="n">n_actions</span><span class="p">,</span>
         <span class="n">cortical_depth</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">cortical_depth</span><span class="p">,</span>
         <span class="n">working_memory</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">working_memory</span><span class="p">,</span>
-        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
+        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>

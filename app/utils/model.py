@@ -11,9 +11,6 @@ import torch
 logger = logging.getLogger(__name__)
 
 
-MODEL_ARCHIVE_TEMPLATE = "{date}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}"
-
-
 def generate_model_prefix(cfg, date_str: str) -> str:
     """
     Generates a dynamic filename prefix based on the active brain configuration.

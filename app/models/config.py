@@ -18,7 +18,7 @@ class LossType(str, Enum):
     FOCAL = "focal"
     BCE = "bce"
     SMOOTH = "smooth"
-    ASL = "asymmetric"
+    ASL = "asl"
 
 class RandomizerConfig(BaseModel):
     executable: str

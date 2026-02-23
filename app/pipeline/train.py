@@ -118,9 +118,9 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
         model.load_state_dict(state_dict)
     
     if cfg.training.loss == LossType.FOCAL:
-        logger.info("Calculating empirical class frequencies for Focal Loss alpha vector...")
+        logger.info("Initializing Focal Loss with static alpha vector from configuration...")
         
-        # 1. Tally raw action counts across all loaded files
+        # 1. Tally raw action counts across all loaded files for logging purposes
         action_counts = np.zeros(n_actions)
         total_samples = 0
         for action_array in dataset.action_arrays:
@@ -134,16 +134,17 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
                 action_counts[left_idx] = avg_count
                 action_counts[right_idx] = avg_count
                 
-        # 3. Calculate true probability-based alpha
-        # alpha is the weight for the POSITIVE class. We set it to the frequency of the NEGATIVE class.
-        # This guarantees alpha is strictly bounded between 0 and 1.
-        alpha_vector = (total_samples - action_counts) / total_samples
+        # 3. Construct bounded alpha tensor
+        # We rely on the configured static alpha (e.g., 0.25) to prevent button-mashing
+        # while letting gamma exponentially scale the loss for hard examples.
+        alpha_vector = np.full(n_actions, cfg.loss.focal.alpha)
         
         alpha_tensor = torch.tensor(alpha_vector, dtype=torch.float32).to(device)
-        
         criterion = FocalLossWithLogits(alpha=alpha_tensor, gamma=cfg.loss.focal.gamma)
+
     elif cfg.training.loss == LossType.BCE:
         criterion = nn.BCEWithLogitsLoss()
+    
     elif cfg.training.loss == LossType.ASL:
         criterion = AsymmetricLoss(
             gamma_neg=cfg.loss.asymmetric.gamma_neg,

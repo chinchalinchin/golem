@@ -105,7 +105,7 @@ modules:
   # --- Retail IWADs ---
   doom:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom.wad"
-    map: "E1M1"
+    map: "E1M2"
     episodes: 1
   doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom2.wad"

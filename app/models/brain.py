@@ -43,7 +43,8 @@ class DoomLiquidNet(nn.Module):
         out_channels = 32
         
         for _ in range(cortical_depth):
-            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2))
+            # Added padding=1 to prevent dropping spatial data on the right/bottom edges
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1))
             layers.append(nn.ReLU())
             in_channels = out_channels
             out_channels *= 2
@@ -80,7 +81,8 @@ class DoomLiquidNet(nn.Module):
             t_in = 1  # Binary Thermal Mask
             t_out = 16
             for _ in range(cortical_depth):
-                thm_layers.append(nn.Conv2d(t_in, t_out, kernel_size=4, stride=2))
+                # Added padding=1 to align with visual cortex dimensions
+                thm_layers.append(nn.Conv2d(t_in, t_out, kernel_size=4, stride=2, padding=1))
                 thm_layers.append(nn.ReLU())
                 t_in = t_out
                 t_out *= 2

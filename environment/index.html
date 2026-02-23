@@ -838,14 +838,8 @@ y_t\in\{0,1\}^{n_\rho}
 
 
         <p>A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</p>
-<p>This class loads raw frame and action arrays from compressed <code>.npz</code> files 
-into memory. Rather than copying the data to create individual sequence 
-tensors, it builds a lightweight pointer map. During training, it slices 
-continuous arrays into overlapping sequences of length <code>seq_len</code> on-the-fly.</p>
-<p>It supports multi-modal sensor fusion, dynamically yielding a dictionary of active 
-sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.
-It also supports dynamic horizontal mirror augmentation to double the effective
-dataset size while mitigating left/right turning bias.</p>
+<p>This class loads raw frame and action arrays from compressed <code>.npz</code> files into memory. Rather than copying the data to create individual sequence tensors, it builds a lightweight pointer map. During training, it slices continuous arrays into overlapping sequences of length <code>seq_len</code> on-the-fly.</p>
+<p>It supports multi-modal sensor fusion, dynamically yielding a dictionary of active sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors. It also supports dynamic horizontal mirror augmentation to double the effective dataset size while mitigating left/right turning bias.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -884,8 +878,7 @@ dataset size while mitigating left/right turning bias.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The temporal length of the sequence window to slice. 
-Default: <code>32</code>.</p>
+                <p>The temporal length of the sequence window to slice. Default: <code>32</code>.</p>
               </div>
             </td>
             <td>
@@ -901,8 +894,7 @@ Default: <code>32</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The glob pattern used to locate training files 
-within <code>data_dir</code>. Default: <code>"*.npz"</code>.</p>
+                <p>The glob pattern used to locate training files within <code>data_dir</code>. Default: <code>"*.npz"</code>.</p>
               </div>
             </td>
             <td>
@@ -918,8 +910,7 @@ within <code>data_dir</code>. Default: <code>"*.npz"</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>True</code>, dynamically mirrors visual and thermal frames horizontally 
-and swaps corresponding left/right action labels. Default: <code>False</code>.</p>
+                <p>If <code>True</code>, dynamically mirrors visual and thermal frames horizontally and swaps corresponding left/right action labels. Default: <code>False</code>.</p>
               </div>
             </td>
             <td>
@@ -935,9 +926,7 @@ and swaps corresponding left/right action labels. Default: <code>False</code>.</
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The ordered list of string action names 
-(e.g., <code>["MOVE_FORWARD", "TURN_LEFT", ...]</code>) used to calculate 
-which indices to swap during mirror augmentation. Default: <code>None</code>.</p>
+                <p>The ordered list of string action names (e.g., <code>["MOVE_FORWARD", "TURN_LEFT", ...]</code>) used to calculate which indices to swap during mirror augmentation. Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
@@ -1162,46 +1151,20 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="normal">206</span>
 <span class="normal">207</span>
 <span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="normal">209</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomStreamingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A PyTorch Dataset for loading and streaming DOOM gameplay sequences.</span>
 
-<span class="sd">    This class loads raw frame and action arrays from compressed ``.npz`` files </span>
-<span class="sd">    into memory. Rather than copying the data to create individual sequence </span>
-<span class="sd">    tensors, it builds a lightweight pointer map. During training, it slices </span>
-<span class="sd">    continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.</span>
+<span class="sd">    This class loads raw frame and action arrays from compressed ``.npz`` files into memory. Rather than copying the data to create individual sequence tensors, it builds a lightweight pointer map. During training, it slices continuous arrays into overlapping sequences of length ``seq_len`` on-the-fly.</span>
 
-<span class="sd">    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active </span>
-<span class="sd">    sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors.</span>
-<span class="sd">    It also supports dynamic horizontal mirror augmentation to double the effective</span>
-<span class="sd">    dataset size while mitigating left/right turning bias.</span>
+<span class="sd">    It supports multi-modal sensor fusion, dynamically yielding a dictionary of active sensory tensors (visual, depth, audio, and thermal masks) alongside the target action vectors. It also supports dynamic horizontal mirror augmentation to double the effective dataset size while mitigating left/right turning bias.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        data_dir (str or Path): The directory containing the ``.npz`` training files.</span>
-<span class="sd">        seq_len (int, optional): The temporal length of the sequence window to slice. </span>
-<span class="sd">            Default: ``32``.</span>
-<span class="sd">        file_pattern (str, optional): The glob pattern used to locate training files </span>
-<span class="sd">            within ``data_dir``. Default: ``&quot;*.npz&quot;``.</span>
-<span class="sd">        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally </span>
-<span class="sd">            and swaps corresponding left/right action labels. Default: ``False``.</span>
-<span class="sd">        action_names (list of str, optional): The ordered list of string action names </span>
-<span class="sd">            (e.g., ``[&quot;MOVE_FORWARD&quot;, &quot;TURN_LEFT&quot;, ...]``) used to calculate </span>
-<span class="sd">            which indices to swap during mirror augmentation. Default: ``None``.</span>
+<span class="sd">        seq_len (int, optional): The temporal length of the sequence window to slice. Default: ``32``.</span>
+<span class="sd">        file_pattern (str, optional): The glob pattern used to locate training files within ``data_dir``. Default: ``&quot;*.npz&quot;``.</span>
+<span class="sd">        augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally and swaps corresponding left/right action labels. Default: ``False``.</span>
+<span class="sd">        action_names (list of str, optional): The ordered list of string action names (e.g., ``[&quot;MOVE_FORWARD&quot;, &quot;TURN_LEFT&quot;, ...]``) used to calculate which indices to swap during mirror augmentation. Default: ``None``.</span>
 <span class="sd">        dsp_config (DSPConfig, optional): DSP tuning parameters for the Mel Spectrogram.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1283,11 +1246,9 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_swap_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Constructs a mapping of action indices that must be swapped when applying </span>
-<span class="sd">        horizontal mirror augmentation.</span>
+<span class="sd">        Constructs a mapping of action indices that must be swapped when applying horizontal mirror augmentation.</span>
 
-<span class="sd">        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like </span>
-<span class="sd">        ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.</span>
+<span class="sd">        This ensures that when a spatial tensor (visual or thermal) is visually flipped, an action like ``TURN_LEFT`` correctly transforms into ``TURN_RIGHT`` in the target vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">swap_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;MOVE_LEFT&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;MOVE_RIGHT&quot;</span><span class="p">)))</span>
@@ -1309,11 +1270,9 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves a temporal sequence of frames and corresponding actions by index.</span>
 
-<span class="sd">        The retrieved visual frames are dynamically transposed from the storage shape of </span>
-<span class="sd">        :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
-<span class="sd">        If the index maps to an augmented sequence, the visual and thermal tensors are flipped </span>
-<span class="sd">        horizontally and lateral actions are swapped. For audio, the waveforms </span>
-<span class="sd">        are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
+<span class="sd">        The retrieved visual frames are dynamically transposed from the storage shape of :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
+
+<span class="sd">        If the index maps to an augmented sequence, the visual and thermal tensors are flipped horizontally and lateral actions are swapped. For audio, the waveforms are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            idx (int): The index of the sequence pointer in the internal map.</span>
@@ -1411,11 +1370,8 @@ which indices to swap during mirror augmentation. Default: <code>None</code>.</p
     <div class="doc doc-contents ">
 
         <p>Retrieves a temporal sequence of frames and corresponding actions by index.</p>
-<p>The retrieved visual frames are dynamically transposed from the storage shape of 
-:math:<code>(H, W, C)</code> to the PyTorch convolutional shape of :math:<code>(C, H, W)</code>.
-If the index maps to an augmented sequence, the visual and thermal tensors are flipped 
-horizontally and lateral actions are swapped. For audio, the waveforms 
-are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
+<p>The retrieved visual frames are dynamically transposed from the storage shape of :math:<code>(H, W, C)</code> to the PyTorch convolutional shape of :math:<code>(C, H, W)</code>.</p>
+<p>If the index maps to an augmented sequence, the visual and thermal tensors are flipped horizontally and lateral actions are swapped. For audio, the waveforms are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1478,7 +1434,20 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">147</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
 <span class="normal">150</span>
@@ -1540,30 +1509,13 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 <span class="normal">206</span>
 <span class="normal">207</span>
 <span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="normal">209</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves a temporal sequence of frames and corresponding actions by index.</span>
 
-<span class="sd">    The retrieved visual frames are dynamically transposed from the storage shape of </span>
-<span class="sd">    :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
-<span class="sd">    If the index maps to an augmented sequence, the visual and thermal tensors are flipped </span>
-<span class="sd">    horizontally and lateral actions are swapped. For audio, the waveforms </span>
-<span class="sd">    are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
+<span class="sd">    The retrieved visual frames are dynamically transposed from the storage shape of :math:`(H, W, C)` to the PyTorch convolutional shape of :math:`(C, H, W)`.</span>
+
+<span class="sd">    If the index maps to an augmented sequence, the visual and thermal tensors are flipped horizontally and lateral actions are swapped. For audio, the waveforms are converted to Mel Spectrograms and spatial auditory channels are swapped.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        idx (int): The index of the sequence pointer in the internal map.</span>
@@ -1677,14 +1629,14 @@ are converted to Mel Spectrograms and spatial auditory channels are swapped.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/dataset.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the total number of sliding window sequences available.</span>
 

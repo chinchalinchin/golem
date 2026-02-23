@@ -923,13 +923,8 @@ x(t)=\sigma(-f(x,I;\theta_f)t)\odot g(x,I;\theta_g)+\left[1-\sigma(-f(x,I;\theta
 
 
         <p>A continuous-time neural network for visual processing and temporal sequential decision-making.</p>
-<p>This network acts as the agent's brain. It processes raw pixel buffers through a 
-Convolutional Neural Network (Visual Cortex) to extract spatial features, which are 
-then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). 
-The CfC core manages the agent's temporal state using differential equation approximations,
-allowing it to handle variable time-steps without requiring expensive ODE solvers.</p>
-<p>It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory 
-spectrograms, and thermal semantic segmentation masks into a unified latent representation.</p>
+<p>This network acts as the agent's brain. It processes raw pixel buffers through a Convolutional Neural Network (Visual Cortex) to extract spatial features, which are then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). The CfC core manages the agent's temporal state using differential equation approximations, allowing it to handle variable time-steps without requiring expensive ODE solvers.</p>
+<p>It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory spectrograms, and thermal semantic segmentation masks into a unified latent representation.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -968,9 +963,7 @@ spectrograms, and thermal semantic segmentation masks into a unified latent repr
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The number of convolutional layers to generate. 
-Each layer halves the spatial dimensions and doubles the feature channels. 
-Default: <code>2</code>.</p>
+                <p>The number of convolutional layers to generate. Each layer halves the spatial dimensions and doubles the feature channels. Default: <code>2</code>.</p>
               </div>
             </td>
             <td>
@@ -986,8 +979,7 @@ Default: <code>2</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The number of hidden units in the CfC liquid core,
-representing the capacity of the agent's temporal memory. Default: <code>64</code>.</p>
+                <p>The number of hidden units in the CfC liquid core, representing the capacity of the agent's temporal memory. Default: <code>64</code>.</p>
               </div>
             </td>
             <td>
@@ -1003,8 +995,7 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Booleans mapping which multi-modal networks to enable 
-(e.g., visual, depth, audio, thermal).</p>
+                <p>Booleans mapping which multi-modal networks to enable (e.g., visual, depth, audio, thermal).</p>
               </div>
             </td>
             <td>
@@ -1039,7 +1030,9 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>app/models/brain.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 17</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 15</span>
+<span class="normal"> 16</span>
+<span class="normal"> 17</span>
 <span class="normal"> 18</span>
 <span class="normal"> 19</span>
 <span class="normal"> 20</span>
@@ -1177,42 +1170,19 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomLiquidNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DoomLiquidNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A continuous-time neural network for visual processing and temporal sequential decision-making.</span>
 
-<span class="sd">    This network acts as the agent&#39;s brain. It processes raw pixel buffers through a </span>
-<span class="sd">    Convolutional Neural Network (Visual Cortex) to extract spatial features, which are </span>
-<span class="sd">    then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). </span>
-<span class="sd">    The CfC core manages the agent&#39;s temporal state using differential equation approximations,</span>
-<span class="sd">    allowing it to handle variable time-steps without requiring expensive ODE solvers.</span>
+<span class="sd">    This network acts as the agent&#39;s brain. It processes raw pixel buffers through a Convolutional Neural Network (Visual Cortex) to extract spatial features, which are then fed into a Closed-form Continuous-time (CfC) recurrent network (Liquid Core). The CfC core manages the agent&#39;s temporal state using differential equation approximations, allowing it to handle variable time-steps without requiring expensive ODE solvers.</span>
 
-<span class="sd">    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory </span>
-<span class="sd">    spectrograms, and thermal semantic segmentation masks into a unified latent representation.</span>
+<span class="sd">    It supports multi-modal sensor fusion, seamlessly integrating spatial depth, auditory spectrograms, and thermal semantic segmentation masks into a unified latent representation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        n_actions (int): The number of output actions for the Motor Cortex head.</span>
-<span class="sd">        cortical_depth (int, optional): The number of convolutional layers to generate. </span>
-<span class="sd">            Each layer halves the spatial dimensions and doubles the feature channels. </span>
-<span class="sd">            Default: ``2``.</span>
-<span class="sd">        working_memory (int, optional): The number of hidden units in the CfC liquid core,</span>
-<span class="sd">            representing the capacity of the agent&#39;s temporal memory. Default: ``64``.</span>
-<span class="sd">        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable </span>
-<span class="sd">            (e.g., visual, depth, audio, thermal).</span>
+<span class="sd">        cortical_depth (int, optional): The number of convolutional layers to generate. Each layer halves the spatial dimensions and doubles the feature channels. Default: ``2``.</span>
+<span class="sd">        working_memory (int, optional): The number of hidden units in the CfC liquid core, representing the capacity of the agent&#39;s temporal memory. Default: ``64``.</span>
+<span class="sd">        sensors (SensorsConfig, optional): Booleans mapping which multi-modal networks to enable (e.g., visual, depth, audio, thermal).</span>
 <span class="sd">        dsp_config (DSPConfig, optional): Signal processing parameters for audio initialization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1304,13 +1274,10 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="sd">        Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            x_vis (Tensor): A batched sequence of visual frames of shape </span>
-<span class="sd">                :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
+<span class="sd">            x_vis (Tensor): A batched sequence of visual frames of shape :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
 <span class="sd">            x_aud (Tensor, optional): raw 1D waveforms: (Batch, Time, Stereo_Channels, Audio_Length). Default: ``None``.</span>
-<span class="sd">            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape </span>
-<span class="sd">                :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
-<span class="sd">            hx (Tensor, optional): The previous hidden state of the liquid core of shape </span>
-<span class="sd">                :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
+<span class="sd">            x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
+<span class="sd">            hx (Tensor, optional): The previous hidden state of the liquid core of shape :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple: A tuple containing:</span>
@@ -1394,8 +1361,7 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A batched sequence of visual frames of shape 
-:math:<code>(\text{Batch}, \text{Time}, C, H, W)</code>.</p>
+                <p>A batched sequence of visual frames of shape :math:<code>(\text{Batch}, \text{Time}, C, H, W)</code>.</p>
               </div>
             </td>
             <td>
@@ -1427,8 +1393,7 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A batched sequence of binary thermal masks of shape 
-:math:<code>(\text{Batch}, \text{Time}, 1, H, W)</code>. Default: <code>None</code>.</p>
+                <p>A batched sequence of binary thermal masks of shape :math:<code>(\text{Batch}, \text{Time}, 1, H, W)</code>. Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
@@ -1444,8 +1409,7 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The previous hidden state of the liquid core of shape 
-:math:<code>(\text{Batch}, \text{working\_memory})</code>. Default: <code>None</code>.</p>
+                <p>The previous hidden state of the liquid core of shape :math:<code>(\text{Batch}, \text{working\_memory})</code>. Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
@@ -1482,7 +1446,18 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/models/brain.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
 <span class="normal">128</span>
@@ -1512,32 +1487,15 @@ representing the capacity of the agent's temporal memory. Default: <code>64</cod
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vis</span><span class="p">,</span> <span class="n">x_aud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_thm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Performs a forward pass through the visual, auditory, and thermal cortices, and the liquid core.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        x_vis (Tensor): A batched sequence of visual frames of shape </span>
-<span class="sd">            :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
+<span class="sd">        x_vis (Tensor): A batched sequence of visual frames of shape :math:`(\text{Batch}, \text{Time}, C, H, W)`.</span>
 <span class="sd">        x_aud (Tensor, optional): raw 1D waveforms: (Batch, Time, Stereo_Channels, Audio_Length). Default: ``None``.</span>
-<span class="sd">        x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape </span>
-<span class="sd">            :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
-<span class="sd">        hx (Tensor, optional): The previous hidden state of the liquid core of shape </span>
-<span class="sd">            :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
+<span class="sd">        x_thm (Tensor, optional): A batched sequence of binary thermal masks of shape :math:`(\text{Batch}, \text{Time}, 1, H, W)`. Default: ``None``.</span>
+<span class="sd">        hx (Tensor, optional): The previous hidden state of the liquid core of shape :math:`(\text{Batch}, \text{working\_memory})`. Default: ``None``.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple: A tuple containing:</span>

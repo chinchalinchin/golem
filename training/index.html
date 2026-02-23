@@ -1107,13 +1107,8 @@ R_j=\frac{TP_j}{TP_j+FN_j}
     <div class="doc doc-contents first">
 
         <p>Trains the Liquid Neural Network using captured expert demonstrations.</p>
-<p>This function orchestrates the dataset streaming and the model's training loop. 
-It dynamically selects the best available hardware accelerator (CUDA, MPS, or CPU), 
-initializes the dataset with optional mirror augmentation, and optimizes the 
-network weights using the Adam optimizer.</p>
-<p>If an active model already exists for the current profile (e.g., <code>fluid</code>), 
-it loads the existing weights to perform continuous fine-tuning. Upon completion, 
-it saves the updated model to both a timestamped archive and the active profile slot.</p>
+<p>This function orchestrates the dataset streaming and the model's training loop. It dynamically selects the best available hardware accelerator (CUDA, MPS, or CPU), initializes the dataset with optional mirror augmentation, and optimizes the network weights using the Adam optimizer.</p>
+<p>If an active model already exists for the current profile (e.g., <code>fluid</code>), it loads the existing weights to perform continuous fine-tuning. Upon completion, it saves the updated model to both a timestamped archive and the active profile slot.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1152,10 +1147,7 @@ it saves the updated model to both a timestamped archive and the active profile 
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The specific data module to train against 
-(e.g., "combat", "navigation"). If <code>"all"</code> or <code>None</code>, it trains 
-across all available data for the active profile (Generalization Mode). 
-Default: <code>None</code>.</p>
+                <p>The specific data module to train against (e.g., "combat", "navigation"). If <code>"all"</code> or <code>None</code>, it trains across all available data for the active profile (Generalization Mode). Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
@@ -1168,7 +1160,9 @@ Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
 <span class="normal"> 34</span>
@@ -1345,31 +1339,18 @@ Default: <code>None</code>.</p>
 <span class="normal">205</span>
 <span class="normal">206</span>
 <span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">208</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
 
-<span class="sd">    This function orchestrates the dataset streaming and the model&#39;s training loop. </span>
-<span class="sd">    It dynamically selects the best available hardware accelerator (CUDA, MPS, or CPU), </span>
-<span class="sd">    initializes the dataset with optional mirror augmentation, and optimizes the </span>
-<span class="sd">    network weights using the Adam optimizer.</span>
+<span class="sd">    This function orchestrates the dataset streaming and the model&#39;s training loop. It dynamically selects the best available hardware accelerator (CUDA, MPS, or CPU), initializes the dataset with optional mirror augmentation, and optimizes the network weights using the Adam optimizer.</span>
 
-<span class="sd">    If an active model already exists for the current profile (e.g., ``fluid``), </span>
-<span class="sd">    it loads the existing weights to perform continuous fine-tuning. Upon completion, </span>
-<span class="sd">    it saves the updated model to both a timestamped archive and the active profile slot.</span>
+<span class="sd">    If an active model already exists for the current profile (e.g., ``fluid``), it loads the existing weights to perform continuous fine-tuning. Upon completion, it saves the updated model to both a timestamped archive and the active profile slot.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cfg (GolemConfig): The centralized application configuration object.</span>
-<span class="sd">        module_name (str, optional): The specific data module to train against </span>
-<span class="sd">            (e.g., &quot;combat&quot;, &quot;navigation&quot;). If ``&quot;all&quot;`` or ``None``, it trains </span>
-<span class="sd">            across all available data for the active profile (Generalization Mode). </span>
-<span class="sd">            Default: ``None``.</span>
+<span class="sd">        module_name (str, optional): The specific data module to train against (e.g., &quot;combat&quot;, &quot;navigation&quot;). If ``&quot;all&quot;`` or ``None``, it trains across all available data for the active profile (Generalization Mode). Default: ``None``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;mps&quot;</span><span class="p">)</span>
@@ -1448,8 +1429,13 @@ Default: <code>None</code>.</p>
     <span class="k">if</span> <span class="n">state_dict</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
-    <span class="c1"># OLD CRITERION: criterion = nn.BCEWithLogitsLoss()</span>
-    <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">FOCAL</span><span class="p">:</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLossWithLogits</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="n">LossType</span><span class="o">.</span><span class="n">BCE</span><span class="p">:</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
+
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting training for </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> epochs...&quot;</span><span class="p">)</span>
@@ -1878,11 +1864,7 @@ Default: <code>None</code>.</p>
     <div class="doc doc-contents first">
 
         <p>Analyzes a training dataset file for shape integrity and class balance.</p>
-<p>This function loads a specific <code>.npz</code> recording and validates that the 
-visual frames are properly normalized. It also aggregates the action vectors 
-to report the distribution of actions taken, specifically flagging high 
-"idle time" which can cause the network to converge to inaction due to 
-class imbalance.</p>
+<p>This function loads a specific <code>.npz</code> recording and validates that the visual frames are properly normalized. It also aggregates the action vectors to report the distribution of actions taken, specifically flagging high "idle time" which can cause the network to converge to inaction due to class imbalance.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1936,7 +1918,8 @@ currently active profile. Default: <code>None</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/analyze.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 29</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 28</span>
+<span class="normal"> 29</span>
 <span class="normal"> 30</span>
 <span class="normal"> 31</span>
 <span class="normal"> 32</span>
@@ -2011,21 +1994,12 @@ currently active profile. Default: <code>None</code>.</p>
 <span class="normal">101</span>
 <span class="normal">102</span>
 <span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;inspect&quot;</span><span class="p">)</span>
+<span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;inspect&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">inspect</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">target_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Analyzes a training dataset file for shape integrity and class balance.</span>
 
-<span class="sd">    This function loads a specific ``.npz`` recording and validates that the </span>
-<span class="sd">    visual frames are properly normalized. It also aggregates the action vectors </span>
-<span class="sd">    to report the distribution of actions taken, specifically flagging high </span>
-<span class="sd">    &quot;idle time&quot; which can cause the network to converge to inaction due to </span>
-<span class="sd">    class imbalance.</span>
+<span class="sd">    This function loads a specific ``.npz`` recording and validates that the visual frames are properly normalized. It also aggregates the action vectors to report the distribution of actions taken, specifically flagging high &quot;idle time&quot; which can cause the network to converge to inaction due to class imbalance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cfg (GolemConfig): The centralized application configuration object.</span>
@@ -2111,12 +2085,7 @@ currently active profile. Default: <code>None</code>.</p>
     <div class="doc doc-contents first">
 
         <p>Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.</p>
-<p>This function performs a forward pass on a subset of the dataset (up to 50 batches) 
-without updating the model weights. It compares the model's action probabilities 
-against the ground-truth human actions and calculates the Precision, Recall, 
-and Support for each action class. This is critical for identifying whether the 
-agent is successfully learning rare actions (like shooting) or if it has fallen 
-into a convergence trap.</p>
+<p>This function performs a forward pass on a subset of the dataset (up to 50 batches) without updating the model weights. It compares the model's action probabilities against the ground-truth human actions and calculates the Precision, Recall, and Support for each action class. This is critical for identifying whether the agent is successfully learning rare actions (like shooting) or if it has fallen into a convergence trap.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2187,7 +2156,12 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>app/pipeline/analyze.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
@@ -2321,27 +2295,12 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="normal">246</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>
 
-<span class="sd">    This function performs a forward pass on a subset of the dataset (up to 50 batches) </span>
-<span class="sd">    without updating the model weights. It compares the model&#39;s action probabilities </span>
-<span class="sd">    against the ground-truth human actions and calculates the Precision, Recall, </span>
-<span class="sd">    and Support for each action class. This is critical for identifying whether the </span>
-<span class="sd">    agent is successfully learning rare actions (like shooting) or if it has fallen </span>
-<span class="sd">    into a convergence trap.</span>
+<span class="sd">    This function performs a forward pass on a subset of the dataset (up to 50 batches) without updating the model weights. It compares the model&#39;s action probabilities against the ground-truth human actions and calculates the Precision, Recall, and Support for each action class. This is critical for identifying whether the agent is successfully learning rare actions (like shooting) or if it has fallen into a convergence trap.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cfg (GolemConfig): The centralized application configuration object.</span>

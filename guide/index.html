@@ -952,30 +952,30 @@
 <h2 id="1-memory-and-horizons-brain-vs-sequence">1. Memory and Horizons (Brain vs. Sequence)</h2>
 <p>The fundamental advantage of the Closed-form Continuous (CfC) liquid core is its ability to maintain a temporal hidden state . However, the capacity of this state and the temporal horizon over which it is optimized must be balanced.</p>
 <ul>
-<li><strong><code>brain.working_memory</code> ()</strong>: Dictates the sheer capacity of the agent's temporal state tensor.</li>
-<li><strong><code>training.sequence_length</code> ()</strong>: Dictates the temporal window (number of contiguous frames) passed into the network during a single Backpropagation Through Time (BPTT) step.</li>
+<li><strong><code>brain.working_memory</code></strong> (<span class="arithmatex">\(W_m\)</span>): Dictates the sheer capacity of the agent's temporal state tensor.</li>
+<li><strong><code>training.sequence_length</code></strong> (<span class="arithmatex">\(L\)</span>): Dictates the temporal window (number of contiguous frames) passed into the network during a single Backpropagation Through Time (BPTT) step.</li>
 </ul>
 <h3 id="tuning-heuristics">Tuning Heuristics</h3>
 <ul>
-<li><strong>The Amnesia Trap:</strong> If  is too short (e.g., 8 frames), the network cannot reliably link cause and effect (e.g., observing a projectile being fired and the subsequent impact). The gradients are truncated before the ODE can establish a meaningful time constant. <strong>Always maintain  for combat scenarios.</strong></li>
-<li><strong>The Capacity Bottleneck:</strong> If you increase  to capture longer causal chains (e.g., ), you must ensure  is large enough to encode that much history. Pushing 64 frames of dense combat data into a tiny  core will result in catastrophic state overwriting. As a rule of thumb, if you double , consider increasing  to prevent bottlenecking.</li>
+<li><strong>The Amnesia Trap:</strong>  If <span class="arithmatex">\(L\)</span> is too short (e.g., 8 frames), the network cannot reliably link cause and effect (e.g., observing a projectile being fired and the subsequent impact). The gradients are truncated before the ODE can establish a meaningful time constant. Always maintain <span class="arithmatex">\(L \ge 32\)</span> for combat scenarios.</li>
+<li><strong>The Capacity Bottleneck:</strong> If you increase <span class="arithmatex">\(L\)</span> to capture longer causal chains (e.g., <span class="arithmatex">\(L=64\)</span>), you must ensure <span class="arithmatex">\(W_m\)</span> is large enough to encode that much history. Pushing 64 frames of dense combat data into a tiny <span class="arithmatex">\(W_m=16\)</span> core will result in catastrophic state overwriting. As a rule of thumb, if you double <span class="arithmatex">\(L\)</span>, consider increasing <span class="arithmatex">\(W_m\)</span> to prevent bottlenecking.</li>
 </ul>
 <h2 id="2-capacity-vs-convergence-cortical-depth-vs-learning-dynamics">2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)</h2>
 <p>Scaling the sensory cortices provides the model with higher-resolution spatial reasoning but drastically alters the optimization landscape.</p>
 <ul>
-<li><strong><code>brain.cortical_depth</code> ()</strong>: Determines the number of convolutional layers. Higher values aggressively pool the tensor into a denser latent representation .</li>
+<li><strong><code>brain.cortical_depth</code></strong>:  (<span class="arithmatex">\(D\)</span>): Determines the number of convolutional layers. Higher values aggressively pool the tensor into a denser latent representation <span class="arithmatex">\(V(t)\)</span>.</li>
 <li>**<code>training.batch_size</code> and <code>training.learning_rate**</code>: Govern how the Adam optimizer navigates the gradient manifold.</li>
 </ul>
 <h3 id="tuning-heuristics_1">Tuning Heuristics</h3>
 <ul>
-<li><strong>Scaling the Visual Cortex:</strong> A shallow network () is sufficient for basic navigation but fails to resolve distant enemies in complex WADs. Increasing to  allows the network to comprehend complex geometry. However, adding layers increases the parameter count, which generally requires more <code>epochs</code> to converge.</li>
-<li><strong>The Linear Scaling Rule:</strong> Hardware VRAM is your primary constraint. If increasing  or  causes an Out-Of-Memory (OOM) error, you must reduce the <code>batch_size</code>. If you halve your <code>batch_size</code> (e.g., from 32 to 16), the gradient estimates become noisier. To prevent the optimizer from over-correcting on this noise, you should generally halve your <code>learning_rate</code> (e.g., from  to ).</li>
+<li><strong>Scaling the Visual Cortex:</strong> A shallow network (<span class="arithmatex">\(D=2\)</span>) is sufficient for basic navigation but fails to resolve distant enemies in complex WADs. Increasing to <span class="arithmatex">\(D=4\)</span> allows the network to comprehend complex geometry. However, adding layers increases the parameter count, which generally requires more <code>epochs</code> to converge.</li>
+<li><strong>The Linear Scaling Rule:</strong> Hardware VRAM is your primary constraint. If increasing  or  causes an Out-Of-Memory (OOM) error, you must reduce the <code>batch_size</code>. If you halve your <code>batch_size</code> (e.g., from 32 to 16), the gradient estimates become noisier. To prevent the optimizer from over-correcting on this noise, you should generally halve your <code>learning_rate</code> (e.g., from <span class="arithmatex">\(0.0002\)</span> to <span class="arithmatex">\(0.0001\)</span>).</li>
 </ul>
 <h2 id="3-multi-modal-hardware-constraints">3. Multi-Modal Hardware Constraints</h2>
 <p>Enabling sensor fusion geometrically expands the network's flat size (), drastically altering memory requirements.</p>
 <ul>
 <li><strong>Audio Impact (<code>brain.dsp</code>)</strong>: Enabling <code>brain.sensors.audio</code> converts 1D waveforms to 2D Mel Spectrograms. This is the most computationally expensive modality. A small <code>dsp.hop_length</code> creates a very wide temporal tensor. If VRAM is exhausted, double the <code>hop_length</code> (e.g., 256 to 512) before compromising on <code>batch_size</code> or <code>sequence_length</code>.</li>
-<li><strong>Thermal Impact (<code>brain.sensors.thermal</code>)</strong>: The thermal mask adds an isolated, parallel CNN. Because it is a binary mask (), it is computationally lightweight compared to visual or auditory tensors. You can generally enable this without drastically reducing your batch size.</li>
+<li><strong>Thermal Impact (<code>brain.sensors.thermal</code>)</strong>: The thermal mask adds an isolated, parallel CNN. Because it is a binary mask  (<span class="arithmatex">\(1\times64\times64\)</span>),, it is computationally lightweight compared to visual or auditory tensors. You can generally enable this without drastically reducing your batch size.</li>
 </ul>
 <h2 id="4-escaping-convergence-traps-loss-vs-behavior">4. Escaping Convergence Traps (Loss vs. Behavior)</h2>
 <p>Standard Behavioral Cloning frequently results in behavioral collapse due to the overwhelming volume of "boring" navigation frames in human datasets compared to sparse, critical combat frames.</p>
@@ -985,8 +985,8 @@
 <p><strong>Cure:</strong> </p>
 <ol>
 <li><strong>Switch to Asymmetric Loss (<code>loss: asymmetric</code>)</strong>.</li>
-<li>Decrease <code>loss.asymmetric.gamma_pos</code> (e.g., to ) to ensure the network receives the full, unmitigated gradient whenever a rare "Attack" label appears in the dataset.</li>
-<li>Increase <code>loss.asymmetric.gamma_neg</code> (e.g., to ) to aggressively silence the gradients of easily predicted background frames.</li>
+<li>Decrease <code>loss.asymmetric.gamma_pos</code>  (e.g., to <span class="arithmatex">\(0.0\)</span>) to ensure the network receives the full, unmitigated gradient whenever a rare "Attack" label appears in the dataset.</li>
+<li>Increase <code>loss.asymmetric.gamma_neg</code> (e.g., to <span class="arithmatex">\(4.0\)</span>)  to aggressively silence the gradients of easily predicted background frames.</li>
 </ol>
 <h3 id="scenario-b-the-twitchy-agent">Scenario B: The Twitchy Agent</h3>
 <p><strong>Symptom:</strong> The agent constantly fires at walls or rapidly toggles weapons even when no enemies are present.
@@ -994,7 +994,7 @@
 <p><strong>Cure:</strong></p>
 <ol>
 <li><strong>Switch to Label Smoothing (<code>loss: smooth</code>)</strong>.</li>
-<li>Set <code>loss.smooth.epsilon</code> to  or . This injects a uniform noise prior into the targets, acknowledging that human demonstrators are noisy and reactive. It prevents the logits from being pushed to extreme asymptotes, resulting in smoother, more deliberate decision-making.</li>
+<li>Set <code>loss.smooth.epsilon</code> to <span class="arithmatex">\(0.1\)</span> or <span class="arithmatex">\(0.15\)</span>. This injects a uniform noise prior into the targets, acknowledging that human demonstrators are noisy and reactive. It prevents the logits from being pushed to extreme asymptotes, resulting in smoother, more deliberate decision-making.</li>
 </ol>
 <h3 id="scenario-c-the-zoolander-trap">Scenario C: The "Zoolander" Trap</h3>
 <p><strong>Symptom:</strong> The agent navigates well but explicitly favors turning in one direction and gets stuck in corners requiring the opposite turn.

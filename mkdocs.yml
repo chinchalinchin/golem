@@ -18,14 +18,16 @@ nav:
   - Home: index.md
   - Configuration: configuration.md
   - Environment: environment.md
-  - The Brain: brain.md
-  - Training: training.md
-  - Philosophy: philsophy.md
+  - Guide: guide.md
+  - Model: 
+    - The Brain: model/brain.md
+    - Training: model/training.md
+    - Philosophy: model/philsophy.md
   - Board: 
     - Roadmap: board/roadmap.md
     - Issues: board/issues.md
     - Closed Issues: board/closed/issues.md
-    - Closed Phased: board/closed/phased.md
+    - Closed Phased: board/closed/phases.md
 
 markdown_extensions:
   - admonition

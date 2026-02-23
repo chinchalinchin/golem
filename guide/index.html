@@ -1,0 +1,1063 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://chinchalinchin.github.io/golem/guide/">
+      
+      
+        <link rel="prev" href="../environment/">
+      
+      
+        <link rel="next" href="../model/brain/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Guide - Golem</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#field-guide-tuning-golem" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Golem" class="md-header__button md-logo" aria-label="Golem" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Golem
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/chinchalinchin/golem" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    chinchalinchin/golem
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Golem" class="md-nav__button md-logo" aria-label="Golem" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Golem
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/chinchalinchin/golem" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    chinchalinchin/golem
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-memory-and-horizons-brain-vs-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Memory and Horizons (Brain vs. Sequence)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Memory and Horizons (Brain vs. Sequence)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuning-heuristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tuning Heuristics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-capacity-vs-convergence-cortical-depth-vs-learning-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuning-heuristics_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tuning Heuristics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-multi-modal-hardware-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Multi-Modal Hardware Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-escaping-convergence-traps-loss-vs-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Escaping Convergence Traps (Loss vs. Behavior)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Escaping Convergence Traps (Loss vs. Behavior)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-a-the-pacifist-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario A: The Pacifist Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-b-the-twitchy-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario B: The Twitchy Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-c-the-zoolander-trap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario C: The "Zoolander" Trap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/brain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Brain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/philsophy.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Board
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Board
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../board/closed/phases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Closed Phased
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-memory-and-horizons-brain-vs-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Memory and Horizons (Brain vs. Sequence)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Memory and Horizons (Brain vs. Sequence)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuning-heuristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tuning Heuristics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-capacity-vs-convergence-cortical-depth-vs-learning-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuning-heuristics_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tuning Heuristics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-multi-modal-hardware-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Multi-Modal Hardware Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-escaping-convergence-traps-loss-vs-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Escaping Convergence Traps (Loss vs. Behavior)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Escaping Convergence Traps (Loss vs. Behavior)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-a-the-pacifist-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario A: The Pacifist Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-b-the-twitchy-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario B: The Twitchy Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-c-the-zoolander-trap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario C: The "Zoolander" Trap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="field-guide-tuning-golem">Field Guide: Tuning Golem</h1>
+<p>Training a continuous-time Liquid Neural Network (LNN) in a multi-modal Partially Observable Markov Decision Process (POMDP) is not a static process. The hyperparameters governing the model's architecture (<code>brain</code>), its optimization dynamics (<code>training</code>), and its penalty landscape (<code>loss</code>) are mathematically and practically entangled.</p>
+<p>This guide provides practical heuristics for adjusting these parameters in tandem to achieve convergence and prevent behavioral collapse.</p>
+<h2 id="1-memory-and-horizons-brain-vs-sequence">1. Memory and Horizons (Brain vs. Sequence)</h2>
+<p>The fundamental advantage of the Closed-form Continuous (CfC) liquid core is its ability to maintain a temporal hidden state . However, the capacity of this state and the temporal horizon over which it is optimized must be balanced.</p>
+<ul>
+<li><strong><code>brain.working_memory</code> ()</strong>: Dictates the sheer capacity of the agent's temporal state tensor.</li>
+<li><strong><code>training.sequence_length</code> ()</strong>: Dictates the temporal window (number of contiguous frames) passed into the network during a single Backpropagation Through Time (BPTT) step.</li>
+</ul>
+<h3 id="tuning-heuristics">Tuning Heuristics</h3>
+<ul>
+<li><strong>The Amnesia Trap:</strong> If  is too short (e.g., 8 frames), the network cannot reliably link cause and effect (e.g., observing a projectile being fired and the subsequent impact). The gradients are truncated before the ODE can establish a meaningful time constant. <strong>Always maintain  for combat scenarios.</strong></li>
+<li><strong>The Capacity Bottleneck:</strong> If you increase  to capture longer causal chains (e.g., ), you must ensure  is large enough to encode that much history. Pushing 64 frames of dense combat data into a tiny  core will result in catastrophic state overwriting. As a rule of thumb, if you double , consider increasing  to prevent bottlenecking.</li>
+</ul>
+<h2 id="2-capacity-vs-convergence-cortical-depth-vs-learning-dynamics">2. Capacity vs. Convergence (Cortical Depth vs. Learning Dynamics)</h2>
+<p>Scaling the sensory cortices provides the model with higher-resolution spatial reasoning but drastically alters the optimization landscape.</p>
+<ul>
+<li><strong><code>brain.cortical_depth</code> ()</strong>: Determines the number of convolutional layers. Higher values aggressively pool the tensor into a denser latent representation .</li>
+<li>**<code>training.batch_size</code> and <code>training.learning_rate**</code>: Govern how the Adam optimizer navigates the gradient manifold.</li>
+</ul>
+<h3 id="tuning-heuristics_1">Tuning Heuristics</h3>
+<ul>
+<li><strong>Scaling the Visual Cortex:</strong> A shallow network () is sufficient for basic navigation but fails to resolve distant enemies in complex WADs. Increasing to  allows the network to comprehend complex geometry. However, adding layers increases the parameter count, which generally requires more <code>epochs</code> to converge.</li>
+<li><strong>The Linear Scaling Rule:</strong> Hardware VRAM is your primary constraint. If increasing  or  causes an Out-Of-Memory (OOM) error, you must reduce the <code>batch_size</code>. If you halve your <code>batch_size</code> (e.g., from 32 to 16), the gradient estimates become noisier. To prevent the optimizer from over-correcting on this noise, you should generally halve your <code>learning_rate</code> (e.g., from  to ).</li>
+</ul>
+<h2 id="3-multi-modal-hardware-constraints">3. Multi-Modal Hardware Constraints</h2>
+<p>Enabling sensor fusion geometrically expands the network's flat size (), drastically altering memory requirements.</p>
+<ul>
+<li><strong>Audio Impact (<code>brain.dsp</code>)</strong>: Enabling <code>brain.sensors.audio</code> converts 1D waveforms to 2D Mel Spectrograms. This is the most computationally expensive modality. A small <code>dsp.hop_length</code> creates a very wide temporal tensor. If VRAM is exhausted, double the <code>hop_length</code> (e.g., 256 to 512) before compromising on <code>batch_size</code> or <code>sequence_length</code>.</li>
+<li><strong>Thermal Impact (<code>brain.sensors.thermal</code>)</strong>: The thermal mask adds an isolated, parallel CNN. Because it is a binary mask (), it is computationally lightweight compared to visual or auditory tensors. You can generally enable this without drastically reducing your batch size.</li>
+</ul>
+<h2 id="4-escaping-convergence-traps-loss-vs-behavior">4. Escaping Convergence Traps (Loss vs. Behavior)</h2>
+<p>Standard Behavioral Cloning frequently results in behavioral collapse due to the overwhelming volume of "boring" navigation frames in human datasets compared to sparse, critical combat frames.</p>
+<h3 id="scenario-a-the-pacifist-agent">Scenario A: The Pacifist Agent</h3>
+<p><strong>Symptom:</strong> The agent navigates beautifully but refuses to fire its weapon or switch guns, even when directly facing an enemy.
+<strong>Diagnosis:</strong> The gradients from the sheer volume of "Move Forward" frames have drowned out the "Attack" gradients.</p>
+<p><strong>Cure:</strong> </p>
+<ol>
+<li><strong>Switch to Asymmetric Loss (<code>loss: asymmetric</code>)</strong>.</li>
+<li>Decrease <code>loss.asymmetric.gamma_pos</code> (e.g., to ) to ensure the network receives the full, unmitigated gradient whenever a rare "Attack" label appears in the dataset.</li>
+<li>Increase <code>loss.asymmetric.gamma_neg</code> (e.g., to ) to aggressively silence the gradients of easily predicted background frames.</li>
+</ol>
+<h3 id="scenario-b-the-twitchy-agent">Scenario B: The Twitchy Agent</h3>
+<p><strong>Symptom:</strong> The agent constantly fires at walls or rapidly toggles weapons even when no enemies are present.
+<strong>Diagnosis:</strong> The model is overfitting to absolute certainty and lacks a confidence threshold, likely resulting from a high learning rate or strict Binary Cross-Entropy (BCE) over-penalizing slight hesitancy.</p>
+<p><strong>Cure:</strong></p>
+<ol>
+<li><strong>Switch to Label Smoothing (<code>loss: smooth</code>)</strong>.</li>
+<li>Set <code>loss.smooth.epsilon</code> to  or . This injects a uniform noise prior into the targets, acknowledging that human demonstrators are noisy and reactive. It prevents the logits from being pushed to extreme asymptotes, resulting in smoother, more deliberate decision-making.</li>
+</ol>
+<h3 id="scenario-c-the-zoolander-trap">Scenario C: The "Zoolander" Trap</h3>
+<p><strong>Symptom:</strong> The agent navigates well but explicitly favors turning in one direction and gets stuck in corners requiring the opposite turn.
+<strong>Diagnosis:</strong> Spatial bias in the human demonstration data (e.g., clearing a map by hugging the left wall).
+<strong>Cure:</strong> Ensure <code>training.augmentation.mirror</code> is set to <code>true</code>. This mathematically doubles the topological variance by flipping the visual/thermal tensors and swapping the corresponding left/right action indices, guaranteeing perfect spatial symmetry in the gradient updates.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.expand", "navigation.indexes"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -5,10 +5,6 @@
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://chinchalinchin.github.io/golem/brain/</loc>
-         <lastmod>2026-02-23</lastmod>
-    </url>
-    <url>
          <loc>https://chinchalinchin.github.io/golem/configuration/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
@@ -17,11 +13,7 @@
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://chinchalinchin.github.io/golem/philosophy/</loc>
-         <lastmod>2026-02-23</lastmod>
-    </url>
-    <url>
-         <loc>https://chinchalinchin.github.io/golem/training/</loc>
+         <loc>https://chinchalinchin.github.io/golem/guide/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
@@ -38,6 +30,18 @@
     </url>
     <url>
          <loc>https://chinchalinchin.github.io/golem/board/closed/phases/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://chinchalinchin.github.io/golem/model/brain/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://chinchalinchin.github.io/golem/model/philosophy/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://chinchalinchin.github.io/golem/model/training/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
 </urlset>

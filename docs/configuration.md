@@ -20,39 +20,12 @@ Maps the high-level brain modes to the specific underlying ViZDoom `.cfg` files.
 * **`classic`**: Maps to `conf/classic.cfg` (10 dimensions).
 * **`fluid`**: Maps to `conf/fluid.cfg` (9 dimensions).
 
-### 3. `training`
+### 3. `data`
 
-Defines the Behavioral Cloning optimization loop dynamics.
+Defines the file routing and prefix naming conventions for the ETL pipeline.
 
-| Property | Description |
-| :--- | :--- |
-| **`epochs`** | Total number of complete passes through the training dataset. |
-| **`sequence_length`** | The temporal window size ($L$) for Backpropagation Through Time (e.g., 32 frames). |
-| **`augmentation.mirror`** | Boolean toggle to enable dynamic horizontal mirror augmentation, doubling topological variance and curing turning bias. |
-| **`alpha`** | The weighting factor used in the Focal Loss function to balance positive and negative classes (e.g., 0.25). |
-| **`gamma`** | The focusing parameter used in the Focal Loss function to dynamically scale down the gradient of easily classified examples (e.g., 2.0). |
-
-#### Hyperparameter Dynamics: `learning_rate` and `batch_size`
-
-The **`learning_rate`** (e.g., 0.0001) controls the step size the Adam optimizer takes when updating the LNN's weights against the gradient of the loss function. 
-
-* **Too High:** The model will overshoot the optimal minima, leading to erratic loss oscillation or complete divergence. 
-* **Too Low:** The model will converge too slowly, wasting computational time, or become trapped in a suboptimal local minimum.
-
-The **`batch_size`** (e.g., 16) determines how many temporal sequences are processed concurrently before a weight update occurs. 
-
-* **Small Batch Size:** Results in "noisy" gradient estimates. This noise acts as a natural regularizer, often helping the network escape sharp, suboptimal local minima and generalize better to unseen environments. However, it trains slower sequentially.
-* **Large Batch Size:** Provides a highly accurate gradient estimate and allows for massive hardware parallelization (faster wall-clock time per epoch). However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.
-
-**The Interplay:** These two parameters are mathematically coupled. A common deep learning heuristic is the *Linear Scaling Rule*: if you double your `batch_size` (smoothing the gradient), you should generally double your `learning_rate` to maintain the same training dynamics and convergence speed.
-
-#### Focal Loss Dynamics: `alpha` and `gamma`
-
-To counteract severe class imbalance in human demonstrations (the "Hold W" convergence trap), Golem utilizes a Focal Loss function instead of standard Binary Cross-Entropy.
-
-The **`gamma`** parameter acts as a dynamic focusing mechanism. In standard classification, frequent and "easy" actions (like walking forward) accumulate massive loss gradients simply by volume, effectively drowning out the gradients of rare, critical actions (like firing a weapon). By setting `gamma > 0`, the loss function exponentially scales down the contribution of predictions the model is already confident about. If the network successfully predicts a navigation frame, its gradient contribution approaches zero, forcing the optimizer to focus computational effort on the sparse, difficult combat sequences it is currently failing. 
-
-The **`alpha`** parameter acts as a static weighting factor. It directly balances the importance of positive targets versus negative targets across the multi-label distribution, ensuring that the sheer volume of `0`s (keys not pressed) does not overwhelm the rare `1`s (keys pressed).
+* **`prefix`**: The string prefix for generated tensor arrays (e.g., "golem_").
+* **`dirs.training` / `dirs.model`**: Relative paths dictating where `.npz` datasets and `.pth` weight archives are saved.
 
 ### 4. `brain`
 
@@ -80,15 +53,65 @@ The `hop_length` (e.g., 256) defines the number of audio samples between success
 * **Small `hop_length`:** The STFT windows overlap heavily, yielding a highly granular, wide spectrogram matrix. The model gains exceptional temporal resolution (able to pinpoint the exact millisecond a monster growls), but memory consumption scales linearly, heavily bottlenecking VRAM during training.
 * **Large `hop_length`:** The windows are spaced further apart, creating a narrow, compressed matrix. Training executes significantly faster with a smaller memory footprint, but the LNN may lose the ability to detect transient, high-frequency acoustic events (like a brief weapon click).
 
-### 5. `data`
+### 5. `loss`
 
-* **`prefix`**: The string prefix for generated tensor arrays (e.g., "golem_").
-* **`dirs.training` / `dirs.model`**: Relative paths dictating where `.npz` datasets and `.pth` weight archives are saved.
+Defines the hyperparameters for the various objective functions available to the optimizer. The active loss function is selected via `training.loss`.
 
-### 6. `modules`
+| Property | Description |
+| :--- | :--- |
+| **`focal.alpha`** | The static weighting factor used to balance the intrinsic priority of positive vs. negative classes (e.g., 0.25). |
+| **`focal.gamma`** | The focusing parameter used to dynamically down-weight the gradient of easily classified examples. |
+| **`asymmetric.gamma_pos`** | The focusing parameter strictly for the positive class. Kept low to preserve gradients for rare actions. |
+| **`asymmetric.gamma_neg`** | The focusing parameter strictly for the negative class. Kept high to aggressively decay background frame gradients. |
+| **`asymmetric.clip`** | The probability margin (e.g., 0.05) under which easy negative predictions are completely discarded from the loss calculation. |
+| **`smooth.epsilon`** | The uniform noise prior injected into the target distribution for Label Smoothing BCE (e.g., 0.1). |
+
+#### Objective Function Dynamics
+
+To counteract severe class imbalance in human demonstrations (the "Hold W" convergence trap), Golem provides alternatives to standard Binary Cross-Entropy:
+
+* **Focal Loss:** The `gamma` parameter acts as a dynamic focusing mechanism. By setting $\gamma > 0$, the loss function exponentially scales down the contribution of predictions the model is already confident about. If the network successfully predicts a basic navigation frame, its gradient contribution approaches zero, forcing the optimizer to focus strictly on sparse, difficult combat sequences.
+* **Asymmetric Loss (ASL):** Decouples the focusing parameters. Because video game inputs are heavily skewed toward negatives (keys not pressed), ASL aggressively penalizes easy negatives (high `gamma_neg`) while retaining robust gradients for rare positive actions (low `gamma_pos`).
+* **Label Smoothing BCE:** Injects an $\epsilon$ noise prior into the target labels. This mathematically acknowledges human demonstrator noise (e.g., reaction time lag) and prevents the model from overfitting to absolute certainty, softening the confidence bounds.
+
+### 6. `training`
+
+Defines the Behavioral Cloning optimization loop dynamics.
+
+| Property | Description |
+| :--- | :--- |
+| **`epochs`** | Total number of complete passes through the training dataset. |
+| **`batch_size`** | The number of sequences processed concurrently before a weight update. |
+| **`learning_rate`** | The step size the Adam optimizer takes against the gradient of the loss function. |
+| **`sequence_length`** | The temporal window size ($L$) for Backpropagation Through Time (e.g., 32 frames). |
+| **`loss`** | The active objective function (`focal`, `bce`, `smooth`, or `asymmetric`). |
+| **`augmentation.mirror`** | Boolean toggle to enable dynamic horizontal mirror augmentation, doubling topological variance and curing turning bias. |
+
+#### Hyperparameter Dynamics: `learning_rate` and `batch_size`
+
+The **`learning_rate`** (e.g., 0.0001) controls convergence stability. 
+
+* **Too High:** The model will overshoot the optimal minima, leading to erratic loss oscillation or complete divergence. 
+* **Too Low:** The model will converge too slowly, wasting computational time, or become trapped in a suboptimal local minimum.
+
+The **`batch_size`** (e.g., 16) regulates gradient noise. 
+
+* **Small Batch Size:** Results in "noisy" gradient estimates. This noise acts as a natural regularizer, often helping the network escape sharp, suboptimal local minima and generalize better to unseen environments. However, it trains slower sequentially.
+* **Large Batch Size:** Provides a highly accurate gradient estimate and allows for massive hardware parallelization. However, if the batch is too large, the model tends to settle into "sharp" minima, severely degrading generalization.
+
+**The Interplay:** These two parameters are mathematically coupled. A common deep learning heuristic is the *Linear Scaling Rule*: if you double your `batch_size` (smoothing the gradient), you should generally double your `learning_rate` to maintain the same training dynamics and convergence speed.
+
+### 7. `randomizer`
+
+Configures the external procedural generation engine used to prevent spatial overfitting and Covariate Shift.
+
+* **`executable`**: The absolute path to the compiled Oblige 7.70 binary.
+* **`output`**: The directory where procedurally generated `.wad` files are stored before being loaded by the `generate` pipeline.
+
+### 8. `modules`
 
 A dictionary mapping human-readable task names (e.g., `combat`, `navigation`) to their specific `.wad` scenario files and the default number of episodes to record during extraction.
 
-### 7. `keybindings`
+### 9. `keybindings`
 
 A dictionary mapping the agent's action space profiles (`basic`, `classic`, `fluid`) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during `record` and mapped to `pynput` listeners during `intervene`.

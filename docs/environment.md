@@ -16,15 +16,16 @@ $$
 - **Resolution**: 64x64 pixels (processed via bilinear interpolation).
 - **Normalization**: $o_{i,j,k}\in[0,1]$.
 
-If the auditory sensor is enabled, the agent also receives an audio tensor $o_{aud}$. While initially extracted from the engine as raw, high-frequency stereo waveforms, the ETL pipeline mathematically transforms these 1D arrays into dense 2D time-frequency representations (Mel Spectrograms) to leverage spatial locality within the convolutional network.
+If the auditory sensor is enabled, the agent also receives an audio tensor $o_{aud}$. The raw audio is extracted from the engine as high-frequency stereo waveforms. To guarantee strict network stability, the raw buffer is immediately scaled to zero-mean and unit-variance during extraction. 
+
+To maximize GPU hardware utilization and prevent dataloader bottlenecks, these normalized 1D arrays are passed directly into the Liquid Neural Network (LNN). The LNN mathematically transforms them on-the-fly into dense 2D time-frequency representations (Mel Spectrograms) to leverage spatial locality within its parallel 2D Convolutional Auditory Cortex. 
 
 The Digital Signal Processing (DSP) transformation is mathematically defined by the active `dsp` configuration block:
 
-- **Strict Normalization**: The raw buffer is scaled to zero-mean and unit-variance to stabilize gradients.
-- **Mel Scale Transformation**: The normalized waveform is processed via a Short-Time Fourier Transform (STFT) mapped to the Mel scale, governed by the `sample_rate`, `n_fft`, `hop_length`, and `n_mels` hyperparameters.
+- **Mel Scale Transformation**: The normalized waveform is processed via a GPU-accelerated Short-Time Fourier Transform (STFT) mapped to the Mel scale, governed by the `sample_rate`, `n_fft`, `hop_length`, and `n_mels` hyperparameters.
 - **Decibel Scaling**: The resulting magnitudes are compressed logarithmically using an Amplitude-to-DB conversion.
 
-The resulting multi-modal audio tensor is defined as:
+While the raw extracted buffer is $\mathbb{R}^{2\times N_{samples}}$, the resulting phenomenological multi-modal representation evaluated by the internal network is defined as:
 
 $$
 o_{aud}\in\mathbb{R}^{C\times H_{mels}\times W_{time}}
@@ -33,7 +34,6 @@ $$
 Where $C=2$ (stereo channels), $H_{mels}$ represents the frequency bins dictated by `n_mels`, and $W_{time}$ is the temporal width calculated dynamically from the engine's audio buffer capacity and the STFT `hop_length`.
 
 If the thermal sensor is enabled, the agent also receives a discrete thermal tensor $o_{thm}$. Extracted via ViZDoom's semantic segmentation `labels_buffer`, this modality isolates active, dynamic entities (e.g., monsters, projectiles, and interactive items) from the static environmental background plane. 
-
 
 The transformation pipeline applies a strict binary threshold operation ($o_{i,j}=1\text{ if }\text{label}_{i,j}>0\text{ else }0$) to the raw buffer and subsequently downsamples the mask to $64\times64$ utilizing nearest-neighbor interpolation to prevent edge anti-aliasing artifacts that would otherwise blur distinct entity boundaries.
 
@@ -69,13 +69,16 @@ The environment runs at a fixed tic rate of 35 Hz ($\Delta t\approx28.5\text{ms}
 
 To maintain strict temporal consistency between the continuous differential solver and the discrete game clock across a distributed architecture, Golem relies on Deterministic Lockstep networking via ViZDoom's `Mode.PLAYER` (Sync Mode).
 
-
 Instead of relying on manual sleep heuristics (which are prone to drift and desynchronization), the central Host Server dictates the flow of time. The Host collects asynchronous ticcmds (action vectors) from all connected clients. The local ViZDoom engine inside the Golem container explicitly blocks execution until it receives the synchronized broadcast back from the Host. This guarantees that the numerical integration steps within the LNN perfectly align with the simulated passage of time within the multiplayer POMDP, regardless of hardware inference speeds.
+
+During training, these temporal dynamics are strictly simulated and enforced by the `StatefulStratifiedBatchSampler`, which ensures that batch sequences remain perfectly contiguous, preventing the mathematical amnesia that occurs when standard dataloaders improperly shuffle temporal boundaries.
 
 ---
 
 ## API Reference
 
-The extraction and temporal windowing of the observation space is handled dynamically by the streaming dataset module.
+The extraction and temporal windowing of the observation space is handled dynamically by the streaming dataset module and the custom sampling pipeline.
 
 ::: app.models.dataset.DoomStreamingDataset
+
+::: app.models.dataset.StatefulStratifiedBatchSampler

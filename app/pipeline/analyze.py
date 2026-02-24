@@ -24,6 +24,23 @@ from app.utils.model import apply_latest_parameters
 
 logger = logging.getLogger(__name__)
 
+# Captum expects a standard tensor-in, tensor-out pass for its hooks.
+class ModelWrapperStep(torch.nn.Module):
+    def __init__(self, core_model, state):
+        super().__init__()
+        self.model = core_model
+        self.hx = state
+    def forward(self, xv, xa=None, xt=None):
+        logits, _ = self.model(xv, xa, xt, self.hx)
+        return logits[:, 0, :] # Extract the 1 step batch
+        
+        
+def get_last_conv(module_seq):
+    for layer in reversed(module_seq):
+        if isinstance(layer, torch.nn.Conv2d):
+            return layer
+    return None
+
 
 @register_command("inspect")
 def inspect(cfg: GolemConfig, target_file: str = None):
@@ -484,22 +501,6 @@ def examine(cfg: GolemConfig, module_name: str = "all", target_file: str = None,
     x_thm_step = x_thm[:, -1:, ...] if x_thm is not None else None
 
     # 5. Captum Wrapper
-    # Captum expects a standard tensor-in, tensor-out pass for its hooks.
-    class ModelWrapperStep(torch.nn.Module):
-        def __init__(self, core_model, state):
-            super().__init__()
-            self.model = core_model
-            self.hx = state
-        def forward(self, xv, xa=None, xt=None):
-            logits, _ = self.model(xv, xa, xt, self.hx)
-            return logits[:, 0, :] # Extract the 1 step batch
-            
-    def get_last_conv(module_seq):
-        for layer in reversed(module_seq):
-            if isinstance(layer, torch.nn.Conv2d):
-                return layer
-        return None
-
     wrapper = ModelWrapperStep(model, hx)
     
     # Find the most probable action to attribute

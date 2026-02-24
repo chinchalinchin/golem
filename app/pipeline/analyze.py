@@ -173,7 +173,7 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False, target
             cortical_depth=cfg.brain.cortical_depth,
             working_memory=cfg.brain.working_memory,
             sensors=cfg.brain.sensors,
-            dsp_config=cfg.brain.dsp  # <--- New
+            dsp_config=cfg.brain.dsp
         ).to(device)
         
         model.load_state_dict(state_dict)

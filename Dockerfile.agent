@@ -35,7 +35,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire refactored codebase
+# Copy the entire codebase
 COPY . .
 
 # Set default command (overridden by docker-compose)

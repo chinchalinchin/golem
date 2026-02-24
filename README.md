@@ -162,6 +162,12 @@ python main.py train --module all
 
 ### 6. Audit
 
+Find available models,
+
+```bash
+python.py main.py list
+```
+
 Run a diagnostic Brain Scan to check for class-imbalance failures against a strict threshold.
 
 ```bash
@@ -265,5 +271,3 @@ docker buildx build \
 
 * [Asymmetric Loss (Ben-Baruch et al.)](https://arxiv.org/abs/2009.14119)
 * [Liquid Neural Networks (Hasani et al.)](https://arxiv.org/abs/2006.04439)
-
-

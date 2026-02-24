@@ -137,7 +137,8 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
         file_pattern=file_pattern,
         augment=cfg.training.augmentation.mirror,
         action_names=cfg.training.action_names,
-        dsp_config=cfg.brain.dsp
+        dsp_config=cfg.brain.dsp,
+        sensors=cfg.brain.sensors
     )
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 

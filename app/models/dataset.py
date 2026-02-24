@@ -32,13 +32,16 @@ class DoomStreamingDataset(Dataset):
         augment (bool, optional): If ``True``, dynamically mirrors visual and thermal frames horizontally and swaps corresponding left/right action labels. Default: ``False``.
         action_names (list of str, optional): The ordered list of string action names (e.g., ``["MOVE_FORWARD", "TURN_LEFT", ...]``) used to calculate which indices to swap during mirror augmentation. Default: ``None``.
         dsp_config (DSPConfig, optional): DSP tuning parameters for the Mel Spectrogram.
+        sensors: TODO
     """
     
-    def __init__(self, data_dir, seq_len=32, file_pattern="*.npz", augment=False, action_names=None, dsp_config=None):
+    def __init__(self, data_dir, seq_len=32, file_pattern="*.npz", 
+                    augment=False, action_names=None, dsp_config=None, sensors=None):
         self.seq_len = seq_len
         self.augment = augment
         self.action_names = action_names or []
         self.dsp_config = dsp_config
+        self.sensors = sensors
         
         # Memory stores
         self.video_arrays = []
@@ -47,10 +50,11 @@ class DoomStreamingDataset(Dataset):
         self.audio_arrays = []
         self.thermal_arrays = []
         
-        self.has_depth = False
-        self.has_audio = False
-        self.has_thermal = False
-        
+        # Enforce configuration-driven modalities instead of dynamic inference
+        self.has_depth = getattr(self.sensors, 'depth', False) if self.sensors else False
+        self.has_audio = getattr(self.sensors, 'audio', False) if self.sensors else False
+        self.has_thermal = getattr(self.sensors, 'thermal', False) if self.sensors else False
+
         self.index_map = [] 
         self.base_episodes = []      # <-- NEW: Stores lists of contiguous base indices
         self.recovery_episodes = []  # <-- NEW: Stores lists of contiguous recovery indices
@@ -81,16 +85,24 @@ class DoomStreamingDataset(Dataset):
                 self.video_arrays.append(frames)
                 self.action_arrays.append(actions)
                 
-                if 'depths' in data:
-                    self.has_depth = True
-                    self.depth_arrays.append(data['depths'])
-                if 'audios' in data:
-                    self.has_audio = True
-                    self.audio_arrays.append(data['audios'])
-                if 'thermals' in data:
-                    self.has_thermal = True
-                    self.thermal_arrays.append(data['thermals'])
-
+                if self.has_depth:
+                    if 'depths' in data:
+                        self.depth_arrays.append(data['depths'])
+                    else:
+                        raise ValueError(f"Config requires 'depth', but {file_path.name} is missing 'depths' array.")
+                        
+                if self.has_audio:
+                    if 'audios' in data:
+                        self.audio_arrays.append(data['audios'])
+                    else:
+                        raise ValueError(f"Config requires 'audio', but {file_path.name} is missing 'audios' array.")
+                        
+                if self.has_thermal:
+                    if 'thermals' in data:
+                        self.thermal_arrays.append(data['thermals'])
+                    else:
+                        raise ValueError(f"Config requires 'thermal', but {file_path.name} is missing 'thermals' array.")
+                    
                 total_frames = len(frames)
                 if total_frames < self.seq_len:
                     continue

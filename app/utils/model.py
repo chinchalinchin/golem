@@ -11,10 +11,18 @@ import torch
 logger = logging.getLogger(__name__)
 
 
+def _fmt_val(val: float) -> str:
+    """Helper to format floats for filenames (e.g., 0.25 -> 025, 2.0 -> 2)."""
+    if float(val).is_integer():
+        return str(int(val))
+    return str(val).replace('.', '')
+
+
 def generate_model_prefix(cfg, date_str: str) -> str:
     """
     Generates a dynamic filename prefix based on the active brain configuration.
     Only includes DSP parameters if the audio sensor is enabled.
+    Includes the active loss function and its primary hyperparameters.
     """
     base_parts = [
         f"{date_str}",
@@ -33,6 +41,23 @@ def generate_model_prefix(cfg, date_str: str) -> str:
             f"hl-{cfg.brain.dsp.hop_length}",
             f"nm-{cfg.brain.dsp.n_mels}"
         ])
+        
+    # Append Loss Configuration
+    loss_type = cfg.training.loss
+    if loss_type == "focal":
+        alpha = _fmt_val(cfg.loss.focal.alpha)
+        gamma = _fmt_val(cfg.loss.focal.gamma)
+        base_parts.append(f"focal-a{alpha}-g{gamma}")
+    elif loss_type == "asymmetric":
+        gp = _fmt_val(cfg.loss.asymmetric.gamma_pos)
+        gn = _fmt_val(cfg.loss.asymmetric.gamma_neg)
+        c = _fmt_val(cfg.loss.asymmetric.clip)
+        base_parts.append(f"asl-gp{gp}-gn{gn}-c{c}")
+    elif loss_type == "smooth":
+        eps = _fmt_val(cfg.loss.smooth.epsilon)
+        base_parts.append(f"smooth-e{eps}")
+    elif loss_type == "bce":
+        base_parts.append("bce")
         
     return ".".join(base_parts)
 
@@ -57,6 +82,12 @@ def get_latest_parameters(archives: List[Path]) -> dict:
                 elif part.startswith('nf-'): params['nf'] = int(part[3:])
                 elif part.startswith('hl-'): params['hl'] = int(part[3:])
                 elif part.startswith('nm-'): params['nm'] = int(part[3:])
+                # Parse loss type
+                elif part.startswith('focal'): params['loss'] = 'focal'
+                elif part.startswith('asl'): params['loss'] = 'asl'
+                elif part.startswith('smooth'): params['loss'] = 'smooth'
+                elif part == 'bce': params['loss'] = 'bce'
+                
             logger.info(f"Discovered brain architecture from {latest_archive.name}: {params}")
         except Exception as e:
             logger.warning(f"Failed to parse architecture from {latest_archive.name}: {e}")
@@ -77,6 +108,9 @@ def apply_latest_parameters(cfg, archives: List[Path]) -> None:
         cfg.brain.dsp.n_fft = params.get('nf', cfg.brain.dsp.n_fft)
         cfg.brain.dsp.hop_length = params.get('hl', cfg.brain.dsp.hop_length)
         cfg.brain.dsp.n_mels = params.get('nm', cfg.brain.dsp.n_mels)
+        
+        if 'loss' in params:
+            cfg.training.loss = params['loss']
 
 
 def normalize_audio_buffer(raw_audio: np.ndarray) -> np.ndarray:

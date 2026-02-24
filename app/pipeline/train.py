@@ -77,7 +77,8 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
         file_pattern=file_pattern,
         augment=cfg.training.augmentation.mirror,
         action_names=cfg.training.action_names,
-        dsp_config=cfg.brain.dsp
+        dsp_config=cfg.brain.dsp,
+        sensors=cfg.brain.sensors
     )
     
     if len(dataset) == 0:

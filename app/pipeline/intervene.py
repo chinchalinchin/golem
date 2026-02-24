@@ -13,7 +13,7 @@ import torch
 import numpy as np
 
 # Application Libraries
-from app.models.config import GolemConfig
+from app.models.config import GolemConfig, SensorsConfig
 from app.models.brain import DoomLiquidNet
 from app.utils.conf import resolve_path, get_unique_filename, register_command
 from app.utils.model import SensoryExtractor
@@ -95,7 +95,7 @@ class InterventionController:
         from pynput import keyboard
         if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
             self.intervening = True
-        self.keys_pressed.add(self._normalize_key(key))
+            self.keys_pressed.add(self._normalize_key(key))
 
     def on_release(self, key):
         from pynput import keyboard
@@ -146,7 +146,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
         sensors=cfg.brain.sensors,
         dsp_config=cfg.brain.dsp
     ).to(device)
-       
+        
     try:
         model.load_state_dict(torch.load(str(model_path), map_location=device))
         model.eval()
@@ -165,7 +165,9 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     scenario = module.scenario
     map_name = module.map
 
-    game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)
+    # Configure engine to always generate all buffers for the dataset regardless of the loaded brain
+    all_sensors = SensorsConfig(visual=True, depth=True, audio=True, thermal=True)
+    game = get_game(cfg_path, scenario, all_sensors, map_name=map_name)
     game.init()
 
     # Get active bindings for the enabled brain mode
@@ -193,13 +195,13 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
     logger.info("Release [LEFT SHIFT] to save the recovery memory and resume.")
     logger.info("======================================================")
     
-    # TODO: make this configurable or pass it in through the CLI
     episodes = 5
     was_intervening = False
     for i in range(episodes):
         game.new_episode()
         hx = None
-        
+        last_known_buffers = {}
+
         while not game.is_episode_finished():
             # Physiological Reset (Death)
             if game.is_player_dead():
@@ -210,10 +212,26 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 game.advance_action()
                 continue
 
-            # Centralized Extraction & Tensor formatting
-            extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
-            tensors = SensoryExtractor.to_tensors(extracted, device)
-
+            # 1. Extract EVERYTHING for recording
+            extracted_all = SensoryExtractor.get_numpy_state(state, all_sensors)
+            
+            # Zero-Order Hold for the recording buffers
+            for mod in ['visual', 'depth', 'audio', 'thermal']:
+                if mod in extracted_all:
+                    last_known_buffers[mod] = extracted_all[mod]
+                elif mod in last_known_buffers:
+                    extracted_all[mod] = last_known_buffers[mod]
+                    
+            # 2. Extract ONLY what the brain expects for inference
+            # We can use the patched extracted_all dictionary to prevent inference stutter!
+            extracted_brain = {k: extracted_all[k] for k in ['visual', 'depth', 'audio', 'thermal'] if getattr(cfg.brain.sensors, k, False)}
+            
+            # Wait for warmup
+            if len(last_known_buffers) < 4:
+                game.advance_action()
+                continue
+                
+            tensors = SensoryExtractor.to_tensors(extracted_brain, device)
             with torch.no_grad():
                 logits, hx = model(
                     tensors.get('visual'), 
@@ -230,20 +248,20 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 if not was_intervening:
                     # 2. Flush the autonomous rolling context into the recovery buffers
                     recovery_frames.extend(auto_frames)
-                    if cfg.brain.sensors.depth: recovery_depths.extend(auto_depths)
-                    if cfg.brain.sensors.audio: recovery_audios.extend(auto_audios)
-                    if cfg.brain.sensors.thermal: recovery_thermals.extend(auto_thermals)
+                    recovery_depths.extend(auto_depths)
+                    recovery_audios.extend(auto_audios)
+                    recovery_thermals.extend(auto_thermals)
                     
                     # 3. RETROACTIVE CORRECTION: Apply the human action to the historical frames
                     recovery_actions.extend([action] * len(auto_frames))
                     
                     was_intervening = True
                     
-                # Append current active intervention arrays 
-                if 'visual' in extracted: recovery_frames.append(extracted['visual'])
-                if 'depth' in extracted: recovery_depths.append(extracted['depth'])
-                if 'audio' in extracted: recovery_audios.append(extracted['audio'])
-                if 'thermal' in extracted: recovery_thermals.append(extracted['thermal'])
+                # Append current active intervention arrays using 'extracted_all'
+                recovery_frames.append(extracted_all['visual'])
+                recovery_depths.append(extracted_all['depth'])
+                recovery_audios.append(extracted_all['audio'])
+                recovery_thermals.append(extracted_all['thermal'])
                                           
                 recovery_actions.append(action)
                 
@@ -254,11 +272,11 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
                 action_probs = probs.cpu().numpy()[0, 0]
                 action = (action_probs > 0.5).astype(int).tolist()
                 
-                # POPULATE THE AUTONOMOUS ROLLING BUFFERS
-                if 'visual' in extracted: auto_frames.append(extracted['visual'])
-                if 'depth' in extracted: auto_depths.append(extracted['depth'])
-                if 'audio' in extracted: auto_audios.append(extracted['audio'])
-                if 'thermal' in extracted: auto_thermals.append(extracted['thermal'])
+                # POPULATE THE AUTONOMOUS ROLLING BUFFERS using 'extracted_all'
+                if 'visual' in extracted_all: auto_frames.append(extracted_all['visual'])
+                if 'depth' in extracted_all: auto_depths.append(extracted_all['depth'])
+                if 'audio' in extracted_all: auto_audios.append(extracted_all['audio'])
+                if 'thermal' in extracted_all: auto_thermals.append(extracted_all['thermal'])
                 auto_actions.append(action)
                 
                 # Save block (Triggers when the user releases the intervention key)

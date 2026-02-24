@@ -7,7 +7,7 @@ import numpy as np
 import vizdoom
 
 # Application Libraries
-from app.models.config import GolemConfig
+from app.models.config import GolemConfig, SensorsConfig
 from app.utils.conf import resolve_path, get_unique_filename, register_command
 from app.utils.doom import get_game
 from app.utils.model import SensoryExtractor
@@ -45,8 +45,11 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     logger.info(f"--- Recording Module: {module_name} ---")
     logger.info("Press [TAB] at any time to kill the recording, drop the last 2 seconds, and save.")
     
+    # Always extract all sensory data for datasets regardless of active brain architecture
+    all_sensors = SensorsConfig(visual=True, depth=True, audio=True, thermal=True)
+    
     # Explicitly set SPECTATOR mode to allow manual human input via keyboard
-    game = get_game(cfg_path, scenario, cfg.brain.sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
+    game = get_game(cfg_path, scenario, all_sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
     game.init()
     
     active_bindings = cfg.keybindings.get(active_profile, {})
@@ -79,6 +82,8 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                 break
                 
             game.new_episode()
+            last_known_buffers = {}
+        
             while not game.is_episode_finished():
                 if stop_recording:
                     break
@@ -87,16 +92,28 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                 action = game.get_last_action()
                 
                 # Centralized Extraction
-                extracted = SensoryExtractor.get_numpy_state(state, cfg.brain.sensors)
+                extracted = SensoryExtractor.get_numpy_state(state, all_sensors)
                 
-                if 'visual' in extracted: frames.append(extracted['visual'])
-                if 'depth' in extracted: depths.append(extracted['depth'])
-                if 'audio' in extracted: audios.append(extracted['audio'])
-                if 'thermal' in extracted: thermals.append(extracted['thermal'])
+                # Zero-Order Hold: Carry forward previous frames if the engine stutters
+                for mod in ['visual', 'depth', 'audio', 'thermal']:
+                    if mod in extracted:
+                        last_known_buffers[mod] = extracted[mod]
+                    elif mod in last_known_buffers:
+                        extracted[mod] = last_known_buffers[mod]
+                
+                # Wait until the engine has warmed up and provided at least one of every buffer
+                if len(last_known_buffers) < 4:
+                    game.advance_action()
+                    continue
+                
+                frames.append(extracted['visual'])
+                depths.append(extracted['depth'])
+                audios.append(extracted['audio'])
+                thermals.append(extracted['thermal'])
                 
                 actions.append(action)
                 game.advance_action()
-        
+
         # Idle Frame Truncation Logic
         if stop_recording:
             drop_frames = 70  # 35 fps * 2 seconds
@@ -104,9 +121,9 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
                 logger.info(f"Recording killed. Truncating the last {drop_frames} frames to remove idle time...")
                 frames = frames[:-drop_frames]
                 actions = actions[:-drop_frames]
-                if depths: depths = depths[:-drop_frames]
-                if audios: audios = audios[:-drop_frames]
-                if thermals: thermals = thermals[:-drop_frames]
+                depths = depths[:-drop_frames]
+                audios = audios[:-drop_frames]
+                thermals = thermals[:-drop_frames]
             else:
                 logger.warning("Recording killed too early. Discarding all frames.")
                 frames, actions, depths, audios, thermals = [], [], [], [], []
@@ -116,14 +133,13 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
             return
                 
         logger.info(f"Saving {len(frames)} frames to {output_path}...")
-        save_dict = {'frames': np.array(frames), 'actions': np.array(actions)}
-        
-        if cfg.brain.sensors.depth:
-            save_dict['depths'] = np.array(depths)
-        if cfg.brain.sensors.audio:
-            save_dict['audios'] = np.array(audios)
-        if cfg.brain.sensors.thermal:
-            save_dict['thermals'] = np.array(thermals) 
+        save_dict = {
+            'frames': np.array(frames), 
+            'actions': np.array(actions),
+            'depths': np.array(depths),
+            'audios': np.array(audios),
+            'thermals': np.array(thermals)
+        }
         
         np.savez_compressed(output_path, **save_dict)
         

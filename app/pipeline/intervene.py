@@ -167,6 +167,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
 
     # Configure engine to always generate all buffers for the dataset regardless of the loaded brain
     all_sensors = SensorsConfig(visual=True, depth=True, audio=True, thermal=True)
+    # always get all_sensors for recording data
     game = get_game(cfg_path, scenario, all_sensors, map_name=map_name)
     game.init()
 
@@ -270,7 +271,7 @@ def intervene(cfg: GolemConfig, module_name: str = "combat"):
             else:
                 was_intervening = False
                 action_probs = probs.cpu().numpy()[0, 0]
-                action = (action_probs > 0.5).astype(int).tolist()
+                action = (action_probs > cfg.brain.activation).astype(int).tolist()
                 
                 # POPULATE THE AUTONOMOUS ROLLING BUFFERS using 'extracted_all'
                 if 'visual' in extracted_all: auto_frames.append(extracted_all['visual'])

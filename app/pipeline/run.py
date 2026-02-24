@@ -66,6 +66,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     scenario = module.scenario
     map_name = module.map
 
+    # always get all_sensors for recording data
     game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)   
     game.init()
 
@@ -106,7 +107,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
                 probs = torch.sigmoid(logits)
             
             action_probs = probs.cpu().numpy()[0, 0]
-            action = (action_probs > 0.5).astype(int).tolist()
+            action = (action_probs > cfg.brain.activation).astype(int).tolist()
             
             if sum(action) > 0 or (game.get_episode_time() % 35 == 0):
                 active_str = " | ".join([f"{label}:{prob:.2f}" for label, prob in zip(action_labels, action_probs) if prob > 0.1])

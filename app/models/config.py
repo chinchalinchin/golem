@@ -20,9 +20,28 @@ class LossType(str, Enum):
     SMOOTH = "smooth"
     ASL = "asl"
 
+class ObligeConfig(BaseModel):
+    game: str = "doom2"
+    engine: str = "zdoom"
+    length: str = "single"
+    theme: str = "original"
+    size: str = "small"
+    outdoors: str = "mixed"
+    caves: str = "mixed"
+    liquids: str = "none"
+    hallways: str = "mixed"
+    teleporters: str = "none"
+    steepness: str = "mixed"
+    mons: str = "normal"
+    strength: str = "medium"
+    health: str = "normal"
+    ammo: str = "normal"
+    weapons: str = "normal"
+
 class RandomizerConfig(BaseModel):
     executable: str
     output: str
+    oblige: ObligeConfig
 
 class ModuleConfig(BaseModel):
     scenario: str
@@ -57,6 +76,7 @@ class BrainConfig(BaseModel):
     mode: str
     cortical_depth: int = 2
     working_memory: int = 64
+    activation: float = 0.5
     sensors: SensorsConfig = SensorsConfig()
     dsp: DSPConfig = DSPConfig()
 

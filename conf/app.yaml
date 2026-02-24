@@ -21,7 +21,8 @@ brain:
     depth: false
     audio: false
     thermal: false
-  cortical_depth: 3
+  activation: 0.5
+  cortical_depth: 2
   working_memory: 128
   dsp:
     sample_rate: 44100
@@ -43,15 +44,32 @@ loss:
 training:
   batch_size: 16
   learning_rate: 0.0001
-  epochs: 100
+  epochs: 150
   sequence_length: 32
-  loss: "bce"
+  loss: "focal"
   augmentation:
     mirror: true
 # ------------------------------------------------------ RANDOMIZER
 randomizer:
   executable: "/Users/gmoore/Home/lib/oblige/Oblige"
-  output: "data/wads/"                   
+  output: "data/wads/"
+  oblige:
+    game: doom2
+    engine: zdoom
+    length: single      # single, episode, game
+    theme: original     # original, tech, urban, hell, jumbled, mixed
+    size: small         # small
+    outdoors: mixed     # none, mixed, plenty
+    caves: mixed        # none, mixed, plenty
+    liquids: none       # none, mixed, plenty   
+    hallways: mixed     # none, mixed, plenty
+    teleporters: none   # none, mixed, plenty
+    steepness: mixed    # none, mixed, plenty
+    mons: normal        # normal, lots, nuts
+    strength: medium
+    health: normal
+    ammo: normal
+    weapons: normal
 # ------------------------------------------------------ MODULES
 modules:
   # --- Original ViZDoom Defaults ---
@@ -87,8 +105,8 @@ modules:
     scenario: "take_cover.wad"
     map: "map01"
     episodes: 5
-  temp:
-    scenario: "/Users/gmoore/Home/games/doom/wads/temp.wad"
+  random:
+    scenario: "/Users/gmoore/Home/games/doom/wads/random1.wad"
     map: "map01"
     episodes: 1
   # --- External / Community RL WADs ---

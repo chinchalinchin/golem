@@ -2390,6 +2390,22 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
                   <code>False</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>target_file</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The specific model file to load.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -2536,8 +2552,17 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
-<span class="normal">247</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">target_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>
 
@@ -2550,6 +2575,7 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="sd">            available data for the active profile. Default: ``&quot;all&quot;``.</span>
 <span class="sd">        full (bool, optional): If ``True``, evaluates the entire dataset instead </span>
 <span class="sd">            of capping at 50 sequence batches. Default: ``False``</span>
+<span class="sd">        target_file (str, optional): The specific model file to load.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;mps&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
@@ -2576,10 +2602,18 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 
     <span class="c1"># 2. Discover Brain Architecture &amp; Load Model</span>
     <span class="n">model_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
-    <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>
 
-    <span class="c1"># Intelligently discover actual parameters from the latest archive</span>
-    <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">target_file</span><span class="p">:</span>
+        <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">model_dir</span> <span class="o">/</span> <span class="n">target_file</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">active_model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target model file not found: </span><span class="si">{</span><span class="n">active_model_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">archives</span> <span class="o">=</span> <span class="p">[</span><span class="n">active_model_path</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">active_model_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span> <span class="o">/</span> <span class="s2">&quot;golem.pth&quot;</span>
+        <span class="c1"># Intelligently discover actual parameters from the latest archive</span>
+        <span class="n">archives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pth&quot;</span><span class="p">))</span>
+
     <span class="n">apply_latest_parameters</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">archives</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>

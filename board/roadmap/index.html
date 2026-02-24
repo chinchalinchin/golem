@@ -756,6 +756,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-10-cortical-auxiliary-heads-isolated-representation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning) ان
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning) ان">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-configuration-layer_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Configuration Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-brain-architecture-redesign_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Brain (Architecture Redesign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-pipeline-etl-training_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Pipeline (ETL &amp; Training)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1099,6 +1149,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#phase-10-cortical-auxiliary-heads-isolated-representation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning) ان
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning) ان">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-configuration-layer_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Configuration Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-brain-architecture-redesign_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Brain (Architecture Redesign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-pipeline-etl-training_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Pipeline (ETL &amp; Training)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#distant-future" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1257,6 +1357,31 @@
 <p><strong>Runtime Overhead: Negligible to Zero</strong></p>
 <p>This is a purely structural training constraint. Because the agent only requires the output of the Linear Motor Cortex to play the game, the entire hallucination decoder can be detached and bypassed during live inference.</p>
 <p><strong>Assessment</strong>: Acceptable, if gated behind a configuration property that is disabled by default. Cleared to implement.</p>
+<h2 id="phase-10-cortical-auxiliary-heads-isolated-representation-learning">Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning)  ان</h2>
+<p><em>Goal:</em> Attach secondary linear heads directly to the latent output vectors of specific cortices (e.g., Thermal, Visual) prior to sensorimotor concatenation. This enables the application of targeted, isolated loss functions (e.g., BCE for enemy counting on the thermal mask) directly to the sub-networks, accelerating feature extraction without waiting for the slow, end-to-end action gradient.</p>
+<h3 id="1-configuration-layer_2">1. Configuration Layer</h3>
+<ul>
+<li>[ ] <strong>Auxiliary Toggles:</strong> Update <code>app.yaml</code> to include an <code>auxiliary_heads</code> configuration block under <code>brain</code> (e.g., toggling thermal enemy counting) and corresponding <span class="arithmatex">\(\lambda\)</span> weights under the <code>loss</code> block.</li>
+<li>[ ] <strong>State Validation:</strong> Update <code>config.py</code> to parse the new auxiliary settings and loss weights during pipeline initialization.</li>
+</ul>
+<h3 id="2-the-brain-architecture-redesign_4">2. The Brain (Architecture Redesign)</h3>
+<ul>
+<li>[ ] <strong>Secondary Linear Heads:</strong> Modify <code>DoomLiquidNet</code> in <code>brain.py</code> to conditionally instantiate <code>nn.Linear</code> layers branching directly off the flattened cortical vectors (e.g., <span class="arithmatex">\(T(t)\)</span> or <span class="arithmatex">\(V(t)\)</span>).</li>
+<li>[ ] <strong>Multi-Output Forward Pass:</strong> Update the <code>forward</code> method to return a dictionary of auxiliary predictions alongside the primary action logits and the recurrent hidden state.</li>
+</ul>
+<h3 id="3-the-pipeline-etl-training_1">3. The Pipeline (ETL &amp; Training)</h3>
+<ul>
+<li>[ ] <strong>Ground Truth Extraction:</strong> Update <code>record.py</code> and <code>DoomStreamingDataset</code> to extract, store, and stream the necessary ground truth labels for the auxiliary tasks (e.g., parsing the exact number of visible enemies from ViZDoom's underlying <code>state</code> variables).</li>
+<li>[ ] <strong>Composite Objective Function:</strong> Modify the optimization loop in <code>train.py</code> to compute and sum the isolated losses against the main behavioral cloning target: <span class="arithmatex">\(\mathcal{L}_{Total} = \mathcal{L}_{Action} + \lambda \mathcal{L}_{Aux\_Thermal} + \dots\)</span></li>
+</ul>
+<div class="admonition danger">
+<p class="admonition-title">Risk Assessment</p>
+</div>
+<p><strong>Training Overhead: Moderate</strong></p>
+<p>Optimizing a composite loss function requires calculating gradients for both the primary classification head and the auxiliary heads simultaneously. However, the additional parameters (small linear layers) are mathematically trivial compared to the deep CNNs. The primary overhead is I/O related: modifying the dataset to extract and stream additional ground truth labels from the engine state.</p>
+<p><strong>Runtime Overhead: Zero</strong></p>
+<p>This is a purely structural training enhancement. Because the agent only requires the output of the primary Motor Cortex to play the game, the auxiliary heads can be completely detached and bypassed during live inference, maintaining strict temporal compliance with the <span class="arithmatex">\(35\text{Hz}\)</span> engine loop.</p>
+<p><strong>Assessment</strong>: High reward, zero runtime risk. Cleared to implement.</p>
 <hr />
 <h2 id="distant-future">Distant Future</h2>
 <h3 id="the-possession-integration">The Possession (Integration) 👻</h3>

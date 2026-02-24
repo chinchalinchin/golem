@@ -969,14 +969,14 @@
     subgraph VisCortex [Visual Cortex]
         Concat_Vis{"Concat Channels"}
         VisIn["Input (4x64x64)"]
-        VisCNN["D Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        VisCNN["D Conv2d Layers + ReLU(stride=2, padding=1)"]
         VisFlat["Flatten"]
         V_t["Latent Vector V(t)"]
     end
 
     subgraph ThmCortex [Thermal Cortex]
         ThmIn["Input (1x64x64)"]
-        ThmCNN["D Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        ThmCNN["D Conv2d Layers + ReLU(stride=2, padding=1)"]
         ThmFlat["Flatten"]
         T_t["Latent Vector T(t)"]
     end
@@ -984,7 +984,7 @@
     subgraph AudCortex [Auditory Cortex]
         DSP["DSP: MelSpectrogram\n&amp; AmplitudeToDB"]
         Mel["2D Spectrogram\n(2 x H_mels x W_time)"]
-        AudCNN["3 Conv2d Layers + ReLU\n(stride=2, padding=1)"]
+        AudCNN["3 Conv2d Layers + ReLU(stride=2, padding=1)"]
         AudPool["AdaptiveAvgPool2d(1, 1)"]
         AudFlat["Flatten"]
         A_t["Latent Vector A(t)"]
@@ -993,7 +993,7 @@
     subgraph Core [Liquid Core &amp; Motor Head]
         Fusion{"Concatenate ⊕"}
         I_t["Multi-Modal Input I(t)"]
-        CfC["Closed-form Continuous (CfC) Cell\nunits = working_memory"]
+        CfC["Closed-form Continuous (CfC) Cell = working_memory"]
         hx_in[/"Previous State x(t-1)"/]
         hx_out[/"Next State x(t)"/]
         Linear["Linear Layer (n_actions)"]

@@ -1549,7 +1549,7 @@ R_j=\frac{TP_j}{TP_j+FN_j}
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No training data found matching pattern: </span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data_dirs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
-    <span class="c1"># ---&gt; NEW: Mount the Stratified Sampler </span>
+    <span class="c1"># Mount the Stratified Sampler </span>
     <span class="n">sampler</span> <span class="o">=</span> <span class="n">StatefulStratifiedBatchSampler</span><span class="p">(</span>
         <span class="n">base_episodes</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">base_episodes</span><span class="p">,</span>
         <span class="n">recovery_episodes</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">recovery_episodes</span><span class="p">,</span>

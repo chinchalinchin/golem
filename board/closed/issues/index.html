@@ -666,6 +666,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#issue-phenomenological-saliency-mapping-grad-cam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Phenomenological Saliency Mapping (Grad-CAM)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -780,6 +791,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#issue-phenomenological-saliency-mapping-grad-cam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Phenomenological Saliency Mapping (Grad-CAM)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -837,6 +859,12 @@
 <li>Detach the state from the computational graph (<code>hx = hx.detach()</code>) to prevent backpropagating into infinite history.</li>
 <li>Pass the detached state as the prior for the subsequent batch.</li>
 </ol>
+<h2 id="issue-phenomenological-saliency-mapping-grad-cam">Issue: Phenomenological Saliency Mapping (Grad-CAM)</h2>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> High | <strong>Opened</strong>: 2026/02/21</p>
+<p><strong>Description:</strong></p>
+<p>We currently lack explainable AI (XAI) tooling to verify that the agent's distinct sensor cortices (Visual, Depth, Thermal) are specializing as intended. We need visual proof that the Visual Cortex focuses on static geometry while the Thermal Cortex tracks dynamic threats.</p>
+<p><strong>Proposed Solution:</strong></p>
+<p>Integrate the <code>captum</code> library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an <code>examine</code> command that takes a single sequence from the dataset, runs <code>captum.attr.LayerGradCam</code> on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side <code>.png</code> files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.</p>
 
 
 

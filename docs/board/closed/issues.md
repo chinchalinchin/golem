@@ -59,3 +59,15 @@ Implement Stateful BPTT in `train.py`:
 2. Retain the hidden state output `hx` from the previous batch.
 3. Detach the state from the computational graph (`hx = hx.detach()`) to prevent backpropagating into infinite history.
 4. Pass the detached state as the prior for the subsequent batch.
+
+## Issue: Phenomenological Saliency Mapping (Grad-CAM)
+
+**Status:** Open | **Priority:** High | **Opened**: 2026/02/21
+
+**Description:**
+
+We currently lack explainable AI (XAI) tooling to verify that the agent's distinct sensor cortices (Visual, Depth, Thermal) are specializing as intended. We need visual proof that the Visual Cortex focuses on static geometry while the Thermal Cortex tracks dynamic threats.
+
+**Proposed Solution:**
+
+Integrate the `captum` library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an `examine` command that takes a single sequence from the dataset, runs `captum.attr.LayerGradCam` on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side `.png` files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.

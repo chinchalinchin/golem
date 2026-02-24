@@ -1,11 +1,13 @@
 # Application
-opencv-python
-scikit-learn
+captum
 Jinja2
+matplotlib
 ncps 
+opencv-python
 pydantic
 pynput
 PyYaml
+scikit-learn
 torch 
 torchaudio
 torchvision

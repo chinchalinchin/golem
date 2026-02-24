@@ -14,7 +14,7 @@ The `DoomStreamingDataset` currently applies dynamic NumPy transposition, mirror
 
 Refactor the `DataLoader` initialization in `train.py` to offload ETL transformations to background processes. Implement `num_workers` (e.g., 4), enable `pin_memory=True` for faster Host-to-Device memory transfers, and establish a `prefetch_factor`.
 
-## Issue 3: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
+## Issue 2: Memory Overflow Risk in Dataset Loading (RAM Bottleneck)
 
 **Status:** Open | **Priority:** Medium | **Opened**: 2026/02/21
 
@@ -26,19 +26,7 @@ In `dataset.py`, `DoomStreamingDataset` currently iterates through all `.npz` fi
 
 Migrate the storage backend from compressed `.npz` archives to HDF5 (`h5py`) format, or utilize NumPy's `mmap_mode='r'` to memory-map the data on disk. This allows the `Dataset` to lazily stream tensor blocks directly from the NVMe/SSD without pre-loading the entire corpus into volatile memory.
 
-## Issue 4: Phenomenological Saliency Mapping (Grad-CAM)
-
-**Status:** Open | **Priority:** High | **Opened**: 2026/02/21
-
-**Description:**
-
-We currently lack explainable AI (XAI) tooling to verify that the agent's distinct sensor cortices (Visual, Depth, Thermal) are specializing as intended. We need visual proof that the Visual Cortex focuses on static geometry while the Thermal Cortex tracks dynamic threats.
-
-**Proposed Solution:**
-
-Integrate the `captum` library to generate Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps. Create an `examine` command that takes a single sequence from the dataset, runs `captum.attr.LayerGradCam` on the final convolutional layers of the respective cortices, and saves the upsampled heatmaps as side-by-side `.png` files. This will allow us to physically view the spatial stimuli responsible for triggering specific action logits.
-
-## Issue 5: Audit Validation Leak & Redundancy (Train/Test Split)
+## Issue 3: Audit Validation Leak & Redundancy (Train/Test Split)
 
 **Status:** Open | **Priority:** Medium | **Opened**: 2026/02/21
 

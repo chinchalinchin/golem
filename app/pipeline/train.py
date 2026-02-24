@@ -85,7 +85,7 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
         logger.error(f"No training data found matching pattern: {file_pattern} in {data_dirs}")
         return
 
-    # ---> NEW: Mount the Stratified Sampler 
+    # Mount the Stratified Sampler 
     sampler = StatefulStratifiedBatchSampler(
         base_episodes=dataset.base_episodes,
         recovery_episodes=dataset.recovery_episodes,

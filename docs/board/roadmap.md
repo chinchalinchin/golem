@@ -138,6 +138,36 @@ See [Phase Archive](./closed/phases.md) for the project's completed phases.
 
   **Assessment**: Acceptable, if gated behind a configuration property that is disabled by default. Cleared to implement.
   
+## Phase 10: Cortical Auxiliary Heads (Isolated Representation Learning)  ان
+
+*Goal:* Attach secondary linear heads directly to the latent output vectors of specific cortices (e.g., Thermal, Visual) prior to sensorimotor concatenation. This enables the application of targeted, isolated loss functions (e.g., BCE for enemy counting on the thermal mask) directly to the sub-networks, accelerating feature extraction without waiting for the slow, end-to-end action gradient.
+
+### 1. Configuration Layer
+
+* [ ] **Auxiliary Toggles:** Update `app.yaml` to include an `auxiliary_heads` configuration block under `brain` (e.g., toggling thermal enemy counting) and corresponding $\lambda$ weights under the `loss` block.
+* [ ] **State Validation:** Update `config.py` to parse the new auxiliary settings and loss weights during pipeline initialization.
+
+### 2. The Brain (Architecture Redesign)
+
+* [ ] **Secondary Linear Heads:** Modify `DoomLiquidNet` in `brain.py` to conditionally instantiate `nn.Linear` layers branching directly off the flattened cortical vectors (e.g., $T(t)$ or $V(t)$).
+* [ ] **Multi-Output Forward Pass:** Update the `forward` method to return a dictionary of auxiliary predictions alongside the primary action logits and the recurrent hidden state.
+
+### 3. The Pipeline (ETL & Training)
+
+* [ ] **Ground Truth Extraction:** Update `record.py` and `DoomStreamingDataset` to extract, store, and stream the necessary ground truth labels for the auxiliary tasks (e.g., parsing the exact number of visible enemies from ViZDoom's underlying `state` variables).
+* [ ] **Composite Objective Function:** Modify the optimization loop in `train.py` to compute and sum the isolated losses against the main behavioral cloning target: $\mathcal{L}_{Total} = \mathcal{L}_{Action} + \lambda \mathcal{L}_{Aux\_Thermal} + \dots$
+
+!!! danger "Risk Assessment"
+  **Training Overhead: Moderate**
+  
+  Optimizing a composite loss function requires calculating gradients for both the primary classification head and the auxiliary heads simultaneously. However, the additional parameters (small linear layers) are mathematically trivial compared to the deep CNNs. The primary overhead is I/O related: modifying the dataset to extract and stream additional ground truth labels from the engine state.
+  
+  **Runtime Overhead: Zero**
+  
+  This is a purely structural training enhancement. Because the agent only requires the output of the primary Motor Cortex to play the game, the auxiliary heads can be completely detached and bypassed during live inference, maintaining strict temporal compliance with the $35\text{Hz}$ engine loop.
+
+  **Assessment**: High reward, zero runtime risk. Cleared to implement.
+
 ---
 
 ## Distant Future

@@ -20,8 +20,8 @@ brain:
     visual: true
     depth: false
     audio: false
-    thermal: false
-  activation: 0.5
+    thermal: true
+  activation: 0.4
   cortical_depth: 2
   working_memory: 128
   dsp:

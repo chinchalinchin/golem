@@ -1490,7 +1490,8 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">225</span>
 <span class="normal">226</span>
 <span class="normal">227</span>
-<span class="normal">228</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+<span class="normal">228</span>
+<span class="normal">229</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_recovery</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains the Liquid Neural Network using captured expert demonstrations.</span>
@@ -1540,7 +1541,8 @@ R_j=\frac{TP_j}{TP_j+FN_j}
         <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">,</span>
         <span class="n">augment</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">augmentation</span><span class="o">.</span><span class="n">mirror</span><span class="p">,</span>
         <span class="n">action_names</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_names</span><span class="p">,</span>
-        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="p">,</span>
+        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1877,7 +1879,25 @@ R_j=\frac{TP_j}{TP_j+FN_j}
 <span class="normal">288</span>
 <span class="normal">289</span>
 <span class="normal">290</span>
-<span class="normal">291</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;intervene&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">intervene</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;combat&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pynput</span><span class="w"> </span><span class="kn">import</span> <span class="n">keyboard</span>
@@ -1925,7 +1945,9 @@ R_j=\frac{TP_j}{TP_j+FN_j}
     <span class="n">scenario</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">scenario</span>
     <span class="n">map_name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">map</span>
 
-    <span class="n">game</span> <span class="o">=</span> <span class="n">get_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
+    <span class="c1"># Configure engine to always generate all buffers for the dataset regardless of the loaded brain</span>
+    <span class="n">all_sensors</span> <span class="o">=</span> <span class="n">SensorsConfig</span><span class="p">(</span><span class="n">visual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">audio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">thermal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="n">get_game</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">all_sensors</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="n">game</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
     <span class="c1"># Get active bindings for the enabled brain mode</span>
@@ -1953,12 +1975,12 @@ R_j=\frac{TP_j}{TP_j+FN_j}
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Release [LEFT SHIFT] to save the recovery memory and resume.&quot;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;======================================================&quot;</span><span class="p">)</span>
 
-    <span class="c1"># TODO: make this configurable or pass it in through the CLI</span>
     <span class="n">episodes</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episodes</span><span class="p">):</span>
         <span class="n">game</span><span class="o">.</span><span class="n">new_episode</span><span class="p">()</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">last_known_buffers</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="n">game</span><span class="o">.</span><span class="n">is_episode_finished</span><span class="p">():</span>
             <span class="c1"># Physiological Reset (Death)</span>
@@ -1970,10 +1992,26 @@ R_j=\frac{TP_j}{TP_j+FN_j}
                 <span class="n">game</span><span class="o">.</span><span class="n">advance_action</span><span class="p">()</span>
                 <span class="k">continue</span>
 
-            <span class="c1"># Centralized Extraction &amp; Tensor formatting</span>
-            <span class="n">extracted</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">get_numpy_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">)</span>
-            <span class="n">tensors</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">to_tensors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+            <span class="c1"># 1. Extract EVERYTHING for recording</span>
+            <span class="n">extracted_all</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">get_numpy_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">all_sensors</span><span class="p">)</span>
 
+            <span class="c1"># Zero-Order Hold for the recording buffers</span>
+            <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="s1">&#39;audio&#39;</span><span class="p">,</span> <span class="s1">&#39;thermal&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">extracted_all</span><span class="p">:</span>
+                    <span class="n">last_known_buffers</span><span class="p">[</span><span class="n">mod</span><span class="p">]</span> <span class="o">=</span> <span class="n">extracted_all</span><span class="p">[</span><span class="n">mod</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">last_known_buffers</span><span class="p">:</span>
+                    <span class="n">extracted_all</span><span class="p">[</span><span class="n">mod</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_known_buffers</span><span class="p">[</span><span class="n">mod</span><span class="p">]</span>
+
+            <span class="c1"># 2. Extract ONLY what the brain expects for inference</span>
+            <span class="c1"># We can use the patched extracted_all dictionary to prevent inference stutter!</span>
+            <span class="n">extracted_brain</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">extracted_all</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="s1">&#39;audio&#39;</span><span class="p">,</span> <span class="s1">&#39;thermal&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="kc">False</span><span class="p">)}</span>
+
+            <span class="c1"># Wait for warmup</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">last_known_buffers</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">game</span><span class="o">.</span><span class="n">advance_action</span><span class="p">()</span>
+                <span class="k">continue</span>
+
+            <span class="n">tensors</span> <span class="o">=</span> <span class="n">SensoryExtractor</span><span class="o">.</span><span class="n">to_tensors</span><span class="p">(</span><span class="n">extracted_brain</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">logits</span><span class="p">,</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span>
                     <span class="n">tensors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visual&#39;</span><span class="p">),</span> 
@@ -1990,20 +2028,20 @@ R_j=\frac{TP_j}{TP_j+FN_j}
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">was_intervening</span><span class="p">:</span>
                     <span class="c1"># 2. Flush the autonomous rolling context into the recovery buffers</span>
                     <span class="n">recovery_frames</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_frames</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_depths</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">audio</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_audios</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">thermal</span><span class="p">:</span> <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_thermals</span><span class="p">)</span>
+                    <span class="n">recovery_depths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_depths</span><span class="p">)</span>
+                    <span class="n">recovery_audios</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_audios</span><span class="p">)</span>
+                    <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">auto_thermals</span><span class="p">)</span>
 
                     <span class="c1"># 3. RETROACTIVE CORRECTION: Apply the human action to the historical frames</span>
                     <span class="n">recovery_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">action</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">auto_frames</span><span class="p">))</span>
 
                     <span class="n">was_intervening</span> <span class="o">=</span> <span class="kc">True</span>
 
-                <span class="c1"># Append current active intervention arrays </span>
-                <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
+                <span class="c1"># Append current active intervention arrays using &#39;extracted_all&#39;</span>
+                <span class="n">recovery_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
+                <span class="n">recovery_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
+                <span class="n">recovery_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
+                <span class="n">recovery_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
 
                 <span class="n">recovery_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
@@ -2014,11 +2052,11 @@ R_j=\frac{TP_j}{TP_j+FN_j}
                 <span class="n">action_probs</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                 <span class="n">action</span> <span class="o">=</span> <span class="p">(</span><span class="n">action_probs</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-                <span class="c1"># POPULATE THE AUTONOMOUS ROLLING BUFFERS</span>
-                <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">extracted</span><span class="p">:</span> <span class="n">auto_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
+                <span class="c1"># POPULATE THE AUTONOMOUS ROLLING BUFFERS using &#39;extracted_all&#39;</span>
+                <span class="k">if</span> <span class="s1">&#39;visual&#39;</span> <span class="ow">in</span> <span class="n">extracted_all</span><span class="p">:</span> <span class="n">auto_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;visual&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">extracted_all</span><span class="p">:</span> <span class="n">auto_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;audio&#39;</span> <span class="ow">in</span> <span class="n">extracted_all</span><span class="p">:</span> <span class="n">auto_audios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s1">&#39;thermal&#39;</span> <span class="ow">in</span> <span class="n">extracted_all</span><span class="p">:</span> <span class="n">auto_thermals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted_all</span><span class="p">[</span><span class="s1">&#39;thermal&#39;</span><span class="p">])</span>
                 <span class="n">auto_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
                 <span class="c1"># Save block (Triggers when the user releases the intervention key)</span>
@@ -2495,7 +2533,8 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
 <span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
-<span class="normal">246</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
+<span class="normal">246</span>
+<span class="normal">247</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;audit&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">audit</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a diagnostic brain scan to evaluate the active model&#39;s predictive accuracy.</span>
@@ -2528,7 +2567,8 @@ of capping at 50 sequence batches. Default: <code>False</code></p>
         <span class="n">file_pattern</span><span class="o">=</span><span class="n">file_pattern</span><span class="p">,</span>
         <span class="n">augment</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">augmentation</span><span class="o">.</span><span class="n">mirror</span><span class="p">,</span>
         <span class="n">action_names</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">action_names</span><span class="p">,</span>
-        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span>
+        <span class="n">dsp_config</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">dsp</span><span class="p">,</span>
+        <span class="n">sensors</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">sensors</span>
     <span class="p">)</span>
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 

@@ -105,7 +105,7 @@ def inspect(cfg: GolemConfig, target_file: str = None):
 
 
 @register_command("audit")
-def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
+def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False, target_file: str = None):
     r"""
     Runs a diagnostic brain scan to evaluate the active model's predictive accuracy.
 
@@ -118,6 +118,7 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
             available data for the active profile. Default: ``"all"``.
         full (bool, optional): If ``True``, evaluates the entire dataset instead 
             of capping at 50 sequence batches. Default: ``False``
+        target_file (str, optional): The specific model file to load.
     """
     device = torch.device('mps') if torch.backends.mps.is_available() else torch.device("cpu")
 
@@ -144,10 +145,18 @@ def audit(cfg: GolemConfig, module_name: str = "all", full: bool = False):
 
     # 2. Discover Brain Architecture & Load Model
     model_dir = Path(resolve_path(cfg.data.dirs["model"])) / active_profile
-    active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
     
-    # Intelligently discover actual parameters from the latest archive
-    archives = list(model_dir.glob("*.pth"))
+    if target_file:
+        active_model_path = model_dir / target_file
+        if not active_model_path.exists():
+            logger.error(f"Target model file not found: {active_model_path}")
+            return
+        archives = [active_model_path]
+    else:
+        active_model_path = Path(resolve_path(cfg.data.dirs["training"])) / active_profile / "golem.pth"
+        # Intelligently discover actual parameters from the latest archive
+        archives = list(model_dir.glob("*.pth"))
+    
     apply_latest_parameters(cfg, archives)
     
     try:
@@ -329,3 +338,39 @@ def summary(cfg: GolemConfig, module_name: str = None):
         col_names=["input_size", "output_size", "num_params", "trainable"],
         depth=3
     )
+
+
+@register_command("list")
+def list_models(cfg: GolemConfig, mode: str = None):
+    r"""
+    Lists available model archives.
+
+    Args:
+        cfg (GolemConfig): The centralized application configuration object.
+        mode (str, optional): The specific mode to list models for (e.g., "basic", "fluid"). 
+            If ``None``, it evaluates against all available modes. Default: ``None``.
+    """
+    base_model_dir = Path(resolve_path(cfg.data.dirs["model"]))
+    
+    modes_to_check = [mode] if mode else list(cfg.config.keys())
+    
+    logger.info("======================================================")
+    logger.info("Available Golem Models")
+    logger.info("======================================================")
+    
+    found_any = False
+    for m in modes_to_check:
+        m_dir = base_model_dir / m
+        if m_dir.exists() and m_dir.is_dir():
+            models = list(m_dir.glob("*.pth"))
+            if models:
+                found_any = True
+                logger.info(f"Mode: {m.upper()}")
+                for mod in sorted(models, key=lambda f: f.stat().st_mtime, reverse=True):
+                    # Calculate size
+                    size_mb = mod.stat().st_size / (1024 * 1024)
+                    logger.info(f"  - {mod.name} ({size_mb:.2f} MB)")
+    
+    if not found_any:
+        logger.info("No models found.")
+    logger.info("======================================================")

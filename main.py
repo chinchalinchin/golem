@@ -9,7 +9,7 @@ from app.utils.conf import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
 from app.pipeline import audit, inspect, intervene, train, \
-                            record, run, summary, generate
+                           record, run, summary, generate
 from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")
@@ -63,6 +63,8 @@ def main():
         kwargs['include_recovery'] = args.recovery
     if 'episodes' in sig.parameters:
         kwargs['episodes'] = args.episodes
+    if 'mode' in sig.parameters:
+        kwargs['mode'] = args.mode
 
     # Execute the resolved function
     func(cfg, **kwargs)

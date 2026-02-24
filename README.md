@@ -43,7 +43,7 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 
 The `./data/model/<mode>/` directory archives models using the naming schema,
 
-`{YYYY-MM-DD}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}.{increment}`
+`{YYYY-MM-DD}.c-{c}.w-{w}.v-{v}.d-{d}.a-{a}.t-{t}.{sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}}.{increment}.{loss}-{params}`
 
 Where,
 
@@ -54,10 +54,13 @@ Where,
 * `d`: The depth field (`brain.sensors.depth`) of the model.
 * `a`: The audio field (`brain.sensors.audio`) of the model.
 * `t`: The thermal field (`brain.sensors.thermal`) of the model.
-* `sr`: The sample rate of the DSP (`brain.dsp.sample_rate`) of the model.
-* `nf`: The length of the STFT signal (`brain.dsp.nfft`) for the model.
-* `hl`: The hop length (`brain.dsp.hop_length`) of the model.
+* The fields `{sr-{sr}.nf-{nf}.hl-{hl}.nm-{nm}}.` are conditional on the `brain.sensors.audio` being enabled. 
+    * `sr`: The sample rate of the DSP (`brain.dsp.sample_rate`) of the model.
+    * `nf`: The length of the STFT signal (`brain.dsp.nfft`) for the model.
+    * `hl`: The hop length (`brain.dsp.hop_length`) of the model.
 * `increment`: Auto-incrementing integer to prevent overwrites.
+* `loss`: Loss function used to train the model.
+* `params`: Loss function parameters used to train the model.
 
 The active model for any given profile is always saved to `./data/<mode>/golem.pth` to isolate action-space dimensions and prevent PyTorch tensor mismatch errors during inference.
 
@@ -78,15 +81,15 @@ pip install -r requirements.txt
 
 To prevent spatial overfitting and Covariate Shift, Golem utilizes Oblige 7.70 to procedurally generate training maps on the fly. Because the official binaries are outdated, macOS/Apple Silicon users must build the engine from source.
 
-Download and Extract: Download the source from [this link](http://sourceforge.net/projects/oblige/files/Oblige/7.70/oblige-770-source.zip) and extract it to a directory adjacent to Golem (e.g., ../oblige).
+Download the source from [this link](http://sourceforge.net/projects/oblige/files/Oblige/7.70/oblige-770-source.zip) and extract it to a directory adjacent to Golem (e.g., ../oblige).
 
-Install Dependencies:
+Install Dependencies,
 
 ```bash
 brew install fltk zlib
 ```
 
-Patch FLTK Version Check: Oblige 7.70 expects FLTK 1.3. Bypass this check to compile with modern 1.4+ versions,
+Oblige 7.70 expects FLTK 1.3. Bypass this check to compile with modern 1.4+ versions,
 
 ```bash
 cd ../oblige
@@ -128,7 +131,7 @@ python main.py record --module combat
 Compile a randomized BSP map using Oblige and immediately launch a recording session to train spatial generalization.
 
 ```bash
-python main.py generate --episodes 5
+python main.py generate
 ```
 
 ### 3. Intervene

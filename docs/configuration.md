@@ -112,8 +112,50 @@ Configures the external procedural generation engine used to prevent spatial ove
 * **`iterations`**: The number of continuous maps to generate, record, and save during a single run of the `randomize` pipeline.
 * **`duration`**: The maximum lifespan (in seconds) of a recorded episode on a generated map before the pipeline truncates it and moves to the next iteration.
 * **`oblige`**: Defines the specific topological rules and dimensions for the generator.
-  * To enforce extreme geographic variance across iterations, properties can be defined as lists (e.g., `theme: [original, tech, urban, hell]`). The pipeline will dynamically sample a random parameter from the array for every generated map.
-  * Configurable properties include: `game`, `engine`, `length`, `theme`, `size`, `outdoors`, `caves`, `liquids`, `hallways`, `teleporters`, `steepness`, `mons`, `strength`, `health`, `ammo`, and `weapons`.
+
+=== "Engine Settings"
+
+  | Parameter | Description | Possible Values |
+  | --- | --- | --- |
+  | **`game`** | The base target game and asset roster. | `doom1`, `doom2`, `tnt`, `plutonia`, `heretic` |
+  | **`engine`** | The source port format, dictating engine limits and features (like ZDoom slopes). | `vanilla`, `limit_removing`, `boom`, `zdoom` |
+  | **`length`** | The number of maps compiled into the WAD. | `single`, `episode`, `game` |
+  | **`theme`** | The architectural style, texture sets, and skyboxes. | `original`, `tech`, `tech_ish`, `urban`, `urban_ish`, `hell`, `hell_ish`, `jumbled`, `mixed` |
+
+=== "Topology Settings"
+
+  | Parameter | Description | Possible Values |
+  | --- | --- | --- |
+  | **`size`** | The map's geographic footprint and total room count. | `micro`, `small`, `regular`, `large`, `huge`, `epic`, `progressive` |
+  | **`outdoors`** | Frequency of sky-exposed, open-air environments. | `none`, `mixed`, `plenty` |
+  | **`caves`** | Presence of cavernous, natural rock formations. | `none`, `mixed`, `plenty` |
+  | **`liquids`** | Amount of liquid hazards (nukage, lava, water, slime). | `none`, `mixed`, `plenty` |
+  | **`hallways`** | Frequency of narrow corridors connecting main rooms. | `none`, `mixed`, `plenty` |
+  | **`teleporters`** | Inclusion of teleportation pads for traversal. | `none`, `mixed`, `plenty` |
+  | **`steepness`** | Degree of verticality, ledges, stairs, and height variation. | `none`, `mixed`, `plenty` |
+  | **`doors`** | Ratio of physical doors to open archways. | `none`, `some`, `lots` |
+  | **`secrets`** | Number of hidden rooms or illusory walls containing extra resources. | `none`, `mixed`, `plenty` |
+
+=== "Combat Settings"
+
+  | Parameter | Description | Possible Values |
+  | --- | --- | --- |
+  | **`mons`** | The overall density and quantity of monster spawns. | `none`, `sparse`, `normal`, `lots`, `swarms` |
+  | **`strength`** | The toughness and tier-scaling of the spawned enemies. | `easier`, `normal`, `harder`, `tougher` |
+  | **`ramp_up`** | How quickly monster toughness and numbers scale up across an episode or game. | `slow`, `normal`, `fast` |
+  | **`bosses`** | Inclusion and frequency of boss-tier monsters (Cyberdemon, Spider Mastermind). | `none`, `normal`, `lots` |
+  | **`traps`** | Frequency of monster closets that open when picking up items or crossing lines. | `none`, `mixed`, `plenty` |
+  | **`cages`** | Frequency of monsters placed in inaccessible elevated cages or windows. | `none`, `mixed`, `plenty` |
+
+=== "Item Settings"
+
+  | Parameter | Description | Possible Values |
+  | --- | --- | --- |
+  | **`health`** | The abundance of medkits, stimpacks, and health potions. | `starved`, `scarce`, `normal`, `plenty`, `heaps` |
+  | **`ammo`** | The abundance of ammunition pickups and backpacks. | `starved`, `scarce`, `normal`, `plenty`, `heaps` |
+  | **`weapons`** | How early high-tier weapons (SSG, Plasma, BFG) are introduced into the map progression. | `later`, `normal`, `sooner` |
+  | **`powerups`** | Frequency of high-tier powerups (Soulspheres, Megaspheres, Invulnerability, Berserk). | `none`, `scarce`, `normal`, `plenty`, `heaps` |
+  | **`barrels`** | Density of explosive environmental barrels. | `none`, `some`, `lots` |
 
 ### 8. `modules`
 

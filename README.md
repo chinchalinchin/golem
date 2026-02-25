@@ -31,11 +31,13 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 │       └── <mode>/     # Recorded Training Sessions (.npz)
 │   └── model/          # Model Archive
 │       └── <mode>/     # Previous Trained Model Weights (.pth)
+│   └── wads/           # Randomly generate WADs
 ├── app/                # Source Code
-│   ├── client/         # Gameplay Modules (agent, host)
-│   ├── metrics/        # Analysis Modules (audit, examine, inspect, summary)
-│   ├── models/         # Data Models (brain, config, dataset)
-│   ├── pipeline/       # ML Modules (analyze, intervene, record, run, train)
+│   ├── client/         # Gameplay (agent, host)
+│   ├── metrics/        # Analysis (audit, examine, inspect, summary)
+│   ├── models/         # Models (brain, config, dataset)
+│   ├── pipeline/       # Learning (intervene, record, run, train)
+│   ├── sample/         # Maps (randomize, generate)
 │   ├── templates/      # Jinja2 report templates
 │   └── utils           # Application utilities
 ├── tests/              # Unit Tests

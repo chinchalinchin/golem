@@ -55,20 +55,25 @@ randomizer:
   output: "data/wads/"
   iterations: 10
   duration: 45
+  iwads:
+    - "/Users/gmoore/Home/games/doom/wads/doom.wad"
+    - "/Users/gmoore/Home/games/doom/wads/doom2.wad"
+    - "/Users/gmoore/Home/games/doom/wads/plutonia.wad"
+    - "/Users/gmoore/Home/games/doom/wads/tnt.wad"
   oblige:
-    game: doom2
     engine: zdoom
-    length: single      # single, episode, game
+    length: single
+    game: [doom2, doom1, tnt, plutonia]
     theme: [original, tech, urban, hell, jumbled, mixed]
     size: [micro, small, regular]
-    outdoors: [none, mixed, plenty]
-    caves: [none, mixed, plenty]
-    liquids: [none, mixed, plenty]   
-    hallways: [none, mixed, plenty]
-    teleporters: [none, mixed, plenty]
-    steepness: [none, mixed, plenty]
-    mons: [normal, lots]
-    strength: [medium, harder]
+    outdoors: [mixed, plenty]
+    caves: [none]
+    liquids: [none]   
+    hallways: [mixed, plenty]
+    teleporters: [none]
+    steepness: [none, mixed]
+    mons: [normal]
+    strength: [medium]
     health: [normal]
     ammo: [normal]
     weapons: [normal]

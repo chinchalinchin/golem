@@ -21,29 +21,29 @@ class LossType(str, Enum):
     ASL = "asl"
 
 class ObligeConfig(BaseModel):
-    # Allow properties to be defined as static strings or lists for randomized ranges
-    game: Union[str, List[str]] = "doom2"
-    engine: Union[str, List[str]] = "zdoom"
-    length: Union[str, List[str]] = "single"
-    theme: Union[str, List[str]] = "original"
-    size: Union[str, List[str]] = "small"
-    outdoors: Union[str, List[str]] = "mixed"
-    caves: Union[str, List[str]] = "mixed"
-    liquids: Union[str, List[str]] = "none"
-    hallways: Union[str, List[str]] = "mixed"
-    teleporters: Union[str, List[str]] = "none"
-    steepness: Union[str, List[str]] = "mixed"
-    mons: Union[str, List[str]] = "normal"
-    strength: Union[str, List[str]] = "medium"
-    health: Union[str, List[str]] = "normal"
-    ammo: Union[str, List[str]] = "normal"
-    weapons: Union[str, List[str]] = "normal"
+    engine: str = "zdoom"
+    length: str = "single"
+    game: List[str] = ["doom2"]
+    theme: List[str] = ["original"]
+    size: List[str] = ["small"]
+    outdoors: List[str] = ["mixed"]
+    caves: List[str] = ["mixed"]
+    liquids: List[str] = ["none"]
+    hallways: List[str] = ["mixed"]
+    teleporters: List[str]= ["none"]
+    steepness: List[str]= ["mixed"]
+    mons: List[str]= ["normal"]
+    strength: List[str] = ["medium"]
+    health: List[str] = ["normal"]
+    ammo: List[str] = ["normal"]
+    weapons: List[str] = ["normal"]
 
 class RandomizerConfig(BaseModel):
     executable: str
     output: str
     iterations: int = 5
     duration: int = 60
+    iwads: List[str] = []
     oblige: ObligeConfig
 
 class ModuleConfig(BaseModel):

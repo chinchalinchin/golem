@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @register_command("list")
-def list_models(cfg: GolemConfig, mode: str = None):
+def models(cfg: GolemConfig, mode: str = None):
     r"""
     Lists available model archives.
 

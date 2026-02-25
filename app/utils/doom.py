@@ -91,7 +91,8 @@ def get_scenario(scenario_name: str) -> str:
     return scenario_path
 
 
-def get_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER, map_name=None) -> vizdoom.DoomGame:
+def get_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER, 
+             map_name=None, iwad_path=None) -> vizdoom.DoomGame:
     """
     Retrieves a ViZDoom DoomGame instances configured for Golem training.
     """
@@ -104,6 +105,12 @@ def get_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER, ma
     
     game = vizdoom.DoomGame()
     game.load_config(cfg_path)    
+    
+    # Inject Base Game IWAD if provided
+    if iwad_path:
+        logger.info(f"Loading Base Game IWAD: {iwad_path}")
+        game.set_doom_game_path(resolve_path(iwad_path))
+        
     game.set_doom_scenario_path(scenario_path)
     
     # Inject the runtime map override if provided
@@ -130,4 +137,5 @@ def get_game(pth: str, scenario: str, sensors=None, mode=vizdoom.Mode.PLAYER, ma
         if getattr(sensors, 'thermal', False):
             game.set_labels_buffer_enabled(True)  
     return game
+
 

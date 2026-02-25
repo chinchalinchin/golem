@@ -4,3 +4,4 @@ _vizdoom.ini
 data/**/**.npz
 data/**/**.wad
 site/**
+**/examine.png

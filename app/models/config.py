@@ -2,7 +2,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from enum import Enum
 
 # External Libraries
@@ -21,26 +21,29 @@ class LossType(str, Enum):
     ASL = "asl"
 
 class ObligeConfig(BaseModel):
-    game: str = "doom2"
-    engine: str = "zdoom"
-    length: str = "single"
-    theme: str = "original"
-    size: str = "small"
-    outdoors: str = "mixed"
-    caves: str = "mixed"
-    liquids: str = "none"
-    hallways: str = "mixed"
-    teleporters: str = "none"
-    steepness: str = "mixed"
-    mons: str = "normal"
-    strength: str = "medium"
-    health: str = "normal"
-    ammo: str = "normal"
-    weapons: str = "normal"
+    # Allow properties to be defined as static strings or lists for randomized ranges
+    game: Union[str, List[str]] = "doom2"
+    engine: Union[str, List[str]] = "zdoom"
+    length: Union[str, List[str]] = "single"
+    theme: Union[str, List[str]] = "original"
+    size: Union[str, List[str]] = "small"
+    outdoors: Union[str, List[str]] = "mixed"
+    caves: Union[str, List[str]] = "mixed"
+    liquids: Union[str, List[str]] = "none"
+    hallways: Union[str, List[str]] = "mixed"
+    teleporters: Union[str, List[str]] = "none"
+    steepness: Union[str, List[str]] = "mixed"
+    mons: Union[str, List[str]] = "normal"
+    strength: Union[str, List[str]] = "medium"
+    health: Union[str, List[str]] = "normal"
+    ammo: Union[str, List[str]] = "normal"
+    weapons: Union[str, List[str]] = "normal"
 
 class RandomizerConfig(BaseModel):
     executable: str
     output: str
+    iterations: int = 5
+    duration: int = 60
     oblige: ObligeConfig
 
 class ModuleConfig(BaseModel):

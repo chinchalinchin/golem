@@ -52,15 +52,13 @@ def train(cfg: GolemConfig, module_name: str = None, include_recovery: bool = Fa
     
     active_profile = cfg.brain.mode
     base_data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
-    prefix_clean = cfg.data.prefix.rstrip('_')
     
-    if module_name and module_name.lower() != "all":
-        file_pattern = f"{prefix_clean}_{module_name}*.npz"
-        logger.info(f"Training restricted to module: {module_name}")
+    # 1. Load the Dataset
+    if module_name and module_name.lower() == "all":
+        file_pattern = f"{cfg.data.prefix}*.npz"
     else:
-        file_pattern = f"{prefix_clean}_*.npz"        
-        logger.info("Training on ALL available modules (Generalization Mode)")
-
+        file_pattern = f"{cfg.data.prefix}{module_name}*.npz"
+        
     # Aggregate target directories
     data_dirs = [base_data_dir]
     if include_recovery:

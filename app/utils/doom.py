@@ -1,5 +1,6 @@
 # Standard Libraries
 import os
+import random
 import logging
 import subprocess
 import shutil
@@ -24,13 +25,15 @@ class ObligeGenerator:
         self.executable = resolve_path(cfg.executable)
         self.output_dir = Path(resolve_path(cfg.output))
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.oblige = cfg.oblige
+        
+        # Dump the Pydantic model into a dict so we can sample from it
+        self.base_oblige_config = cfg.oblige.model_dump()
 
         if not os.path.exists(self.executable):
             raise FileNotFoundError(f"Oblige executable not found at: {self.executable}")
 
     def build_map(self, filename: str = "golem_procgen.wad") -> str:
-        """Compiles the map using the headless CLI."""
+        """Compiles the map using the headless CLI with randomized parameters."""
         target_wad_absolute = str(self.output_dir / filename)
         temp_wad_name = "temp_batch.wad" 
 
@@ -38,10 +41,15 @@ class ObligeGenerator:
         #       when it is called with an absolute path. This hack emulates the terminal exactly by 
         #       forcing argv[0] to be "./Oblige" instead of the absolute path.
         args = ["./Oblige", "--batch", temp_wad_name]
-        for key, value in self.oblige.items():
-            args.append(f"{key}={value}")
+        
+        # Dynamically sample from lists to randomize the map config on the fly
+        active_params = {}
+        for key, value in self.base_oblige_config.items():
+            chosen_val = random.choice(value) if isinstance(value, list) else value
+            active_params[key] = chosen_val
+            args.append(f"{key}={chosen_val}")
             
-        logger.info(f"Compiling procedural map with parameters: {self.oblige}")
+        logger.info(f"Compiling procedural map with parameters: {active_params}")
         
         try:
             oblige_dir = os.path.dirname(self.executable)
@@ -60,6 +68,7 @@ class ObligeGenerator:
             logger.error(f"Oblige STDOUT:\n{e.stdout}") 
             logger.error(f"Oblige STDERR:\n{e.stderr}")
             raise
+
 
 def get_scenario(scenario_name: str) -> str:
     """

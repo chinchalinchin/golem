@@ -66,16 +66,17 @@ def examine(cfg: GolemConfig, module_name: str = "all", target_file: str = None,
     device = torch.device('mps') if torch.backends.mps.is_available() else torch.device("cpu")
     active_profile = cfg.brain.mode
     data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
-    prefix_clean = cfg.data.prefix.rstrip('_')
     
     # 1. Load the Dataset
+    print(data_dir)
     if module_name and module_name.lower() == "all":
-        file_pattern = f"{prefix_clean}_*.npz"
+        file_pattern = f"{cfg.data.prefix}*.npz"
     else:
-        file_pattern = f"{prefix_clean}_{module_name}*.npz"
-            
+        file_pattern = f"{cfg.data.prefix}{module_name}*.npz"
+        
+    print(file_pattern)
     dataset = DoomStreamingDataset(
-        str(data_dir), 
+        [ str(data_dir) ], 
         seq_len=cfg.training.sequence_length,
         file_pattern=file_pattern,
         augment=False,
@@ -220,7 +221,7 @@ def examine(cfg: GolemConfig, module_name: str = "all", target_file: str = None,
         axes[3].set_title(f"Thermal Grad-CAM\nTarget: {target_name}")
         axes[3].axis('off')
 
-    out_path = Path("examine_output.png")
+    out_path = Path("examine.png")
     plt.tight_layout()
     plt.savefig(out_path, dpi=150, bbox_inches='tight')
     plt.close(fig)

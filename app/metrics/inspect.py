@@ -33,7 +33,6 @@ def inspect(cfg: GolemConfig, target_file: str = None):
             currently active profile. Default: ``None``.
     """
     active_profile = cfg.brain.mode
-    prefix_clean = cfg.data.prefix.rstrip('_')
     
     if target_file:
         file_path = Path(target_file)
@@ -42,7 +41,7 @@ def inspect(cfg: GolemConfig, target_file: str = None):
     else:
         data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
         
-        files = list(data_dir.glob(f"{prefix_clean}_*.npz"))
+        files = list(data_dir.glob(f"{cfg.data.prefix}_*.npz"))
         
         if not files:
             logger.error(f"No data files found in {data_dir}")

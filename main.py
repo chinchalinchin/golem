@@ -8,8 +8,8 @@ from app.models.config import GolemConfig
 from app.utils.conf import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
-from app.pipeline import intervene, train, record, run, generate
 from app.metrics import audit, examine, inspect, list_models, summary
+from app.pipeline import intervene, train, record, run, generate, randomize
 from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")
@@ -26,6 +26,11 @@ def main():
     parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
     parser.add_argument("--recovery", action="store_true", help="Include recovery (DAgger) data in training")
     parser.add_argument("--episodes", type=int, help="Number of episodes to record/generate", default=5)
+    parser.add_argument("--index", type=int, help="Specific sequence index to target", default=0)
+    
+    # Randomizer specific runtime overrides
+    parser.add_argument("--iterations", type=int, help="Override randomizer loop iterations", default=None)
+    parser.add_argument("--duration", type=int, help="Override randomizer recording duration in seconds", default=None)
 
     args = parser.parse_args()
 
@@ -35,6 +40,10 @@ def main():
         # Apply runtime overrides
         if args.mode:
             cfg.brain.mode = args.mode
+        if args.iterations is not None:
+            cfg.randomizer.iterations = args.iterations
+        if args.duration is not None:
+            cfg.randomizer.duration = args.duration
             
         setup_logging(cfg.app.log_level)
     except Exception as e:
@@ -65,6 +74,8 @@ def main():
         kwargs['episodes'] = args.episodes
     if 'mode' in sig.parameters:
         kwargs['mode'] = args.mode
+    if 'index' in sig.parameters:
+        kwargs['index'] = args.index
 
     # Execute the resolved function
     func(cfg, **kwargs)

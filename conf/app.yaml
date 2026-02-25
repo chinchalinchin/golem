@@ -15,12 +15,12 @@ data:
     model: "data/model/"
 # ------------------------------------------------------ BRAIN
 brain:
-  mode: "simple"
+  mode: "basic"
   sensors:
     visual: true
     depth: false
     audio: false
-    thermal: false
+    thermal: true
   activation: 0.5
   cortical_depth: 3
   working_memory: 128
@@ -53,23 +53,25 @@ training:
 randomizer:
   executable: "/Users/gmoore/Home/lib/oblige/Oblige"
   output: "data/wads/"
+  iterations: 10
+  duration: 45
   oblige:
     game: doom2
     engine: zdoom
     length: single      # single, episode, game
-    theme: original     # original, tech, urban, hell, jumbled, mixed
-    size: small         # small
-    outdoors: mixed     # none, mixed, plenty
-    caves: mixed        # none, mixed, plenty
-    liquids: none       # none, mixed, plenty   
-    hallways: mixed     # none, mixed, plenty
-    teleporters: none   # none, mixed, plenty
-    steepness: mixed    # none, mixed, plenty
-    mons: normal        # normal, lots, nuts
-    strength: medium
-    health: normal
-    ammo: normal
-    weapons: normal
+    theme: [original, tech, urban, hell, jumbled, mixed]
+    size: [micro, small, regular]
+    outdoors: [none, mixed, plenty]
+    caves: [none, mixed, plenty]
+    liquids: [none, mixed, plenty]   
+    hallways: [none, mixed, plenty]
+    teleporters: [none, mixed, plenty]
+    steepness: [none, mixed, plenty]
+    mons: [normal, lots]
+    strength: [medium, harder]
+    health: [normal]
+    ammo: [normal]
+    weapons: [normal]
 # ------------------------------------------------------ MODULES
 modules:
   # --- Original ViZDoom Defaults ---
@@ -106,7 +108,7 @@ modules:
     map: "map01"
     episodes: 5
   random:
-    scenario: "/Users/gmoore/Home/games/doom/wads/random2.wad"
+    scenario: "/Users/gmoore/Home/lib/golem/data/wads/temp.wad"
     map: "map01"
     episodes: 1
   # --- External / Community RL WADs ---
@@ -129,11 +131,11 @@ modules:
   # --- Retail IWADs ---
   doom:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom.wad"
-    map: "E1M2"
+    map: "E1M5"
     episodes: 1
   doom2:
     scenario: "/Users/gmoore/Home/games/doom/wads/doom2.wad"
-    map: "map01"
+    map: "map02"
     episodes: 1
   plutonia:
     scenario: "/Users/gmoore/Home/games/doom/wads/plutonia.wad"

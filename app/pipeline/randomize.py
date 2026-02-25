@@ -52,9 +52,6 @@ def randomize(cfg: GolemConfig):
     # Instantiate the existing generator wrapper
     generator = ObligeGenerator(cfg.randomizer)
 
-    # Cache the original config dictionary so we can randomly sample from the lists on each loop
-    base_oblige_ranges = cfg.randomizer.oblige.model_dump()
-
     stop_recording = False
     abort_all = False
 
@@ -77,14 +74,6 @@ def randomize(cfg: GolemConfig):
                 
             stop_recording = False
             logger.info(f"--- Iteration {i+1}/{iterations} ---")
-            
-            # 1. Randomize the config in-memory for the generator
-            randomized_oblige = {}
-            for key, val in base_oblige_ranges.items():
-                randomized_oblige[key] = random.choice(val) if isinstance(val, list) else val
-            
-            # Override the generator's oblige attribute with the flat randomized dictionary
-            generator.oblige = randomized_oblige
                 
             try:
                 # Delegate the safe subprocess execution to the existing utility

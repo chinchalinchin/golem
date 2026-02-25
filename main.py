@@ -11,7 +11,7 @@ from app.utils.conf import setup_logging, COMMAND_REGISTRY
 from app.client import remote, server, spectate, client
 from app.metrics import audit, examine, inspect, models, summary
 from app.pipeline import intervene, train, record, run
-from app.sample import generate, randomize
+from app.sample import generate, randomize, init
 
 logger = logging.getLogger("main")
 

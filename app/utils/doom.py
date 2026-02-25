@@ -22,25 +22,26 @@ logger = logging.getLogger(__name__)
 
 class ObligeGenerator:
     def __init__(self, cfg: RandomizerConfig):
-        self.executable = resolve_path(cfg.executable)
-        self.output_dir = Path(resolve_path(cfg.output))
+        # We ensure the output directory is an absolute path for Docker volume mounting
+        self.output_dir = Path(resolve_path(cfg.output)).absolute()
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Dump the Pydantic model into a dict so we can sample from it
         self.base_oblige_config = cfg.oblige.model_dump()
 
-        if not os.path.exists(self.executable):
-            raise FileNotFoundError(f"Oblige executable not found at: {self.executable}")
-
     def build_map(self, filename: str = "golem_procgen.wad") -> str:
-        """Compiles the map using the headless CLI with randomized parameters."""
+        """Compiles the map using the containerized Oblige engine with randomized parameters."""
         target_wad_absolute = str(self.output_dir / filename)
-        temp_wad_name = "temp_batch.wad" 
+        temp_wad_name = "temp.wad" 
+        container_output_dir = "/output"
 
-        # HACK: There is an issue with how Oblige discovered the working directory of the executable
-        #       when it is called with an absolute path. This hack emulates the terminal exactly by 
-        #       forcing argv[0] to be "./Oblige" instead of the absolute path.
-        args = ["./Oblige", "--batch", temp_wad_name]
+        # Execute via Docker, mounting the host output directory to the container
+        args = [
+            "docker", "run", "--rm",
+            "-v", f"{self.output_dir}:{container_output_dir}",
+            "golem-oblige:latest",
+            "--batch", f"{container_output_dir}/{temp_wad_name}"
+        ]
         
         # Dynamically sample from lists to randomize the map config on the fly
         active_params = {}
@@ -49,24 +50,23 @@ class ObligeGenerator:
             active_params[key] = chosen_val
             args.append(f"{key}={chosen_val}")
             
-        logger.info(f"Compiling procedural map with parameters: {active_params}")
+        logger.info(f"Compiling procedural map via Docker with parameters: {active_params}")
         
         try:
-            oblige_dir = os.path.dirname(self.executable)
-            subprocess.run(args, check=True, capture_output=True, text=True, cwd=oblige_dir)
+            subprocess.run(args, check=True, capture_output=True, text=True)
             
-            compiled_temp_path = os.path.join(oblige_dir, temp_wad_name)
-            if os.path.exists(compiled_temp_path):
-                shutil.move(compiled_temp_path, target_wad_absolute)
+            compiled_temp_path = self.output_dir / temp_wad_name
+            if compiled_temp_path.exists():
+                shutil.move(str(compiled_temp_path), target_wad_absolute)
                 logger.info(f"Map compiled and moved successfully: {target_wad_absolute}")
                 return target_wad_absolute
             else:
-                raise FileNotFoundError("Oblige returned success, but the temporary WAD file is missing.")
+                raise FileNotFoundError("Docker returned success, but the temporary WAD file is missing.")
                 
         except subprocess.CalledProcessError as e:
-            logger.error(f"Oblige compilation failed with exit code {e.returncode}.")
-            logger.error(f"Oblige STDOUT:\n{e.stdout}") 
-            logger.error(f"Oblige STDERR:\n{e.stderr}")
+            logger.error(f"Oblige container failed with exit code {e.returncode}.")
+            logger.error(f"Docker STDOUT:\n{e.stdout}") 
+            logger.error(f"Docker STDERR:\n{e.stderr}")
             raise
 
 

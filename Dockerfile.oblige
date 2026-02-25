@@ -22,7 +22,7 @@ WORKDIR /build
 # Download, extract, and build Oblige 7.7.0
 RUN wget http://sourceforge.net/projects/oblige/files/Oblige/7.70/oblige-770-source.zip && \
     unzip oblige-770-source.zip && \
-    mv oblige-770-source oblige
+    mv Oblige-7.70-source oblige
 
 WORKDIR /build/oblige
 
@@ -35,8 +35,10 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install only the runtime libraries required to execute the binary
+# Added libfltk-images1.3 to resolve the missing libfltk_images.so.1.3 dependency
 RUN apt-get update && apt-get install -y \
     libfltk1.3 \
+    libfltk-images1.3 \
     zlib1g \
     libxft2 \
     libxinerama1 \
@@ -57,4 +59,4 @@ COPY --from=builder /build/oblige/language/ ./language/
 COPY --from=builder /build/oblige/data/ ./data/
 
 # Default entrypoint routes to the executable
-ENTRYPOINT ["/opt/oblige/Oblige"]
+ENTRYPOINT ["./Oblige"]

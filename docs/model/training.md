@@ -166,6 +166,10 @@ The data extraction, LNN optimization, and evaluation mechanics are orchestrated
 
 ### Data Inspection & Auditing
 
-::: app.pipeline.analyze.inspect
+::: app.metrics.audit
 
-::: app.pipeline.analyze.audit
+::: app.metrics.examine
+
+::: app.metrics.inspect
+
+::: app.metrics.summary

@@ -627,6 +627,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#issue-4-live-empirical-benchmarking-pipeline-headless-rollouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4: Live Empirical Benchmarking Pipeline (Headless Rollouts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#issue-5-latent-state-visualization-mapping-the-liquid-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5: Latent State Visualization (Mapping the Liquid Core)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -758,6 +780,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#issue-4-live-empirical-benchmarking-pipeline-headless-rollouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4: Live Empirical Benchmarking Pipeline (Headless Rollouts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#issue-5-latent-state-visualization-mapping-the-liquid-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5: Latent State Visualization (Mapping the Liquid Core)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -800,6 +844,26 @@
 <ol>
 <li>Establish a dedicated <code>data/validation/</code> directory. Update the ETL pipeline (<code>record.py</code>, <code>intervene.py</code>) to randomly route 10-15% of recorded episodes into this holdout folder.</li>
 <li>Modify the <code>audit</code> command to strictly target this validation directory.</li>
+</ol>
+<h2 id="issue-4-live-empirical-benchmarking-pipeline-headless-rollouts">Issue 4: Live Empirical Benchmarking Pipeline (Headless Rollouts)</h2>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> High | <strong>Opened</strong>: 2026/02/24</p>
+<p><strong>Description:</strong></p>
+<p>Currently, models are exclusively evaluated using static classification metrics (Precision/Recall) via the <code>audit</code> command. While this confirms the agent learned to mimic keystrokes, it fails to measure true agentic performance within the continuous POMDP. A 95% imitation accuracy can still yield a 0% survival rate if the 5% error margin results in catastrophic environmental failure (e.g., walking into environmental hazards or failing to dodge).</p>
+<p><strong>Proposed Solution:</strong></p>
+<ol>
+<li>Implement an automated <code>benchmark</code> pipeline command that executes headless ViZDoom engine rollouts across <span class="arithmatex">\(N\)</span> episodes.</li>
+<li>Track, aggregate, and report true environmental variables rather than classification logits (e.g., average survival time, Kill/Death ratio, ammo efficiency, and total damage taken). </li>
+<li>(Optional) Script an automated tournament utilizing the existing <code>docker-compose</code> VDAIC arena to establish an ELO rating for different Golem model iterations against legacy bots.</li>
+</ol>
+<h2 id="issue-5-latent-state-visualization-mapping-the-liquid-core">Issue 5: Latent State Visualization (Mapping the Liquid Core)</h2>
+<p><strong>Status:</strong> Open | <strong>Priority:</strong> Medium | <strong>Opened</strong>: 2026/02/24</p>
+<p><strong>Description:</strong></p>
+<p>The defining feature of the Liquid Neural Network is its continuous hidden state <span class="arithmatex">\(x(t)\)</span> and its input-dependent varying time-constant. However, this state is currently a black box during both training and inference. We lack the tooling to verify if the network is actually learning meaningful phenomenological abstractions, or if the latent space is just a uniform, un-clustered blob.</p>
+<p><strong>Proposed Solution:</strong></p>
+<ol>
+<li>Create a tracing mechanism within the <code>run</code> loop to capture the <code>hx</code> state vectors and CfC gating activations over the course of a live episode.</li>
+<li>Integrate dimensionality reduction tooling (UMAP or t-SNE) to project the high-dimensional latent traces into 2D/3D space, color-coded by the active environmental context (e.g., combat vs. exploration), to visually confirm geometric state clustering.</li>
+<li>Plot the network's time-constant derivatives to verify the agent's memory horizon correctly "stretches" during quiet maze navigation and "snaps" (becomes highly reactive) during sudden threat stimuli.</li>
 </ol>
 
 

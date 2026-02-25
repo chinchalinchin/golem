@@ -1059,9 +1059,10 @@
 <h3 id="2-config">2. <code>config</code></h3>
 <p>Maps the high-level brain modes to the specific underlying ViZDoom <code>.cfg</code> files. These files dictate the engine's available buttons and game variables.</p>
 <ul>
-<li><strong><code>basic</code></strong>: Maps to <code>conf/basic.cfg</code> (8 dimensions).</li>
-<li><strong><code>classic</code></strong>: Maps to <code>conf/classic.cfg</code> (10 dimensions).</li>
-<li><strong><code>fluid</code></strong>: Maps to <code>conf/fluid.cfg</code> (9 dimensions).</li>
+<li><strong><code>simple</code></strong>: Maps to <code>conf/simple.cfg</code> (7 dimensions: Movement + Turn + Attack).</li>
+<li><strong><code>basic</code></strong>: Maps to <code>conf/basic.cfg</code> (8 dimensions: Super-set adding Use).</li>
+<li><strong><code>classic</code></strong>: Maps to <code>conf/classic.cfg</code> (10 dimensions: Super-set adding Explicit weapon slots).</li>
+<li><strong><code>fluid</code></strong>: Maps to <code>conf/fluid.cfg</code> (9 dimensions: Super-set adding Sequential weapon toggles).</li>
 </ul>
 <h3 id="3-data">3. <code>data</code></h3>
 <p>Defines the file routing and prefix naming conventions for the ETL pipeline.</p>
@@ -1081,7 +1082,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><code>mode</code></strong></td>
-<td style="text-align: left;">The active profile (<code>basic</code>, <code>classic</code>, or <code>fluid</code>). This dictates which configuration dictionary is loaded across the pipeline.</td>
+<td style="text-align: left;">The active profile (<code>simple</code>, <code>basic</code>, <code>classic</code>, or <code>fluid</code>). This dictates which configuration dictionary is loaded across the pipeline.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>cortical_depth</code></strong></td>
@@ -1090,6 +1091,10 @@
 <tr>
 <td style="text-align: left;"><strong><code>working_memory</code></strong></td>
 <td style="text-align: left;">The number of hidden units in the CfC liquid core, defining the capacity of the agent's continuous temporal state.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>activation</code></strong></td>
+<td style="text-align: left;">The probability threshold (e.g., <code>0.5</code>) applied to the LNN's sigmoid logits during live inference to determine if a multi-label action should be triggered.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>sensors</code></strong></td>
@@ -1202,15 +1207,202 @@
 </ul>
 <p><strong>The Interplay:</strong> These two parameters are mathematically coupled. A common deep learning heuristic is the <em>Linear Scaling Rule</em>: if you double your <code>batch_size</code> (smoothing the gradient), you should generally double your <code>learning_rate</code> to maintain the same training dynamics and convergence speed.</p>
 <h3 id="7-randomizer">7. <code>randomizer</code></h3>
-<p>Configures the external procedural generation engine used to prevent spatial overfitting and Covariate Shift.</p>
+<p>Configures the external procedural generation engine used to prevent spatial overfitting and Covariate Shift. The <code>randomize</code> pipeline utilizes this block to inject massive geographic variance into the training corpus.</p>
 <ul>
 <li><strong><code>executable</code></strong>: The absolute path to the compiled Oblige 7.70 binary.</li>
-<li><strong><code>output</code></strong>: The directory where procedurally generated <code>.wad</code> files are stored before being loaded by the <code>generate</code> pipeline.</li>
+<li><strong><code>output</code></strong>: The directory where procedurally generated <code>.wad</code> files are stored before being loaded by the pipeline.</li>
+<li><strong><code>iterations</code></strong>: The number of continuous maps to generate, record, and save during a single run of the <code>randomize</code> pipeline.</li>
+<li><strong><code>duration</code></strong>: The maximum lifespan (in seconds) of a recorded episode on a generated map before the pipeline truncates it and moves to the next iteration.</li>
+<li><strong><code>oblige</code></strong>: Defines the specific topological rules and dimensions for the generator.</li>
 </ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Engine Settings</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Possible Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>game</code></strong></td>
+<td>The base target game and asset roster.</td>
+<td><code>doom1</code>, <code>doom2</code>, <code>tnt</code>, <code>plutonia</code>, <code>heretic</code></td>
+</tr>
+<tr>
+<td><strong><code>engine</code></strong></td>
+<td>The source port format, dictating engine limits and features (like ZDoom slopes).</td>
+<td><code>vanilla</code>, <code>limit_removing</code>, <code>boom</code>, <code>zdoom</code></td>
+</tr>
+<tr>
+<td><strong><code>length</code></strong></td>
+<td>The number of maps compiled into the WAD.</td>
+<td><code>single</code>, <code>episode</code>, <code>game</code></td>
+</tr>
+<tr>
+<td><strong><code>theme</code></strong></td>
+<td>The architectural style, texture sets, and skyboxes.</td>
+<td><code>original</code>, <code>tech</code>, <code>tech_ish</code>, <code>urban</code>, <code>urban_ish</code>, <code>hell</code>, <code>hell_ish</code>, <code>jumbled</code>, <code>mixed</code></td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Topology Settings</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Possible Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>size</code></strong></td>
+<td>The map's geographic footprint and total room count.</td>
+<td><code>micro</code>, <code>small</code>, <code>regular</code>, <code>large</code>, <code>huge</code>, <code>epic</code>, <code>progressive</code></td>
+</tr>
+<tr>
+<td><strong><code>outdoors</code></strong></td>
+<td>Frequency of sky-exposed, open-air environments.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>caves</code></strong></td>
+<td>Presence of cavernous, natural rock formations.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>liquids</code></strong></td>
+<td>Amount of liquid hazards (nukage, lava, water, slime).</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>hallways</code></strong></td>
+<td>Frequency of narrow corridors connecting main rooms.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>teleporters</code></strong></td>
+<td>Inclusion of teleportation pads for traversal.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>steepness</code></strong></td>
+<td>Degree of verticality, ledges, stairs, and height variation.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>doors</code></strong></td>
+<td>Ratio of physical doors to open archways.</td>
+<td><code>none</code>, <code>some</code>, <code>lots</code></td>
+</tr>
+<tr>
+<td><strong><code>secrets</code></strong></td>
+<td>Number of hidden rooms or illusory walls containing extra resources.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Combat Settings</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Possible Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>mons</code></strong></td>
+<td>The overall density and quantity of monster spawns.</td>
+<td><code>none</code>, <code>sparse</code>, <code>normal</code>, <code>lots</code>, <code>swarms</code></td>
+</tr>
+<tr>
+<td><strong><code>strength</code></strong></td>
+<td>The toughness and tier-scaling of the spawned enemies.</td>
+<td><code>easier</code>, <code>normal</code>, <code>harder</code>, <code>tougher</code></td>
+</tr>
+<tr>
+<td><strong><code>ramp_up</code></strong></td>
+<td>How quickly monster toughness and numbers scale up across an episode or game.</td>
+<td><code>slow</code>, <code>normal</code>, <code>fast</code></td>
+</tr>
+<tr>
+<td><strong><code>bosses</code></strong></td>
+<td>Inclusion and frequency of boss-tier monsters (Cyberdemon, Spider Mastermind).</td>
+<td><code>none</code>, <code>normal</code>, <code>lots</code></td>
+</tr>
+<tr>
+<td><strong><code>traps</code></strong></td>
+<td>Frequency of monster closets that open when picking up items or crossing lines.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+<tr>
+<td><strong><code>cages</code></strong></td>
+<td>Frequency of monsters placed in inaccessible elevated cages or windows.</td>
+<td><code>none</code>, <code>mixed</code>, <code>plenty</code></td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Item Settings</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Possible Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>health</code></strong></td>
+<td>The abundance of medkits, stimpacks, and health potions.</td>
+<td><code>starved</code>, <code>scarce</code>, <code>normal</code>, <code>plenty</code>, <code>heaps</code></td>
+</tr>
+<tr>
+<td><strong><code>ammo</code></strong></td>
+<td>The abundance of ammunition pickups and backpacks.</td>
+<td><code>starved</code>, <code>scarce</code>, <code>normal</code>, <code>plenty</code>, <code>heaps</code></td>
+</tr>
+<tr>
+<td><strong><code>weapons</code></strong></td>
+<td>How early high-tier weapons (SSG, Plasma, BFG) are introduced into the map progression.</td>
+<td><code>later</code>, <code>normal</code>, <code>sooner</code></td>
+</tr>
+<tr>
+<td><strong><code>powerups</code></strong></td>
+<td>Frequency of high-tier powerups (Soulspheres, Megaspheres, Invulnerability, Berserk).</td>
+<td><code>none</code>, <code>scarce</code>, <code>normal</code>, <code>plenty</code>, <code>heaps</code></td>
+</tr>
+<tr>
+<td><strong><code>barrels</code></strong></td>
+<td>Density of explosive environmental barrels.</td>
+<td><code>none</code>, <code>some</code>, <code>lots</code></td>
+</tr>
+</tbody>
+</table>
 <h3 id="8-modules">8. <code>modules</code></h3>
 <p>A dictionary mapping human-readable task names (e.g., <code>combat</code>, <code>navigation</code>) to their specific <code>.wad</code> scenario files and the default number of episodes to record during extraction.</p>
 <h3 id="9-keybindings">9. <code>keybindings</code></h3>
-<p>A dictionary mapping the agent's action space profiles (<code>basic</code>, <code>classic</code>, <code>fluid</code>) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during <code>record</code> and mapped to <code>pynput</code> listeners during <code>intervene</code>.</p>
+<p>A dictionary mapping the agent's action space profiles (<code>simple</code>, <code>basic</code>, <code>classic</code>, <code>fluid</code>) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during <code>record</code> and mapped to <code>pynput</code> listeners during <code>intervene</code>.</p>
 
 
 

@@ -1120,7 +1120,6 @@
 <li><strong>The Temporal Constant:</strong> Sequence length (<code>sequence_length</code>) should rarely drop below 32 for combat modules, regardless of the loss function. The LNN's Closed-form Continuous (CfC) cells need a sufficiently long temporal runway to establish the causal link between an action (firing a weapon) and its delayed effect (a projectile hitting a target).</li>
 <li><strong>Epoch Scaling:</strong> Deeper cortical depths (<code>cortical_depth</code> 3 or 4) increase the convolutional parameter count significantly. You will likely need to push your epochs beyond 150 to achieve convergence on deep networks, particularly when using Asymmetric Loss which aggressively throttles gradient flow for background frames.</li>
 </ul>
-<p>Would you like me to append this table to the new <code>docs/field_guide.md</code>, and then proceed with updating the <code>README.md</code> architecture section to reflect the new dynamic model naming schema we built?</p>
 
 
 

@@ -857,13 +857,11 @@
 <h3 id="data-pipeline-phases">Data Pipeline Phases</h3>
 <ol>
 <li><strong>Extract (Perception):</strong> Interfaces with <code>libvizdoom</code> to capture the raw phenomenological buffers (RGB screen, stereoscopic depth, high-frequency stereo audio, and semantic labels). Latent game variables (health, ammo, coordinates) are explicitly discarded to force multi-modal heuristic learning.</li>
-<li>
-<p><strong>Transform (Normalization &amp; DSP):</strong> * <strong>Visual &amp; Depth:</strong> Downsampling via bilinear interpolation (64x64) and min-max scaling ().</p>
-<ul>
+<li><strong>Transform (Normalization &amp; DSP):</strong> * <strong>Visual &amp; Depth:</strong> Downsampling via bilinear interpolation (64x64) and min-max scaling ().</li>
 <li><strong>Thermal:</strong> Binary thresholding of the semantic labels buffer to isolate active entities, followed by nearest-neighbor downsampling (64x64).</li>
 <li><strong>Audio:</strong> Zero-mean, unit-variance normalization, transformed via STFT into dense 2D time-frequency Mel Spectrograms, and logarithmically scaled to decibels.</li>
-<li><strong>Channel Permutation:</strong> Matrix transposition for PyTorch (<code>N, C, H, W</code>).</li>
-</ul>
+<li>
+<p><strong>Channel Permutation:</strong> Matrix transposition for PyTorch (<code>N, C, H, W</code>).</p>
 </li>
 <li>
 <p><strong>Load (Inference/Training):</strong> Feeds dynamic sequence tensors into the parallel Convolutional Neural Networks (Visual, Auditory, Thermal cortices) before concatenating the latent features into the <strong>Neural Circuit Policy (NCP)</strong> to generate action probability distributions.</p>
@@ -906,7 +904,7 @@ pip install -r requirements.txt
 <hr />
 <h2 id="usage-cycle">🛠 Usage Cycle</h2>
 <p>Golem operates in a continuous iterative loop. Select a phase below to view the command syntax.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:8"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><input id="__tabbed_2_8" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Record</label><label for="__tabbed_2_3">3. Intervene</label><label for="__tabbed_2_4">4. Inspect</label><label for="__tabbed_2_5">5. Train</label><label for="__tabbed_2_6">6. Audit</label><label for="__tabbed_2_7">7. Summary</label><label for="__tabbed_2_8">8. Run</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:11"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><input id="__tabbed_2_6" name="__tabbed_2" type="radio" /><input id="__tabbed_2_7" name="__tabbed_2" type="radio" /><input id="__tabbed_2_8" name="__tabbed_2" type="radio" /><input id="__tabbed_2_9" name="__tabbed_2" type="radio" /><input id="__tabbed_2_10" name="__tabbed_2" type="radio" /><input id="__tabbed_2_11" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">1. Configure</label><label for="__tabbed_2_2">2. Generate</label><label for="__tabbed_2_3">3. Randomize</label><label for="__tabbed_2_4">4. Record</label><label for="__tabbed_2_5">5. Inspect</label><label for="__tabbed_2_6">6. Train</label><label for="__tabbed_2_7">7. Audit</label><label for="__tabbed_2_8">8. Intervene</label><label for="__tabbed_2_9">9. Summary</label><label for="__tabbed_2_10">10. Run</label><label for="__tabbed_2_11">11. Examine</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Before running, verify your hyperparameters, architectural depths, and active profile in <strong><code>conf/app.yaml</code></strong>. </p>
@@ -925,16 +923,20 @@ pip install -r requirements.txt
 </ul>
 </div>
 <div class="tabbed-block">
-<p>Launch the engine in <strong>Spectator Mode</strong> to capture training data. The engine binds keys dynamically based on the active profile in <code>app.yaml</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Usage: python main.py record --module &lt;module_name&gt;</span>
-python<span class="w"> </span>main.py<span class="w"> </span>record<span class="w"> </span>--module<span class="w"> </span>combat
+<p>Compile a randomized BSP map using the Oblige procedural generation engine. This helps inject massive geographic variance into the training corpus to prevent spatial overfitting.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>generate
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<p>Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold <strong>Left Shift</strong> to suspend the LNN logits and capture raw keyboard overrides. </p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>intervene<span class="w"> </span>--module<span class="w"> </span>combat
+<p>Run a continuous pipeline to procedurally generate maps, launch the engine, and record expert demonstration data across highly varied topological environments.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>randomize
 </code></pre></div>
-<p>Releasing the key automatically dumps a <code>_recovery</code> trace file to cure Covariate Shift.</p>
+</div>
+<div class="tabbed-block">
+<p>Launch the engine in <strong>Spectator Mode</strong> to capture training data manually on specific modules. The engine binds keys dynamically based on the active profile in <code>app.yaml</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Usage: python main.py record --module &lt;module_name&gt;</span>
+python<span class="w"> </span>main.py<span class="w"> </span>record<span class="w"> </span>--module<span class="w"> </span>combat
+</code></pre></div>
 </div>
 <div class="tabbed-block">
 <p>Verify your dataset is balanced and normalized before training via Jinja2 template reports.</p>
@@ -961,6 +963,12 @@ python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w
 </code></pre></div>
 </div>
 <div class="tabbed-block">
+<p>Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold <strong>Left Shift</strong> to suspend the LNN logits and capture raw keyboard overrides. </p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>intervene<span class="w"> </span>--module<span class="w"> </span>combat
+</code></pre></div>
+<p>Releasing the key automatically dumps a <code>_recovery</code> trace file to cure Covariate Shift.</p>
+</div>
+<div class="tabbed-block">
 <p>Generate a topological breakdown of the active neural architecture via <code>torchinfo</code>. This executes a dummy forward pass to validate that the active sensor cortices are dynamically scaling and concatenating properly into the liquid core.</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>summary
 </code></pre></div>
@@ -968,6 +976,11 @@ python<span class="w"> </span>main.py<span class="w"> </span>audit<span class="w
 <div class="tabbed-block">
 <p>Watch the LNN play the game live. The agent manages a continuous hidden state (<code>hx</code>) through the Liquid ODEs.</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>run<span class="w"> </span>--module<span class="w"> </span>combat
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>To get a sense of what frames are activating the model during gameplay, generate heat maps of the final convolution's output during a particular sequence of training data. </p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span>examine<span class="w"> </span>--sequence<span class="w"> </span><span class="m">100</span>
 </code></pre></div>
 </div>
 </div>

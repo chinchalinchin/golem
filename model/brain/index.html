@@ -982,8 +982,8 @@
     end
 
     subgraph AudCortex [Auditory Cortex]
-        DSP["DSP: MelSpectrogram\n&amp; AmplitudeToDB"]
-        Mel["2D Spectrogram\n(2 x H_mels x W_time)"]
+        DSP["DSP: MelSpectrogram &amp; AmplitudeToDB"]
+        Mel["2D Spectrogram (2 x H_mels x W_time)"]
         AudCNN["3 Conv2d Layers + ReLU(stride=2, padding=1)"]
         AudPool["AdaptiveAvgPool2d(1, 1)"]
         AudFlat["Flatten"]

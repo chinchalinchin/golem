@@ -13,8 +13,9 @@ import vizdoom
 # Application Libraries
 from app.models.config import GolemConfig, SensorsConfig
 from app.utils.conf import resolve_path, get_unique_filename, register_command
-from app.utils.doom import get_game, ObligeGenerator
+from app.utils.doom import get_game
 from app.utils.model import SensoryExtractor
+from app.sample.interfaces import ObligeGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -75,17 +76,20 @@ def randomize(cfg: GolemConfig):
             stop_recording = False
             logger.info(f"--- Iteration {i+1}/{iterations} ---")
             
+            # 1. Select the Game ID and IWAD path simultaneously from the dict
+            if not cfg.randomizer.iwads:
+                logger.error("No IWADs configured in app.yaml.")
+                break
+                
+            _, selected_iwad = random.choice(list(cfg.randomizer.iwads.items()))
+
             try:
-                # Delegate the safe subprocess execution to the existing utility
-                target_wad_path = generator.build_map("temp_random.wad")
+                target_wad_path = generator.build_map("temp.wad")
             except Exception as e:
                 logger.error(f"ObligeGenerator failed: {e}")
                 continue
             
-            # Select a random base game IWAD from the configuration
-            selected_iwad = random.choice(cfg.randomizer.iwads) if cfg.randomizer.iwads else None
-            
-            # 2. Init ViZDoom with the newly generated WAD and the selected IWAD
+            # 4. Init ViZDoom with the newly generated WAD and the selected IWAD
             game = get_game(
                 cfg_path, 
                 target_wad_path, 

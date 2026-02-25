@@ -15,7 +15,7 @@ data:
     model: "data/model/"
 # ------------------------------------------------------ BRAIN
 brain:
-  mode: "basic"
+  mode: "fluid"
   sensors:
     visual: true
     depth: false
@@ -56,14 +56,15 @@ randomizer:
   iterations: 10
   duration: 45
   iwads:
-    - "/Users/gmoore/Home/games/doom/wads/doom.wad"
-    - "/Users/gmoore/Home/games/doom/wads/doom2.wad"
-    - "/Users/gmoore/Home/games/doom/wads/plutonia.wad"
-    - "/Users/gmoore/Home/games/doom/wads/tnt.wad"
+    doom1: "/Users/gmoore/Home/games/doom/wads/doom.wad"
+    doom2: "/Users/gmoore/Home/games/doom/wads/doom2.wad"
+    plutonia: "/Users/gmoore/Home/games/doom/wads/plutonia.wad"
+    tnt: "/Users/gmoore/Home/games/doom/wads/tnt.wad"
+    freedoom1: "/Users/gmoore/Home/games/doom/wads/freedoom1.wad"
+    freedoom2: "/Users/gmoore/Home/games/doom/wads/freedoom2.wad"  
   oblige:
     engine: zdoom
     length: single
-    game: [doom2, doom1, tnt, plutonia]
     theme: [original, tech, urban, hell, jumbled, mixed]
     size: [micro, small, regular]
     outdoors: [mixed, plenty]

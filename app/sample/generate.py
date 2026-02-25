@@ -8,7 +8,7 @@ import logging
 # Application Libraries
 from app.models.config import GolemConfig
 from app.utils.conf import register_command
-from app.utils.doom import ObligeGenerator
+from app.sample.interfaces import ObligeGenerator
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Dict
 from enum import Enum
 
 # External Libraries
@@ -23,7 +23,6 @@ class LossType(str, Enum):
 class ObligeConfig(BaseModel):
     engine: str = "zdoom"
     length: str = "single"
-    game: List[str] = ["doom2"]
     theme: List[str] = ["original"]
     size: List[str] = ["small"]
     outdoors: List[str] = ["mixed"]
@@ -43,7 +42,7 @@ class RandomizerConfig(BaseModel):
     output: str
     iterations: int = 5
     duration: int = 60
-    iwads: List[str] = []
+    iwads: Dict[str, str] = {}
     oblige: ObligeConfig
 
 class ModuleConfig(BaseModel):

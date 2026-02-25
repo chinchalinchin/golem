@@ -38,10 +38,6 @@ def randomize(cfg: GolemConfig):
     
     cfg_path = cfg.config[active_profile]
     
-    wad_output_dir = Path(resolve_path(cfg.randomizer.output))
-    wad_output_dir.mkdir(parents=True, exist_ok=True)
-    temp_wad_path = wad_output_dir / "temp_random.wad"
-
     all_sensors = SensorsConfig(visual=True, depth=True, audio=True, thermal=True)
     active_bindings = cfg.keybindings.get(active_profile, {})
 
@@ -53,8 +49,8 @@ def randomize(cfg: GolemConfig):
     logger.info("Press [TAB] at any time to kill the current map early and skip to the next.")
     logger.info("Press [ESC] at any time to abort the entire pipeline.")
 
-    # Instantiate the existing generator
-    generator = ObligeGenerator(cfg)
+    # Instantiate the existing generator wrapper
+    generator = ObligeGenerator(cfg.randomizer)
 
     # Cache the original config dictionary so we can randomly sample from the lists on each loop
     base_oblige_ranges = cfg.randomizer.oblige.model_dump()
@@ -83,20 +79,22 @@ def randomize(cfg: GolemConfig):
             logger.info(f"--- Iteration {i+1}/{iterations} ---")
             
             # 1. Randomize the config in-memory for the generator
+            randomized_oblige = {}
             for key, val in base_oblige_ranges.items():
-                chosen_val = random.choice(val) if isinstance(val, list) else val
-                setattr(cfg.randomizer.oblige, key, chosen_val)
+                randomized_oblige[key] = random.choice(val) if isinstance(val, list) else val
+            
+            # Override the generator's oblige attribute with the flat randomized dictionary
+            generator.oblige = randomized_oblige
                 
-            logger.info(f"Generating WAD: {temp_wad_path.name}")
             try:
                 # Delegate the safe subprocess execution to the existing utility
-                generator.generate(str(temp_wad_path))
+                target_wad_path = generator.build_map("temp_random.wad")
             except Exception as e:
                 logger.error(f"ObligeGenerator failed: {e}")
                 continue
             
             # 2. Init ViZDoom with the newly generated WAD
-            game = get_game(cfg_path, str(temp_wad_path), all_sensors, mode=vizdoom.Mode.SPECTATOR, map_name="map01")
+            game = get_game(cfg_path, target_wad_path, all_sensors, mode=vizdoom.Mode.SPECTATOR, map_name="map01")
             game.init()
             
             for key, command in active_bindings.items():

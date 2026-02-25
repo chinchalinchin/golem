@@ -31,9 +31,9 @@ graph LR
 
 1. **Extract (Perception):** Interfaces with `libvizdoom` to capture the raw phenomenological buffers (RGB screen, stereoscopic depth, high-frequency stereo audio, and semantic labels). Latent game variables (health, ammo, coordinates) are explicitly discarded to force multi-modal heuristic learning.
 2. **Transform (Normalization & DSP):** * **Visual & Depth:** Downsampling via bilinear interpolation (64x64) and min-max scaling ().
-    * **Thermal:** Binary thresholding of the semantic labels buffer to isolate active entities, followed by nearest-neighbor downsampling (64x64).
-    * **Audio:** Zero-mean, unit-variance normalization, transformed via STFT into dense 2D time-frequency Mel Spectrograms, and logarithmically scaled to decibels.
-    * **Channel Permutation:** Matrix transposition for PyTorch (`N, C, H, W`).
+* **Thermal:** Binary thresholding of the semantic labels buffer to isolate active entities, followed by nearest-neighbor downsampling (64x64).
+* **Audio:** Zero-mean, unit-variance normalization, transformed via STFT into dense 2D time-frequency Mel Spectrograms, and logarithmically scaled to decibels.
+* **Channel Permutation:** Matrix transposition for PyTorch (`N, C, H, W`).
 
 3. **Load (Inference/Training):** Feeds dynamic sequence tensors into the parallel Convolutional Neural Networks (Visual, Auditory, Thermal cortices) before concatenating the latent features into the **Neural Circuit Policy (NCP)** to generate action probability distributions.
 
@@ -91,16 +91,33 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     * **`audio`**: High-frequency waveforms transformed into 2D Mel Spectrograms.
     * **`thermal`**: Binary semantic segmentation masks to isolate dynamic entities.
 
-=== "2. Record"
+=== "2. Generate"
 
-    Launch the engine in **Spectator Mode** to capture training data. The engine binds keys dynamically based on the active profile in `app.yaml`.
+    Compile a randomized BSP map using the Oblige procedural generation engine. This helps inject massive geographic variance into the training corpus to prevent spatial overfitting.
+
+    ```bash
+    python main.py generate
+    ```
+
+
+=== "3. Randomize"
+
+    Run a continuous pipeline to procedurally generate maps, launch the engine, and record expert demonstration data across highly varied topological environments.
+
+    ```bash
+    python main.py randomize
+    ```
+
+=== "4. Record"
+
+    Launch the engine in **Spectator Mode** to capture training data manually on specific modules. The engine binds keys dynamically based on the active profile in `app.yaml`.
 
     ```bash
     # Usage: python main.py record --module <module_name>
     python main.py record --module combat
     ```
 
-=== "3. Inspect"
+=== "5. Inspect"
 
     Verify your dataset is balanced and normalized before training via Jinja2 template reports.
 
@@ -111,8 +128,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     !!! tip
         Look for **High Idle Time**. If the agent spends >50% of the time doing nothing, the model will converge to inaction due to gradient sparsity.
 
-
-=== "4. Train"
+=== "6. Train"
 
     Run the **Behavioral Cloning** loop to map the multi-modal observations to action vectors via Binary Cross-Entropy. The DataLoader automatically applies dynamic spatial Mirror Augmentation.
 
@@ -121,7 +137,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py train --module all
     ```
 
-=== "5. Audit"
+=== "7. Audit"
 
     Run a diagnostic Brain Scan to check for class-imbalance failures against the test data.
 
@@ -133,7 +149,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py audit --module all --full
     ```
 
-=== "6. Intervene"
+=== "8. Intervene"
 
     Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold **Left Shift** to suspend the LNN logits and capture raw keyboard overrides. 
 
@@ -143,7 +159,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
 
     Releasing the key automatically dumps a `_recovery` trace file to cure Covariate Shift.
 
-=== "7. Summary"
+=== "9. Summary"
 
     Generate a topological breakdown of the active neural architecture via `torchinfo`. This executes a dummy forward pass to validate that the active sensor cortices are dynamically scaling and concatenating properly into the liquid core.
 
@@ -151,13 +167,22 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py summary
     ```
 
-=== "8. Run"
+=== "10. Run"
 
     Watch the LNN play the game live. The agent manages a continuous hidden state (`hx`) through the Liquid ODEs.
 
     ```bash
     python main.py run --module combat
     ```
+
+=== "11. Examine"
+
+    To get a sense of what frames are activating the model during gameplay, generate heat maps of the final convolution's output during a particular sequence of training data. 
+
+    ```bash
+    python main.py examine --sequence 100
+    ```
+
 ---
 
 ## 📜 License

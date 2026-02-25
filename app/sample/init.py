@@ -58,6 +58,7 @@ def init(cfg: GolemConfig):
     build_cmd = [
         "docker", "buildx", "build",
         "-f", "Dockerfile.oblige",
+        "--platform linux/amd64",
         "-t", image_name,
         "--load", # Ensures the image is loaded into the local docker daemon
         "."

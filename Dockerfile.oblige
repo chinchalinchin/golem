@@ -1,0 +1,60 @@
+# Stage 1: Build Environment
+FROM ubuntu:18.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build tools and legacy dependencies
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    wget \
+    unzip \
+    libfltk1.3-dev \
+    zlib1g-dev \
+    libxft-dev \
+    libxinerama-dev \
+    libjpeg-dev \
+    libpng-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Download, extract, and build Oblige 7.7.0
+RUN wget http://sourceforge.net/projects/oblige/files/Oblige/7.70/oblige-770-source.zip && \
+    unzip oblige-770-source.zip && \
+    mv oblige-770-source oblige
+
+WORKDIR /build/oblige
+
+# Compile the binary
+RUN make
+
+# Stage 2: Runtime Environment
+FROM ubuntu:18.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install only the runtime libraries required to execute the binary
+RUN apt-get update && apt-get install -y \
+    libfltk1.3 \
+    zlib1g \
+    libxft2 \
+    libxinerama1 \
+    libjpeg-turbo8 \
+    libpng16-16 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/oblige
+
+# Copy the compiled binary and necessary local asset directories from the builder
+COPY --from=builder /build/oblige/Oblige .
+COPY --from=builder /build/oblige/games/ ./games/
+COPY --from=builder /build/oblige/scripts/ ./scripts/
+COPY --from=builder /build/oblige/engines/ ./engines/
+COPY --from=builder /build/oblige/modules/ ./modules/
+COPY --from=builder /build/oblige/addons/ ./addons/
+COPY --from=builder /build/oblige/language/ ./language/
+COPY --from=builder /build/oblige/data/ ./data/
+
+# Default entrypoint routes to the executable
+ENTRYPOINT ["/opt/oblige/Oblige"]

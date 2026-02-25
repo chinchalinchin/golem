@@ -8,8 +8,8 @@ from app.models.config import GolemConfig
 from app.utils.conf import setup_logging, COMMAND_REGISTRY
 
 # Importing these registers the decorated functions in COMMAND_REGISTRY
-from app.pipeline import audit, inspect, intervene, train, \
-                           record, run, summary, generate
+from app.pipeline import intervene, train, record, run, generate
+from app.metrics import audit, examine, inspect, list_models, summary
 from app.client import remote, server, spectate, client
 
 logger = logging.getLogger("main")

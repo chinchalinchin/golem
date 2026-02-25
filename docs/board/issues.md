@@ -38,3 +38,31 @@ The `audit` command currently evaluates the model against the `data/training/` d
 
 1. Establish a dedicated `data/validation/` directory. Update the ETL pipeline (`record.py`, `intervene.py`) to randomly route 10-15% of recorded episodes into this holdout folder.
 2. Modify the `audit` command to strictly target this validation directory.
+
+## Issue 4: Live Empirical Benchmarking Pipeline (Headless Rollouts)
+
+**Status:** Open | **Priority:** High | **Opened**: 2026/02/24
+
+**Description:**
+
+Currently, models are exclusively evaluated using static classification metrics (Precision/Recall) via the `audit` command. While this confirms the agent learned to mimic keystrokes, it fails to measure true agentic performance within the continuous POMDP. A 95% imitation accuracy can still yield a 0% survival rate if the 5% error margin results in catastrophic environmental failure (e.g., walking into environmental hazards or failing to dodge).
+
+**Proposed Solution:**
+
+1. Implement an automated `benchmark` pipeline command that executes headless ViZDoom engine rollouts across $N$ episodes.
+2. Track, aggregate, and report true environmental variables rather than classification logits (e.g., average survival time, Kill/Death ratio, ammo efficiency, and total damage taken). 
+3. (Optional) Script an automated tournament utilizing the existing `docker-compose` VDAIC arena to establish an ELO rating for different Golem model iterations against legacy bots.
+
+## Issue 5: Latent State Visualization (Mapping the Liquid Core)
+
+**Status:** Open | **Priority:** Medium | **Opened**: 2026/02/24
+
+**Description:**
+
+The defining feature of the Liquid Neural Network is its continuous hidden state $x(t)$ and its input-dependent varying time-constant. However, this state is currently a black box during both training and inference. We lack the tooling to verify if the network is actually learning meaningful phenomenological abstractions, or if the latent space is just a uniform, un-clustered blob.
+
+**Proposed Solution:**
+
+1. Create a tracing mechanism within the `run` loop to capture the `hx` state vectors and CfC gating activations over the course of a live episode.
+2. Integrate dimensionality reduction tooling (UMAP or t-SNE) to project the high-dimensional latent traces into 2D/3D space, color-coded by the active environmental context (e.g., combat vs. exploration), to visually confirm geometric state clustering.
+3. Plot the network's time-constant derivatives to verify the agent's memory horizon correctly "stretches" during quiet maze navigation and "snaps" (becomes highly reactive) during sudden threat stimuli.

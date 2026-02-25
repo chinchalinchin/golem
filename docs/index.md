@@ -100,17 +100,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py record --module combat
     ```
 
-=== "3. Intervene"
-
-    Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold **Left Shift** to suspend the LNN logits and capture raw keyboard overrides. 
-
-    ```bash
-    python main.py intervene --module combat
-    ```
-
-    Releasing the key automatically dumps a `_recovery` trace file to cure Covariate Shift.
-
-=== "4. Inspect"
+=== "3. Inspect"
 
     Verify your dataset is balanced and normalized before training via Jinja2 template reports.
 
@@ -122,7 +112,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
         Look for **High Idle Time**. If the agent spends >50% of the time doing nothing, the model will converge to inaction due to gradient sparsity.
 
 
-=== "5. Train"
+=== "4. Train"
 
     Run the **Behavioral Cloning** loop to map the multi-modal observations to action vectors via Binary Cross-Entropy. The DataLoader automatically applies dynamic spatial Mirror Augmentation.
 
@@ -131,7 +121,7 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     python main.py train --module all
     ```
 
-=== "6. Audit"
+=== "5. Audit"
 
     Run a diagnostic Brain Scan to check for class-imbalance failures against the test data.
 
@@ -142,6 +132,16 @@ Golem operates in a continuous iterative loop. Select a phase below to view the 
     # Run a full-corpus evaluation without overlapping sequence strides
     python main.py audit --module all --full
     ```
+
+=== "6. Intervene"
+
+    Launch the agent autonomously. If the agent enters an equilibrium state (e.g., staring at a corner), hold **Left Shift** to suspend the LNN logits and capture raw keyboard overrides. 
+
+    ```bash
+    python main.py intervene --module combat
+    ```
+
+    Releasing the key automatically dumps a `_recovery` trace file to cure Covariate Shift.
 
 === "7. Summary"
 

@@ -20,9 +20,9 @@ brain:
     visual: true
     depth: false
     audio: false
-    thermal: true
-  activation: 0.4
-  cortical_depth: 2
+    thermal: false
+  activation: 0.5
+  cortical_depth: 3
   working_memory: 128
   dsp:
     sample_rate: 44100
@@ -106,7 +106,7 @@ modules:
     map: "map01"
     episodes: 5
   random:
-    scenario: "/Users/gmoore/Home/games/doom/wads/random1.wad"
+    scenario: "/Users/gmoore/Home/games/doom/wads/random2.wad"
     map: "map01"
     episodes: 1
   # --- External / Community RL WADs ---

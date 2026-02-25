@@ -62,7 +62,7 @@ Implement Stateful BPTT in `train.py`:
 
 ## Issue: Phenomenological Saliency Mapping (Grad-CAM)
 
-**Status:** Open | **Priority:** High | **Opened**: 2026/02/21
+**Status:** Closed | **Priority:** High | **Opened**: 2026/02/21
 
 **Description:**
 

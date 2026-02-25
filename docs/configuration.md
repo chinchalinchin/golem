@@ -16,9 +16,10 @@ General metadata and logging settings for the application.
 
 Maps the high-level brain modes to the specific underlying ViZDoom `.cfg` files. These files dictate the engine's available buttons and game variables.
 
-* **`basic`**: Maps to `conf/basic.cfg` (8 dimensions).
-* **`classic`**: Maps to `conf/classic.cfg` (10 dimensions).
-* **`fluid`**: Maps to `conf/fluid.cfg` (9 dimensions).
+* **`simple`**: Maps to `conf/simple.cfg` (7 dimensions: Movement + Turn + Attack).
+* **`basic`**: Maps to `conf/basic.cfg` (8 dimensions: Super-set adding Use).
+* **`classic`**: Maps to `conf/classic.cfg` (10 dimensions: Super-set adding Explicit weapon slots).
+* **`fluid`**: Maps to `conf/fluid.cfg` (9 dimensions: Super-set adding Sequential weapon toggles).
 
 ### 3. `data`
 
@@ -33,9 +34,10 @@ Defines the active architecture of the Neural Circuit Policy (NCP).
 
 | Property | Description |
 | :--- | :--- |
-| **`mode`** | The active profile (`basic`, `classic`, or `fluid`). This dictates which configuration dictionary is loaded across the pipeline. |
+| **`mode`** | The active profile (`simple`, `basic`, `classic`, or `fluid`). This dictates which configuration dictionary is loaded across the pipeline. |
 | **`cortical_depth`** | The number of CNN layers in the visual cortex. Higher depths aggressively pool spatial features into denser representations. |
 | **`working_memory`** | The number of hidden units in the CfC liquid core, defining the capacity of the agent's continuous temporal state. |
+| **`activation`** | The probability threshold (e.g., `0.5`) applied to the LNN's sigmoid logits during live inference to determine if a multi-label action should be triggered. |
 | **`sensors`** | Boolean toggles (`visual`, `depth`, `audio`, `thermal`) that dynamically scale the input channels and parallel network branches (e.g., activating the parallel 2D Auditory and Thermal Cortices for multi-modal sensor fusion). |
 
 #### Signal Processing Dynamics: `dsp`
@@ -103,10 +105,15 @@ The **`batch_size`** (e.g., 16) regulates gradient noise.
 
 ### 7. `randomizer`
 
-Configures the external procedural generation engine used to prevent spatial overfitting and Covariate Shift.
+Configures the external procedural generation engine used to prevent spatial overfitting and Covariate Shift. The `randomize` pipeline utilizes this block to inject massive geographic variance into the training corpus.
 
 * **`executable`**: The absolute path to the compiled Oblige 7.70 binary.
-* **`output`**: The directory where procedurally generated `.wad` files are stored before being loaded by the `generate` pipeline.
+* **`output`**: The directory where procedurally generated `.wad` files are stored before being loaded by the pipeline.
+* **`iterations`**: The number of continuous maps to generate, record, and save during a single run of the `randomize` pipeline.
+* **`duration`**: The maximum lifespan (in seconds) of a recorded episode on a generated map before the pipeline truncates it and moves to the next iteration.
+* **`oblige`**: Defines the specific topological rules and dimensions for the generator.
+  * To enforce extreme geographic variance across iterations, properties can be defined as lists (e.g., `theme: [original, tech, urban, hell]`). The pipeline will dynamically sample a random parameter from the array for every generated map.
+  * Configurable properties include: `game`, `engine`, `length`, `theme`, `size`, `outdoors`, `caves`, `liquids`, `hallways`, `teleporters`, `steepness`, `mons`, `strength`, `health`, `ammo`, and `weapons`.
 
 ### 8. `modules`
 
@@ -114,4 +121,4 @@ A dictionary mapping human-readable task names (e.g., `combat`, `navigation`) to
 
 ### 9. `keybindings`
 
-A dictionary mapping the agent's action space profiles (`basic`, `classic`, `fluid`) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during `record` and mapped to `pynput` listeners during `intervene`.
+A dictionary mapping the agent's action space profiles (`simple`, `basic`, `classic`, `fluid`) to physical keyboard inputs. These are injected dynamically into the ViZDoom engine during `record` and mapped to `pynput` listeners during `intervene`.

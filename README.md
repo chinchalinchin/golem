@@ -33,9 +33,10 @@ The project follows a strict ETL (Extract, Transform, Load) pipeline pattern, ut
 │       └── <mode>/     # Previous Trained Model Weights (.pth)
 ├── app/                # Source Code
 │   ├── client/         # Gameplay Modules (agent, host)
-│   ├── pipeline/       # ML Modules (analyze, intervene, record, run, train)
+│   ├── metrics/        # Analysis Modules (audit, examine, inspect, summary)
 │   ├── models/         # Data Models (brain, config, dataset)
-│   ├── templates/      # Jinja2 templates for reporting
+│   ├── pipeline/       # ML Modules (analyze, intervene, record, run, train)
+│   ├── templates/      # Jinja2 report templates
 │   └── utils           # Application utilities
 ├── tests/              # Unit Tests
 └── main.py             # CLI Entrypoint
@@ -128,10 +129,16 @@ python main.py record --module combat
 
 ### 3. Generate
 
-Compile a randomized BSP map using Oblige and immediately launch a recording session to train spatial generalization.
+Compile a randomized BSP map using Oblige,
 
 ```bash
 python main.py generate
+```
+
+The generated wad can be wired into the training sessions through the `app.yaml`'s `modules` property. In addition, to simplify the process, the application can run through a series of randomized maps and record the results,
+
+```bash
+python main.py randomize
 ```
 
 ### 3. Intervene

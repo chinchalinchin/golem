@@ -68,13 +68,11 @@ def examine(cfg: GolemConfig, module_name: str = "all", target_file: str = None,
     data_dir = Path(resolve_path(cfg.data.dirs["training"])) / active_profile
     
     # 1. Load the Dataset
-    print(data_dir)
     if module_name and module_name.lower() == "all":
         file_pattern = f"{cfg.data.prefix}*.npz"
     else:
         file_pattern = f"{cfg.data.prefix}{module_name}*.npz"
         
-    print(file_pattern)
     dataset = DoomStreamingDataset(
         [ str(data_dir) ], 
         seq_len=cfg.training.sequence_length,

@@ -1,6 +1,6 @@
 
 from app.sample.randomize import randomize
 from app.sample.generate import generate
-from app.sample.init import init
+from app.sample.initialize import init
 
 __all__ = [ 'generate', 'randomize', 'init']

@@ -18,7 +18,7 @@ brain:
   mode: "fluid"
   sensors:
     visual: true
-    depth: false
+    depth: true
     audio: false
     thermal: true
   activation: 0.5
@@ -56,11 +56,9 @@ randomizer:
   iterations: 10
   duration: 45
   iwads:
-    doom1: "/Users/gmoore/Home/games/doom/wads/doom.wad"
     doom2: "/Users/gmoore/Home/games/doom/wads/doom2.wad"
     plutonia: "/Users/gmoore/Home/games/doom/wads/plutonia.wad"
     tnt: "/Users/gmoore/Home/games/doom/wads/tnt.wad"
-    freedoom1: "/Users/gmoore/Home/games/doom/wads/freedoom1.wad"
     freedoom2: "/Users/gmoore/Home/games/doom/wads/freedoom2.wad"  
   oblige:
     engine: zdoom
@@ -73,7 +71,7 @@ randomizer:
     hallways: [mixed, plenty]
     teleporters: [none]
     steepness: [none, mixed]
-    mons: [normal]
+    mons: [scarce, less, normal]
     strength: [medium]
     health: [normal]
     ammo: [normal]
@@ -114,7 +112,7 @@ modules:
     map: "map01"
     episodes: 5
   random:
-    scenario: "/Users/gmoore/Home/lib/golem/data/wads/temp.wad"
+    scenario: "/Users/gmoore/Home/lib/golem/data/wads/random.wad"
     map: "map01"
     episodes: 1
   # --- External / Community RL WADs ---

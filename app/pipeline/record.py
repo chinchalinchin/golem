@@ -15,7 +15,7 @@ from app.utils.model import SensoryExtractor
 logger = logging.getLogger(__name__)
 
 @register_command("record")
-def record(cfg: GolemConfig, module_name: str = "basic"):
+def record(cfg: GolemConfig, module_name: str = "basic", iwad_path: str = None):
     try:
         from pynput import keyboard
     except ImportError:
@@ -49,7 +49,10 @@ def record(cfg: GolemConfig, module_name: str = "basic"):
     all_sensors = SensorsConfig(visual=True, depth=True, audio=True, thermal=True)
     
     # Explicitly set SPECTATOR mode to allow manual human input via keyboard
-    game = get_game(cfg_path, scenario, all_sensors, mode=vizdoom.Mode.SPECTATOR, map_name=map_name)
+    game = get_game(cfg_path, scenario, all_sensors, 
+                    mode=vizdoom.Mode.SPECTATOR, 
+                    map_name=map_name,
+                    iwad_path=iwad_path)
     game.init()
     
     active_bindings = cfg.keybindings.get(active_profile, {})

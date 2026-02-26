@@ -4,6 +4,7 @@ Generates randomized DOOM maps to cure spatial overfitting and covariate shift.
 """
 # Standard Libraries
 import logging
+import random
 
 # Application Libraries
 from app.models.config import GolemConfig
@@ -18,7 +19,7 @@ def generate(cfg: GolemConfig, target_file: str = None):
     Generates a random procedural map and immediately launches a recording session.
     """
     if target_file is None:
-        target_file = "temp.wad"
+        target_file = "random.wad"
 
     generator = ObligeGenerator(cfg.randomizer)
     generator.build_map(target_file)

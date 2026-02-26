@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--recovery", action="store_true", help="Include recovery (DAgger) data in training")
     parser.add_argument("--episodes", type=int, help="Number of episodes to record/generate", default=5)
     parser.add_argument("--index", type=int, help="Specific sequence index to target", default=0)
-    
+    parser.add_argument("--iwad", help="Override the default IWAD of the Doom Engine", default=None)
     # Randomizer specific runtime overrides
     parser.add_argument("--iterations", type=int, help="Override randomizer loop iterations", default=None)
     parser.add_argument("--duration", type=int, help="Override randomizer recording duration in seconds", default=None)
@@ -77,6 +77,8 @@ def main():
         kwargs['mode'] = args.mode
     if 'index' in sig.parameters:
         kwargs['index'] = args.index
+    if 'iwad_path' in sig.parameters:
+        kwargs['iwad_path'] = args.iwad
 
     # Execute the resolved function
     func(cfg, **kwargs)

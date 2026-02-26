@@ -16,7 +16,7 @@ from app.utils.doom import get_game
 logger = logging.getLogger(__name__)
 
 @register_command("run")
-def run(cfg: GolemConfig, module_name: str = "basic"):
+def run(cfg: GolemConfig, module_name: str = "basic", iwad_path = None):
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -67,7 +67,7 @@ def run(cfg: GolemConfig, module_name: str = "basic"):
     map_name = module.map
 
     # always get all_sensors for recording data
-    game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name)   
+    game = get_game(cfg_path, scenario, cfg.brain.sensors, map_name=map_name, iwad_path=iwad_path)   
     game.init()
 
     logger.info("Golem is waking up...")

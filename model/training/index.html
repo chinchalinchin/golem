@@ -2994,9 +2994,7 @@ pixels triggered the agent's highest-probability action prediction.</p>
 <span class="normal">224</span>
 <span class="normal">225</span>
 <span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;examine&quot;</span><span class="p">)</span>
+<span class="normal">227</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_command</span><span class="p">(</span><span class="s2">&quot;examine&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">examine</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">GolemConfig</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">target_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a phenomenological saliency map (Grad-CAM) for a specific sequence.</span>
@@ -3022,13 +3020,11 @@ pixels triggered the agent's highest-probability action prediction.</p>
     <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">resolve_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dirs</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="n">active_profile</span>
 
     <span class="c1"># 1. Load the Dataset</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">module_name</span> <span class="ow">and</span> <span class="n">module_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
         <span class="n">file_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prefix</span><span class="si">}</span><span class="s2">*.npz&quot;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">file_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prefix</span><span class="si">}{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">*.npz&quot;</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">file_pattern</span><span class="p">)</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">DoomStreamingDataset</span><span class="p">(</span>
         <span class="p">[</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span> <span class="p">],</span> 
         <span class="n">seq_len</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">,</span>

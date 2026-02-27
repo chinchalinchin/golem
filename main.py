@@ -20,18 +20,24 @@ def main():
     
     # Dynamically populate choices from the registry
     parser.add_argument("function", choices=list(COMMAND_REGISTRY.keys()), help="Operation to perform")
-    parser.add_argument("--module", help="Specific module or 'all'", default="basic")
-    parser.add_argument("--file", help="Specific file to inspect", default=None)
-    parser.add_argument("--players", type=int, help="Number of players for the host arena", default=3)
-    parser.add_argument("--mode", choices=["simple", "basic", "classic", "fluid"], help="Override the config brain mode at runtime", default=None)
-    parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
+    # Training Arguments
     parser.add_argument("--recovery", action="store_true", help="Include recovery (DAgger) data in training")
     parser.add_argument("--episodes", type=int, help="Number of episodes to record/generate", default=5)
-    parser.add_argument("--index", type=int, help="Specific sequence index to target", default=0)
+    # General Arguments & Overrides
+    parser.add_argument("--module", help="Specific module or 'all'", default="basic")
+    parser.add_argument("--mode", choices=["simple", "basic", "classic", "fluid"], help="Override the config brain mode at runtime", default=None)
     parser.add_argument("--iwad", help="Override the default IWAD of the Doom Engine", default=None)
-    # Randomizer specific runtime overrides
+    parser.add_argument("--file", help="Specific file to inspect", default=None)
+    # Audit Arguments
+    parser.add_argument("--full", action="store_true", help="Run a full audit instead of capping at 50 batches")
+    # Examine Arguments
+    parser.add_argument("--index", type=int, help="Specific sequence index to target", default=0)
+    # Randomizer Arguments
     parser.add_argument("--iterations", type=int, help="Override randomizer loop iterations", default=None)
     parser.add_argument("--duration", type=int, help="Override randomizer recording duration in seconds", default=None)
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3], help="Curriculum phase for procedural generation (1-3)", default=3)
+    # Client Arguments
+    parser.add_argument("--players", type=int, help="Number of players for the host arena", default=3)
 
     args = parser.parse_args()
 
@@ -79,6 +85,8 @@ def main():
         kwargs['index'] = args.index
     if 'iwad_path' in sig.parameters:
         kwargs['iwad_path'] = args.iwad
+    if 'phase' in sig.parameters:
+        kwargs['phase'] = args.phase
 
     # Execute the resolved function
     func(cfg, **kwargs)

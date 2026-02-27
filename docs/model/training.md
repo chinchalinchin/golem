@@ -114,7 +114,41 @@ To maintain structural integrity of the dynamical system, Golem utilizes determi
 
 ---
 
-## 5. Diagnostic Auditing & Validation
+## 5. Curriculum Learning & Procedural Priors
+
+
+To generalize beyond fixed configurations and prevent spatial overfitting, Golem relies on dynamic procedural generation. However, pure uniform random sampling over map variables ($x_i \sim U(a_i, b_i)$) generates degenerate geometry that pollutes gradient flow. For example, spawning a boss swarm inside a micro-sized corridor causes hitboxes to clip, generating erratic optical flow that conflicts with continuous-time causal learning.
+
+To enforce topological coherence, the `CurriculumObligeGenerator` establishes a structured probability distribution across multiple training epochs. 
+
+### Phase-Based Variance Constraints
+
+The continuous hidden state $x(t)$ requires time to establish a baseline causal understanding of spatial geometry before dealing with hyper-complex disruptions. Curriculum learning parameterizes the sample bounds based on the epoch phase $t$:
+
+$$
+x_i \sim U(a_i(t), b_i(t))
+$$
+
+* **Phase 1 (Stabilization):** Constrains sampling to simple topologies. It explicitly removes hazards like teleporters, which instantly replace the visual manifold and cause "Amnesia Traps" by collapsing the ODE's temporal derivative $\frac{dx}{dt}$ before the network has learned to persist memory through structural jumps.
+* **Phase 2 (Expansion):** Introduces verticality, complex room flow, and moderate threat density.
+* **Phase 3 (Generalization):** Opens the bounds to the full multi-variate distribution defined in the configuration, forcing the model to adapt to arbitrary topological extremes.
+
+### Conditional Probabilities (Bayesian Networks)
+
+
+To reject physically impossible edge cases within a phase, the generator applies a strict Bayesian network of conditional dependencies, rather than assuming independence ($P(M) = \prod P(x_i)$). 
+
+Map parameters are mathematically coupled. For instance, the probability of monster density is evaluated conditionally on the volumetric capacity of the level:
+
+$$
+P(\text{mons} \mid \text{size} = \text{micro})
+$$
+
+By routing the randomizer logic through conditional priors (e.g., forcibly down-scaling enemy density if the geometry footprint is insufficient, or enforcing outdoor generation if steepness is set to an epic scale), the procedural pipeline guarantees that every generated map provides mathematically sound gradients, maximizing the utility of the training data.
+
+---
+
+## 6. Diagnostic Auditing & Validation
 
 Because the aggregate loss scalar $\mathcal{L}(\theta)$ fundamentally obscures multi-label class imbalances (a model that never shoots will still achieve 95% accuracy if the "Attack" label is sparse), Golem utilizes a dedicated static `audit` module.
 
@@ -146,7 +180,7 @@ Historically, during normal training, the sliding window overlapped by shifting 
 
 ## API Reference
 
-The data extraction, LNN optimization, and evaluation mechanics are orchestrated by the handlers below.
+The data extraction, LNN optimization, evaluation mechanics, and curriculum parameters are orchestrated by the handlers below.
 
 ### The Training Loop
 
@@ -155,6 +189,10 @@ The data extraction, LNN optimization, and evaluation mechanics are orchestrated
 ### DAgger Intervention
 
 ::: app.pipeline.intervene.intervene
+
+### Procedural Curriculum Pipeline
+
+::: app.sample.curriculum.CurriculumObligeGenerator
 
 ### Data Inspection & Auditing
 

@@ -8,8 +8,6 @@ Because Liquid Neural Networks (LNNs) and their Closed-form Continuous (CfC) app
 
 To prevent Out-Of-Memory (OOM) crashes when processing hours of high-dimensional multi-modal gameplay, Golem does not duplicate flat arrays in memory. Instead, it constructs a lightweight pointer map consisting of tuples `(file_idx, start_idx, is_mirrored, is_first)`. During training, continuous arrays are lazily sliced on-the-fly into strictly contiguous, non-overlapping sequences with a stride equal to $L$.
 
-
-
 To prevent Stateful BPTT Continuity Collapse (where a naive dataloader would effectively teleport the agent's memory hundreds of frames into the future between batches), PyTorch's default `DataLoader` iteration is replaced with a custom `StatefulStratifiedBatchSampler`. This sampler abandons a flat list structure and instead manages $B$ independent parallel streams. It guarantees that row $b$ in batch step $k+1$ is the exact chronological continuation of row $b$ from step $k$, seamlessly preserving the ODE time constants across the entire epoch.
 
 Given an expert trajectory of length $T$, defined as $\tau=\{(o_1,y_1),(o_2,y_2),\dots,(o_T,y_T)\}$, and a fixed temporal sequence length $L$ (e.g., $L=32$), we extract sequence batches. With the introduction of multi-modal sensor fusion, the observation $o_t$ is a composite of visual, auditory, and thermal inputs. The input tensor sequences $\mathbf{X}^{(vis)}_i$, $\mathbf{X}^{(aud)}_i$, and $\mathbf{X}^{(thm)}_i$, and the target action sequence $\mathbf{Y}_i$ starting at index $i$ are:
@@ -47,8 +45,6 @@ $$
 Where $\sigma(\cdot)$ is the Sigmoid activation function, $y_{t,j}$ is the ground truth label, and $z_{t,j}$ is the network's prediction. 
 
 However, pure BCE treats all errors equally. Because human expert demonstrations consist overwhelmingly of simple navigation frames (the "Hold W Trap"), the cumulative gradient of these easily classified background actions overwhelms the sparse, high-value gradients of rare actions like combat. 
-
-
 
 To cure this convergence trap, Golem implements **Focal Loss**, which extends the BCE formulation by introducing a dynamically scaled modulating factor. Let $p_{t,j}=\sigma(z_{t,j})$. The Focal Loss $\mathcal{L}_{focal}$ is computed as:
 
@@ -104,8 +100,6 @@ This geometric inversion enforces perfect spatial symmetry in the agent's spatia
 
 ## 4. Covariate Shift & DAgger Intervention
 
-
-
 A fundamental flaw of pure Behavioral Cloning is **Covariate Shift** (the "Perfect Play" trap). If the network is trained exclusively on flawless expert demonstrations, it never learns how to recover from mistakes. During live inference, a microscopic mathematical error will push the agent slightly off the optimal trajectory. Because this sub-optimal state $s_{err}$ exists outside the training distribution, the agent's predictions become chaotic, and the errors rapidly compound until the agent is completely stuck.
 
 To cure this, Golem employs **DAgger (Dataset Aggregation)**. During live inference, the human expert monitors the autonomous agent. If the agent enters an equilibrium state (e.g., staring into a corner), the human holds a hotkey to instantly suspend the LNN's logits and hijack the controls. 
@@ -113,8 +107,6 @@ To cure this, Golem employs **DAgger (Dataset Aggregation)**. During live infere
 To ensure the network understands the causal sequence that led to the error, the intervention pipeline utilizes a rolling `collections.deque` buffer. This temporarily stores the $L$ autonomous frames immediately preceding the override. When the human operator takes control, this historical context is flushed into a `_recovery` trace alongside the corrective actions. This explicitly teaches the network not only the correction, but the specific sub-optimal visual precursors that demand it, actively teaching the network how to correct trajectory deviations.
 
 ### Catastrophic Forgetting & Stratified Sampling
-
-
 
 When applying the DAgger interventions, pure sequential fine-tuning on the `_recovery` traces would cause the model to suffer from **catastrophic forgetting**. The continuous differential equations governing the LNN's hidden state would overfit to the highly localized corrective vectors, effectively collapsing the broader phenomenological heuristics previously learned for normal navigation.
 
